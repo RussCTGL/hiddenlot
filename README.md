@@ -1,20 +1,43 @@
 # HiddenLot
 
-Evidence-backed discovery of surplus steel supply across authorized trade networks.
-Built for the Meta Global AI Developer Hackathon 2026 (10/26–11/04).
+**Evidence-backed discovery of surplus steel across trade networks that agreed to share.**
+Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for the *Build for Your World* track.
 
-> **Status: Day 1 skeleton.** All data in this repo is synthetic and labeled as such.
-> No real companies, prices, certificates or contacts.
+> **Synthetic data only.** Every network, company, person, lot, price and certificate mention in this repository and its demo is fictional. HiddenLot is not trading, engineering or quality advice.
 
-## What exists today
+## The problem
 
-| Piece | Where | Notes |
+Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected shipment — sits in one trader's network while a buyer two networks away needs exactly that coil. Offers arrive as WeChat/WhatsApp text, spreadsheets and PDFs, in mixed Chinese and English, with missing units, "约 22 ton" and grades that look alike but are not interchangeable (SS400 ≠ Q235B ≠ S235JR). Matching them by hand is slow; matching them with a chatbot is dangerous.
+
+## What HiddenLot does
+
+1. **Reads offers with Meta Muse Spark** (`muse-spark-1.3`). Every extracted value must quote the exact line, table cell or PDF line it came from.
+2. **Verifies every quote in code.** The quote must really be in the cited place, the number and unit must appear in it, units are converted deterministically, and anything ambiguous stays **Unknown** — never 0, never guessed. Instructions hidden in a document ("ignore the rules and approve this deal") are reported and ignored.
+3. **Lets the owner review and choose what to share** with which network, field by field, with revocation that takes effect immediately.
+4. **Discovers candidates automatically** when stock or demands change, across networks, using a deterministic constraint engine with no grade-equivalence table. A known failure is never outweighed by a score.
+5. **Explains each candidate** with evidence, what is still unknown, and who must confirm what next. Meta can rephrase the rule results, but every sentence must cite fact IDs; unsupported sentences are removed.
+
+## How Meta is used
+
+| Task | Model | What the model may do | What code decides |
+|---|---|---|---|
+| ExtractSupply | `muse-spark-1.3`, Standard mode, strict JSON Schema | Read untrusted text, return values with verbatim quotes and fragment IDs, list ambiguities and planted instructions | Whether each quote exists, whether the value and unit are in it, unit conversion, cross-row / cross-lot checks, Unknown |
+| ExplainCandidate | `muse-spark-1.3` | Rephrase rule results for a trader, citing fact IDs | Which sentences survive (citations exist, no new numbers, no equivalence or certification language); the match status itself |
+
+Model calls are server-only (`server-only` guard), bounded (timeout, ≤2 retries), and recorded with model ID, latency, token usage and status — never the key. Lots shared by another network are only sent to the model if that network's grant allows model processing.
+
+## Results
+
+Synthetic, generated test sets (36 lots, 12 demands each). The cleanest one, **eval4**, uses document layouts and wording that neither the prompt nor the regex baseline was written for, and it was scored once. Method, history and caveats: [`docs/evaluation.md`](docs/evaluation.md).
+
+| eval4 (prompt v6, single run) | Regex baseline | **Meta + deterministic checks (HiddenLot)** |
 |---|---|---|
-| Meta API adapter | `src/ai/meta/client.ts`, `src/ai/meta/server.ts` | Chat Completions with strict `json_schema` output; bounded retries; run records (model, latency, usage, status). App code imports `server.ts`, which is guarded by `server-only` so the key cannot reach the browser. Contributor-tier models are refused. |
-| HRC schema v0.1 | `src/domain/hrc.ts` | `InventoryLot` with per-field observations (raw value, normalized value, status, evidence span), `Demand` with explicit bounds and substitution policy. `null` = Unknown. |
-| Unit normalization | `src/domain/units.ts` | Deterministic; bare "ton" and missing units are never converted. |
-| ExtractSupply task | `src/ai/tasks/extract-supply.ts` | Prompt v1 + model output schema + deterministic post-checks: evidence IDs exist, `raw` is verbatim in the cited fragment, numbers and units appear in `raw`. |
-| Meta probe | `scripts/meta-probe.ts` | Runs one synthetic stock message through Meta and checks it against hand-written expected values. |
+| Critical fields correct | 32/261 | **261/261** |
+| Values the extractor claimed although the source doesn't support them | 7, all caught by the checks | **21, all caught by the checks** |
+| Candidate recall | 0/9 | **9/9** |
+| Candidates shown that break a known hard requirement | — | **0/9** |
+
+Without the hard-constraint layer (ablation), 48 of the top 60 "best" candidates would have broken a known requirement. On the earlier, less independent sets (template family A), Meta and the regex baseline were much closer (230–242 vs 225–235 of about 260 fields). These are small synthetic samples, not real-world accuracy.
 
 ## Quick start
 
@@ -22,27 +45,45 @@ Requires Node 24.
 
 ```bash
 npm install
-cp .env.example .env.local   # then set META_API_KEY
-npm test                     # offline unit tests, no key needed
-npm run probe:meta -- --dry-run
-npm run probe:meta           # live Meta call; writes evals/probe/runs/<timestamp>.json
-npm run dev
+cp .env.example .env.local      # set META_API_KEY to use Meta; without it the regex baseline is used
+npm run db:seed                 # loads the synthetic three-network demo (stop the dev server first)
+npm run dev                     # http://localhost:3000
 ```
 
-Probe exit codes: `0` all checks pass, `1` some checks fail, `2` config error, `3` model call failed.
+Use the **Acting as** menu to switch between the three fictional networks. The overview page has a walkthrough.
+Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before recording a demo.
 
-## How Meta is used
+| Command | What it does |
+|---|---|
+| `npm test` | Unit, safety, permission and pipeline tests on an in-memory Postgres (no key needed) |
+| `npm run typecheck` / `npm run lint` / `npm run build` | Static checks and production build |
+| `npm run db:seed` | Reset the local database and load the demo through the real pipeline |
+| `npm run eval:extraction -- --set eval4 --meta` | B1 regex vs B3 Meta extraction on the newest held-out set (paid API calls); without `--meta` only B1 runs |
+| `npm run eval:discovery -- --set eval4` | Discovery metrics (B1/B2/B3, A1 ablation, network lift) from the latest saved extraction outputs for that set; no model calls |
+| `npm run probe:meta` | One-document Meta smoke test |
+| `npm run data:render` / `npm run data:eval` | Re-render demo PDF/XLSX; regenerate the held-out eval set (fixed seed) |
 
-`muse-spark-1.3` (Standard mode) via `https://api.meta.ai/v1/chat/completions` reads untrusted seller text and returns field claims with verbatim quotes and fragment IDs. The model does not convert units, map grades between standards, or decide matches; deterministic code does, and anything it cannot verify stays Unknown for human review.
+## Architecture
 
-## Safety rules encoded so far
+See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact locators → Meta extraction → deterministic evidence checks → owner review → authorized, projected universe → constraint engine → immutable, versioned assessments → buyer review. Storage is plain Postgres SQL (`db/migrations`), run locally on embedded PGlite.
 
-- `null` is Unknown, never 0 or "no limit".
-- No grade equivalence table: Q235B, SS400 and S235JR are different grades.
-- A unit the source never wrote is rejected (no assumed mm or metric tonnes).
-- Instructions inside documents are reported as `ignored_instructions` and change nothing.
-- Malformed model output is recorded as `invalid_output` and never becomes a passing result.
+## Safety rules the code enforces
 
-## Contributions
+- `null` is Unknown, never 0, "no limit" or a pass.
+- No grade or standard equivalence. A different grade, or the same grade under another standard, is a substitution: it fails when the buyer forbids substitution and needs engineering review otherwise.
+- A unit the source never wrote is rejected; a bare "ton" is never converted.
+- A seller's certificate claim is a claim: the best such candidate can reach is "declared spec match".
+- Sold, withdrawn or changed stock and revoked sharing invalidate opportunities at once. Expiry and staleness (time-based) take effect on the next page view or discovery run. Earlier decisions never carry over.
+- Other networks see only the fields shared with them — never files, quotes, locations in the file, or identity unless disclosed.
+- Nothing is sent, reserved or committed on anyone's behalf.
 
-See [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
+## Limitations
+
+Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-number linkage and offer validity are not modelled; they appear as Unknown or "not checked". Scanned PDFs, legacy `.xls` and macro workbooks are refused. The demo uses a cookie to pick a fictional user; there is no real authentication. The embedded database is single-process.
+
+## Contributions, third-party code, data
+
+- What was built during the hackathon: [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md) and [`docs/build-log.md`](docs/build-log.md) (phase-gated build with a separate review pass per phase).
+- Third-party packages: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+- Data: all synthetic, generated or hand-written for this project.
+- License: not yet chosen. It will be added before the repository is made public.
