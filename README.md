@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HiddenLot
 
-## Getting Started
+Evidence-backed discovery of surplus steel supply across authorized trade networks.
+Built for the Meta Global AI Developer Hackathon 2026 (10/26–11/04).
 
-First, run the development server:
+> **Status: Day 1 skeleton.** All data in this repo is synthetic and labeled as such.
+> No real companies, prices, certificates or contacts.
+
+## What exists today
+
+| Piece | Where | Notes |
+|---|---|---|
+| Meta API adapter | `src/ai/meta/client.ts`, `src/ai/meta/server.ts` | Chat Completions with strict `json_schema` output; bounded retries; run records (model, latency, usage, status). App code imports `server.ts`, which is guarded by `server-only` so the key cannot reach the browser. Contributor-tier models are refused. |
+| HRC schema v0.1 | `src/domain/hrc.ts` | `InventoryLot` with per-field observations (raw value, normalized value, status, evidence span), `Demand` with explicit bounds and substitution policy. `null` = Unknown. |
+| Unit normalization | `src/domain/units.ts` | Deterministic; bare "ton" and missing units are never converted. |
+| ExtractSupply task | `src/ai/tasks/extract-supply.ts` | Prompt v1 + model output schema + deterministic post-checks: evidence IDs exist, `raw` is verbatim in the cited fragment, numbers and units appear in `raw`. |
+| Meta probe | `scripts/meta-probe.ts` | Runs one synthetic stock message through Meta and checks it against hand-written expected values. |
+
+## Quick start
+
+Requires Node 24.
 
 ```bash
+npm install
+cp .env.example .env.local   # then set META_API_KEY
+npm test                     # offline unit tests, no key needed
+npm run probe:meta -- --dry-run
+npm run probe:meta           # live Meta call; writes evals/probe/runs/<timestamp>.json
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Probe exit codes: `0` all checks pass, `1` some checks fail, `2` config error, `3` model call failed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How Meta is used
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`muse-spark-1.3` (Standard mode) via `https://api.meta.ai/v1/chat/completions` reads untrusted seller text and returns field claims with verbatim quotes and fragment IDs. The model does not convert units, map grades between standards, or decide matches; deterministic code does, and anything it cannot verify stays Unknown for human review.
 
-## Learn More
+## Safety rules encoded so far
 
-To learn more about Next.js, take a look at the following resources:
+- `null` is Unknown, never 0 or "no limit".
+- No grade equivalence table: Q235B, SS400 and S235JR are different grades.
+- A unit the source never wrote is rejected (no assumed mm or metric tonnes).
+- Instructions inside documents are reported as `ignored_instructions` and change nothing.
+- Malformed model output is recorded as `invalid_output` and never becomes a passing result.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [CONTRIBUTIONS.md](CONTRIBUTIONS.md).
