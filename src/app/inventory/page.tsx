@@ -38,7 +38,7 @@ async function Inventory() {
   const lots = await listLotsOfNetwork(await getDb(), actor.network_id);
   const now = requestNow().getTime();
   return (
-    <Page title="Inventory" subtitle={`${network.alias}'s own lots. Published lots take part in discovery for networks you share with; sold or withdrawn lots stop immediately.`} actions={<ButtonLink href="/intake" primary>Add stock</ButtonLink>}>
+    <Page title="Inventory" subtitle={`${network.alias} · published lots join discovery`} actions={<ButtonLink href="/intake" primary>Add stock</ButtonLink>}>
       {lots.length === 0 ? (
         <Empty>No lots yet.</Empty>
       ) : (
@@ -46,7 +46,7 @@ async function Inventory() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-zinc-400">
+                <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
                   <th className="pb-2 font-medium">Lot</th>
                   <th className="pb-2 font-medium">Grade / standard</th>
                   <th className="pb-2 font-medium">Size</th>
@@ -64,7 +64,7 @@ async function Inventory() {
                     <tr key={l.id} className="border-t border-zinc-100 align-top dark:border-zinc-800">
                       <td className="py-2 pr-3">
                         {l.source_document_id ? (
-                          <Link href={`/documents/${l.source_document_id}`} className="font-medium underline">
+                          <Link href={`/documents/${l.source_document_id}`} className="font-medium text-accent hover:underline">
                             {String(l.data.fields.seller_lot_ref.normalized_value ?? l.id)}
                           </Link>
                         ) : (

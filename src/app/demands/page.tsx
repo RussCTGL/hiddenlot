@@ -19,7 +19,7 @@ async function Demands() {
   const { actor, network } = await requireSession();
   const demands = await listDemandsOfNetwork(await getDb(), actor.network_id);
   return (
-    <Page title="Demands" subtitle={`${network.alias}'s buyer requirements. Must-haves are hard constraints; anything left empty is treated as Unknown, never as "anything goes".`} actions={<ButtonLink href="/demands/new" primary>New demand</ButtonLink>}>
+    <Page title="Demands" subtitle={`${network.alias} · must-haves are hard rules; empty means Unknown`} actions={<ButtonLink href="/demands/new" primary>New demand</ButtonLink>}>
       {demands.length === 0 ? (
         <Empty>No demands yet.</Empty>
       ) : (
@@ -42,7 +42,7 @@ async function Demands() {
                   <li>Budget: {x.budget ? `${x.budget.currency} ${x.budget.amount}/MT ${x.budget.incoterm} ${x.budget.place}` : "—"}</li>
                 </ul>
                 <div className="mt-3 flex gap-2">
-                  <Link href={`/opportunities?demand=${d.id}`} className="text-sm underline">
+                  <Link href={`/opportunities?demand=${d.id}`} className="inline-flex min-h-10 items-center text-sm text-accent hover:underline">
                     Opportunities →
                   </Link>
                   {d.status === "active" && (

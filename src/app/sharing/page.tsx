@@ -18,7 +18,7 @@ export default function SharingPage() {
 const DEFAULT_OFF = new Set(["location_place", "heat_numbers", "price_amount"]);
 
 async function Sharing() {
-  const { actor, network } = await requireSession();
+  const { actor } = await requireSession();
   const db = await getDb();
   const [grants, networks, lots] = await Promise.all([listGrantsByOwner(db, actor.network_id), listNetworks(db), listLotsOfNetwork(db, actor.network_id)]);
   const alias = new Map(networks.map((n) => [n.id, n.alias]));
@@ -27,7 +27,7 @@ async function Sharing() {
   return (
     <Page
       title="Sharing"
-      subtitle={`What ${network.alias} lets other networks use in discovery. Recipients see only the chosen fields of published lots — never your files, quotes or identity unless you allow it. Revoking takes effect immediately.`}
+      subtitle="Others see only the fields you pick. Revoking is immediate."
     >
       <div className="grid gap-4 lg:grid-cols-5">
         <Card title="Active and past grants" className="lg:col-span-3">
@@ -102,7 +102,7 @@ async function Sharing() {
               <input type="checkbox" name="identity" /> Disclose our network&apos;s name to them
             </label>
             <label className="flex items-start gap-2 text-xs">
-              <input type="checkbox" name="model_processing" className="mt-0.5" /> Let them send the shared fields to Meta Muse Spark for candidate explanations (raw files are never sent)
+              <input type="checkbox" name="model_processing" className="mt-0.5" /> Allow Meta explanations on shared fields (files are never sent)
             </label>
             <div>
               <label className="mb-1 block text-xs font-medium">Expires after (days, empty = no expiry)</label>

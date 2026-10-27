@@ -90,7 +90,7 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
     <Page
       title={doc.filename ?? doc.id}
       subtitle={`${doc.kind.toUpperCase()} · ${doc.status.replaceAll("_", " ")} · private to your network${doc.synthetic ? " · synthetic" : ""}`}
-      actions={<Link href="/intake" className="text-sm underline">← Intake</Link>}
+      actions={<Link href="/intake" className="text-sm text-accent hover:underline">← Intake</Link>}
     >
       {doc.error && <div className="mb-4 rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200">{doc.error}</div>}
       {run && (
@@ -131,7 +131,7 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
         <Card title="Source" className="xl:col-span-2">
           <ol className="max-h-[75vh] space-y-0.5 overflow-auto font-mono text-xs">
             {fragments.map((f) => (
-              <li key={f.fragment_id} id={`frag-${f.fragment_id}`} className={`flex gap-2 rounded px-1 ${cited.has(f.fragment_id) ? "bg-sky-50 dark:bg-sky-950" : ""}`}>
+              <li key={f.fragment_id} id={`frag-${f.fragment_id}`} className={`flex gap-2 rounded px-1 ${cited.has(f.fragment_id) ? "bg-accent-soft" : ""}`}>
                 <span className="w-16 shrink-0 text-right text-zinc-400">{f.fragment_id}</span>
                 <span className="whitespace-pre-wrap break-words">{f.text}</span>
               </li>
@@ -180,7 +180,7 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
                     </ActionForm>
                   </div>
                 )}
-                <p className="mt-2 text-xs text-zinc-500">Unknown values stay Unknown when you confirm. Publishing shares only under the grants on the Sharing page.</p>
+                <p className="mt-3 text-xs text-zinc-500">Unknowns stay Unknown. Publishing shares only under your grants.</p>
               </Card>
             );
           })}

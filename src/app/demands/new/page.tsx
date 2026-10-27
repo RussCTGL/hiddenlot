@@ -6,7 +6,7 @@ const label = "mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400";
 
 export default function NewDemandPage() {
   return (
-    <Page title="New demand" subtitle="Saving runs discovery at once against every lot your network may see. Numeric tolerances are yours to set; HiddenLot does not take them from any standard.">
+    <Page title="New demand" subtitle="Saving runs discovery at once. Tolerances are yours to set.">
       <Card>
         <ActionForm action={createDemandAction} className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">

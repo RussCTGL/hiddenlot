@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Cool steel greys replace Tailwind's zinc scale, so every page shares one palette. */
+@theme {
+  --color-zinc-50: #f4f5f7;
+  --color-zinc-100: #ebedf1;
+  --color-zinc-200: #e1e4ea;
+  --color-zinc-300: #d5d9e0;
+  --color-zinc-400: #8a93a1;
+  --color-zinc-500: #5b6472;
+  --color-zinc-600: #4a5361;
+  --color-zinc-700: #2a3340;
+  --color-zinc-800: #1e2630;
+  --color-zinc-900: #0f1720;
+  --color-zinc-950: #0a0f15;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --accent: #2453c7;
+  --accent-soft: #eef2fb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --accent: #8fb0ff;
+    --accent-soft: #17244a;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }

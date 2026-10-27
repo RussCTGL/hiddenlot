@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { listOpportunitiesForActor, listRejectedForActor } from "@/auth/access";
-import { Badge, CheckIcon, Empty, Loading, Page, StatusPill } from "@/components/ui";
+import { Badge, Bar, Empty, Hint, Loading, MARK_LEGEND, Mark, Page, StatusDot, StatusPill, markLabel, type MarkKind } from "@/components/ui";
 import { listDemandsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
-import type { Check, CompatibilityStatus } from "@/discovery/constraints";
-import type { Score } from "@/discovery/score";
+import type { Check, CheckStatus, CompatibilityStatus } from "@/discovery/constraints";
 import { requireSession } from "@/lib/session";
 
 export default function OpportunitiesPage(props: PageProps<"/opportunities">) {
@@ -16,27 +15,52 @@ export default function OpportunitiesPage(props: PageProps<"/opportunities">) {
   );
 }
 
-const GROUPS: { title: string; hint: string; statuses: CompatibilityStatus[] }[] = [
-  { title: "Worth human review", hint: "Every hard check passed. Declared matches still rest on seller statements (e.g. certificates) that a person must verify.", statuses: ["evidence_supported", "declared_match", "conditional_candidate"] },
-  { title: "Engineering review required", hint: "A different grade from the one the buyer listed. HiddenLot never treats grades as equivalent; an engineer and the buyer must approve.", statuses: ["engineering_review_required"] },
-  { title: "Needs evidence", hint: "No known failure, but a critical fact is missing. Ask for it before treating this as a candidate.", statuses: ["insufficient_evidence"] },
+const GROUPS: { title: string; hint: string; dot: CompatibilityStatus; statuses: CompatibilityStatus[] }[] = [
+  { title: "Worth review", dot: "evidence_supported", hint: "Every hard check passed. Seller claims still need a person to verify.", statuses: ["evidence_supported", "declared_match", "conditional_candidate"] },
+  { title: "Engineering review", dot: "engineering_review_required", hint: "Different grade or standard. Never treated as equivalent; an engineer and the buyer must approve.", statuses: ["engineering_review_required"] },
+  { title: "Missing info", dot: "insufficient_evidence", hint: "No known failure, but a critical fact is missing. Ask for it first.", statuses: ["insufficient_evidence"] },
 ];
 
-function ScoreLine({ score }: { score: Score | null }) {
-  if (!score || score.observed === null) return <span className="text-xs text-zinc-500">Priority: not enough known</span>;
-  return (
-    <span className="text-xs text-zinc-600 dark:text-zinc-400" title="Review priority, not a probability of a deal or of material conformity">
-      Priority {score.observed} on known parts · range {score.lower}–{score.upper} · coverage {Math.round(score.coverage * 100)}%
-    </span>
-  );
+const SEVERITY: CheckStatus[] = ["fail", "review", "unknown", "conditional", "not_checked", "pass"];
+
+/** The worst outcome among the given checks, shown as one mark per column. */
+function worst(checks: Check[], ids: string[]): { kind: MarkKind; title: string } | null {
+  const cs = checks.filter((c) => ids.includes(c.id));
+  if (cs.length === 0) return null;
+  const c = cs.reduce((a, b) => (SEVERITY.indexOf(b.status) < SEVERITY.indexOf(a.status) ? b : a));
+  return { kind: c.status === "pass" && c.basis === "seller_claim" ? "claim" : c.status, title: `${c.label}: ${c.detail}` };
 }
 
-const pick = (checks: Check[], id: string) => checks.find((c) => c.id === id);
+const COLUMNS: [string, string[]][] = [
+  ["Grade", ["grade", "standard", "product_form"]],
+  ["Size", ["thickness", "width"]],
+  ["Qty", ["quantity"]],
+  ["Date", ["available_date"]],
+  ["Cert", ["certificates"]],
+];
+
+/** The lot's own value, as the rule stated it (e.g. "3 mm within …" → "3 mm"). Unknown → "?". */
+function lead(checks: Check[], id: string, cut: RegExp) {
+  const c = checks.find((x) => x.id === id);
+  if (!c) return "?";
+  const head = c.detail.split(cut)[0];
+  if (c.status !== "unknown" && c.status !== "not_checked") return head;
+  // An unknown can still carry the lot's value (e.g. the buyer's range is open); never an implausible one.
+  return /^[\d.]+( t)?$/.test(head) && !c.detail.includes("implausible") ? head : "?";
+}
+
+function lotSpec(checks: Check[]) {
+  const grade = lead(checks, "grade", / is /);
+  const t = lead(checks, "thickness", / mm/);
+  const w = lead(checks, "width", / mm/);
+  const q = lead(checks, "quantity", / (?:within|covers|is|exceeds)/);
+  return { grade, spec: `${t} × ${w} mm · ${q}` };
+}
 
 async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities">["searchParams"] }) {
   const sp = await searchParams;
   const demandFilter = typeof sp.demand === "string" ? sp.demand : null;
-  const { actor, network } = await requireSession();
+  const { actor } = await requireSession();
   const db = await getDb();
   const now = new Date();
   const [all, demands, rejected] = await Promise.all([listOpportunitiesForActor(db, actor, now), listDemandsOfNetwork(db, actor.network_id), listRejectedForActor(db, actor, now)]);
@@ -44,124 +68,158 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
   const live = opps.filter((o) => o.status !== "invalidated");
   const invalidated = opps.filter((o) => o.status === "invalidated");
   const rej = rejected.filter((r) => !demandFilter || r.demand_id === demandFilter);
+  const liveAll = all.filter((o) => o.status !== "invalidated");
+  const chip = (on: boolean) =>
+    `inline-flex min-h-9 items-center rounded-full border px-3.5 text-[13px] font-medium ${on ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900" : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"}`;
 
   return (
-    <Page
-      title="Opportunities"
-      subtitle={`Candidates for ${network.alias}'s active demands, from your own stock and from networks that shared with you. Found automatically when stock or demands change.`}
-    >
-      <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-zinc-500">Demand:</span>
-        <Link href="/opportunities" className={`rounded-full px-2.5 py-0.5 ring-1 ring-zinc-300 dark:ring-zinc-700 ${!demandFilter ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}>
-          All
+    <Page title="Opportunities">
+      <div className="-mt-4 mb-8 flex flex-wrap gap-2">
+        <Link href="/opportunities" className={chip(!demandFilter)}>
+          All · {liveAll.length}
         </Link>
         {demands.map((d) => (
-          <Link key={d.id} href={`/opportunities?demand=${d.id}`} className={`rounded-full px-2.5 py-0.5 ring-1 ring-zinc-300 dark:ring-zinc-700 ${demandFilter === d.id ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : ""}`}>
+          <Link key={d.id} href={`/opportunities?demand=${d.id}`} className={chip(demandFilter === d.id)}>
             {d.data.title}
           </Link>
         ))}
       </div>
 
-      {demands.length === 0 && <Empty>Your network has no demands. Create one to start discovery.</Empty>}
+      {demands.length === 0 && <Empty>No demands yet. Create one to start discovery.</Empty>}
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {GROUPS.map((g) => {
           const items = live.filter((o) => g.statuses.includes(o.compatibility_status as CompatibilityStatus));
+          if (items.length === 0) return null;
           return (
-            <section key={g.title}>
-              <h2 className="text-base font-semibold">
-                {g.title} <span className="text-zinc-400">({items.length})</span>
-              </h2>
-              <p className="mb-2 text-xs text-zinc-500">{g.hint}</p>
-              {items.length === 0 ? (
-                <Empty>None</Empty>
-              ) : (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {items.map((o) => {
-                    const grade = pick(o.checks, "grade");
-                    const open = o.checks.filter((c) => c.status === "unknown" || c.status === "review" || c.status === "conditional");
-                    return (
-                      <Link key={o.id} href={`/opportunities/${o.id}`} className="block rounded-lg border border-zinc-200 bg-white p-4 shadow-sm hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <StatusPill status={o.compatibility_status as CompatibilityStatus} />
-                          {o.novelty === "cross_network" ? <Badge tone="sky">From {o.seller_alias} · shared</Badge> : <Badge>Your network</Badge>}
-                          {o.status !== "discovered" && <Badge tone="violet">{o.status.replaceAll("_", " ")}</Badge>}
-                        </div>
-                        <p className="text-sm font-medium">{o.demand_title}</p>
-                        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{grade?.detail}</p>
-                        <ul className="mt-2 space-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-                          {["thickness", "width", "quantity"].map((id) => {
-                            const c = pick(o.checks, id);
-                            return c ? (
-                              <li key={id}>
-                                <CheckIcon status={c.status} /> {c.detail}
-                              </li>
-                            ) : null;
+            <section key={g.title} className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <StatusDot status={g.dot} />
+                <h2 className="text-[17px] font-semibold">{g.title}</h2>
+                <span className="font-mono text-[13px] text-zinc-500">{items.length}</span>
+                <Hint text={g.hint} />
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+                <table className="w-full min-w-[860px] text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                      <th className="px-4 py-2.5 font-medium">Lot</th>
+                      <th className="px-3 py-2.5 font-medium">From</th>
+                      {COLUMNS.map(([label]) => (
+                        <th key={label} className="w-14 px-1 py-2.5 text-center font-medium">
+                          {label}
+                        </th>
+                      ))}
+                      <th className="px-4 py-2.5 text-right font-medium">Priority</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((o) => {
+                      const { grade, spec } = lotSpec(o.checks);
+                      const s = o.score && o.score.observed !== null ? o.score : null;
+                      return (
+                        <tr key={o.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
+                          <td className="px-4 py-3">
+                            <Link href={`/opportunities/${o.id}`} className="block">
+                              <span className="flex items-center gap-2 font-semibold">
+                                {grade}
+                                {o.compatibility_status !== g.dot && <StatusPill status={o.compatibility_status as CompatibilityStatus} />}
+                                {o.status !== "discovered" && <Badge tone="violet">{o.status.replaceAll("_", " ")}</Badge>}
+                              </span>
+                              <span className="font-mono text-[13px] text-zinc-600 dark:text-zinc-400">{spec}</span>
+                              {!demandFilter && demands.length > 1 && <span className="block text-xs text-zinc-500">for {o.demand_title}</span>}
+                            </Link>
+                          </td>
+                          <td className="px-3 py-3">{o.novelty === "cross_network" ? <Badge tone="sky">{o.seller_alias}</Badge> : <Badge>Your network</Badge>}</td>
+                          {COLUMNS.map(([label, ids]) => {
+                            const m = worst(o.checks, ids);
+                            return (
+                              <td key={label} className="px-1 py-3 text-center">
+                                {m ? <Mark kind={m.kind} title={m.title} /> : <span className="text-zinc-400">–</span>}
+                              </td>
+                            );
                           })}
-                        </ul>
-                        {open.length > 0 && (
-                          <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">
-                            Open: {open.map((c) => c.label.toLowerCase()).join(", ")}
-                          </p>
-                        )}
-                        <div className="mt-2">
-                          <ScoreLine score={o.score} />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-2.5" title={s ? `Range ${s.lower}–${s.upper} · ${Math.round(s.coverage * 100)}% known. Review priority, not a deal probability.` : "Not enough known"}>
+                              <span className="w-16">
+                                <Bar value={s ? (s.observed ?? 0) / 100 : 0} />
+                              </span>
+                              <span className="w-10 text-right font-mono">{s ? s.observed : "—"}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </section>
           );
         })}
 
-        <details className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <summary className="cursor-pointer text-base font-semibold">
-            Not recommended <span className="text-zinc-400">({rej.length})</span>
-            <span className="ml-2 text-xs font-normal text-zinc-500">At least one hard requirement fails. Kept for transparency; never shown as a candidate.</span>
-          </summary>
-          <div className="mt-3 space-y-2">
-            {rej.map((r) => (
-              <div key={r.id} className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusPill status="incompatible" />
-                  <Badge tone={r.seller_network_id === actor.network_id ? "zinc" : "sky"}>{r.seller_network_id === actor.network_id ? "Your network" : `From ${r.seller_alias}`}</Badge>
-                  <span className="text-xs text-zinc-500">{r.demand_title}</span>
-                </div>
-                <ul className="mt-1 text-xs">
-                  {r.checks
-                    .filter((c) => c.status === "fail")
-                    .map((c) => (
-                      <li key={c.id}>
-                        <CheckIcon status="fail" /> <b>{c.label}:</b> {c.detail}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            ))}
-            {rej.length === 0 && <p className="text-sm text-zinc-500">None.</p>}
-          </div>
-        </details>
+        {live.length === 0 && demands.length > 0 && <Empty>No candidates right now.</Empty>}
 
-        {invalidated.length > 0 && (
-          <details className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <summary className="cursor-pointer text-base font-semibold">
-              Invalidated <span className="text-zinc-400">({invalidated.length})</span>
-              <span className="ml-2 text-xs font-normal text-zinc-500">The lot, demand or sharing changed after assessment. Earlier decisions do not carry over.</span>
+        <div className="grid gap-3 md:grid-cols-2">
+          <details className="rounded-xl border border-zinc-200 bg-white px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900">
+            <summary className="flex min-h-7 cursor-pointer items-center gap-2.5 text-[15px] font-semibold">
+              <StatusDot status="incompatible" />
+              Not recommended <span className="font-mono text-[13px] font-medium text-zinc-500">{rej.length}</span>
+              <Hint text="A hard requirement fails. Shown for transparency, never as a candidate." />
             </summary>
-            <ul className="mt-3 space-y-1 text-sm">
-              {invalidated.map((o) => (
-                <li key={o.id}>
-                  <Link href={`/opportunities/${o.id}`} className="underline">
-                    {o.demand_title}
-                  </Link>{" "}
-                  · {o.novelty === "cross_network" ? o.seller_alias : "your network"} · <span className="text-zinc-500">{o.invalidated_reason}</span>
+            <ul className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
+              {rej.map((r) => (
+                <li key={r.id} className="py-2.5 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone={r.seller_network_id === actor.network_id ? "zinc" : "sky"}>{r.seller_network_id === actor.network_id ? "Your network" : r.seller_alias}</Badge>
+                    <span className="text-xs text-zinc-500">{r.demand_title}</span>
+                  </div>
+                  <ul className="mt-1.5 space-y-1">
+                    {r.checks
+                      .filter((c) => c.status === "fail")
+                      .map((c) => (
+                        <li key={c.id} className="flex items-start gap-2 text-[13px]">
+                          <Mark kind="fail" small />
+                          <span>
+                            <b className="font-medium">{c.label}</b> <span className="text-zinc-600 dark:text-zinc-400">{c.detail}</span>
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
                 </li>
               ))}
+              {rej.length === 0 && <li className="py-2 text-sm text-zinc-500">None.</li>}
             </ul>
           </details>
-        )}
+          <details className="rounded-xl border border-zinc-200 bg-white px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900">
+            <summary className="flex min-h-7 cursor-pointer items-center gap-2.5 text-[15px] font-semibold">
+              <span className="size-2.5 rounded-full bg-zinc-400" aria-hidden />
+              Invalidated <span className="font-mono text-[13px] font-medium text-zinc-500">{invalidated.length}</span>
+              <Hint text="Lot sold or changed, demand changed, or sharing ended. Earlier decisions do not carry over." />
+            </summary>
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {invalidated.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/opportunities/${o.id}`} className="text-accent hover:underline">
+                    {o.demand_title}
+                  </Link>{" "}
+                  <span className="text-zinc-500">
+                    · {o.novelty === "cross_network" ? o.seller_alias : "your network"} · {o.invalidated_reason}
+                  </span>
+                </li>
+              ))}
+              {invalidated.length === 0 && <li className="text-zinc-500">None.</li>}
+            </ul>
+          </details>
+        </div>
+
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-600 dark:text-zinc-400">
+          {MARK_LEGEND.map((k) => (
+            <span key={k} className="flex items-center gap-1.5">
+              <Mark kind={k} small />
+              {markLabel(k)}
+            </span>
+          ))}
+        </div>
       </div>
     </Page>
   );

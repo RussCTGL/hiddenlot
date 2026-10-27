@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { decideAction, explainAction } from "@/app/actions";
 import { getOpportunityForActor, NotFoundError } from "@/auth/access";
-import { FieldTable, FIELD_LABEL } from "@/components/fields";
+import { FieldTable, formatValue } from "@/components/fields";
+import { ArrowIcon, BackIcon, SparkIcon } from "@/components/icons";
 import { ActionForm, Submit } from "@/components/forms";
-import { Badge, buttonCls, Card, CheckIcon, inputCls, Loading, Page, primaryCls, StatusPill } from "@/components/ui";
+import { Badge, Bar, buttonCls, Card, Hint, inputCls, Loading, Mark, markLabel, Page, primaryCls, StatusPill, type MarkKind } from "@/components/ui";
 import { getDb } from "@/db/server";
-import { REVIEWABLE, type Check } from "@/discovery/constraints";
+import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, type Check, type CheckStatus } from "@/discovery/constraints";
+import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { listDecisions } from "@/workflow/actions";
 import { requireSession } from "@/lib/session";
 import { metaAvailable } from "@/lib/meta";
@@ -21,30 +23,125 @@ export default function OpportunityPage(props: PageProps<"/opportunities/[id]">)
   );
 }
 
-const ASK: Record<string, string> = { seller: "Seller", buyer: "Buyer (you)", engineering: "Engineering / QA", system: "HiddenLot" };
+const ASK: Record<string, string> = { seller: "Ask seller", buyer: "You decide", engineering: "Engineering / QA", system: "HiddenLot" };
 const BASIS: Record<string, string> = {
-  reviewed: "confirmed by the lot owner, not independently verified",
-  source_evidence: "from source, not yet reviewed",
-  seller_claim: "seller claim, not verified",
-  grade_only: "grade only; no standard required",
-  not_required: "not required by buyer; not stated",
+  reviewed: "Confirmed by the lot owner, not independently verified",
+  source_evidence: "From source, not yet reviewed",
+  seller_claim: "Seller claim, not verified",
+  grade_only: "Grade only; no standard required",
+  not_required: "Not required by buyer; not stated",
   system: "",
 };
+const SHORT_LABEL: Partial<Record<string, string>> = {
+  available_date: "Ready by",
+  lot_status: "Still available",
+  freshness: "Recently confirmed",
+  heat_link: "Cert ↔ this lot",
+  product_form: "Form",
+};
+const SEVERITY: CheckStatus[] = ["fail", "review", "unknown", "conditional", "not_checked", "pass"];
 
-function CheckList({ checks }: { checks: Check[] }) {
+const markOf = (c: Check): MarkKind => (c.status === "pass" && c.basis === "seller_claim" ? "claim" : c.status);
+const range = (r: { min: number | null; max: number | null }, unit: string) => `${r.min ?? "?"}–${r.max ?? "?"} ${unit}`;
+
+/** "You need" and "Lot has" for one check, from the demand and the lot as shared now. */
+function needHas(c: Check, d: Demand, lot: InventoryLot | null): [string, string] {
+  const v = (f: InventoryLotField) => {
+    if (!lot) return "hidden";
+    const o = lot.fields[f];
+    if (o.issues.includes("withheld_by_owner")) return "not shared";
+    const x = o.normalized_value;
+    if (x === null || (Array.isArray(x) && x.length === 0)) return "?";
+    return f === "total_kg" ? `${(x as number) / 1000} t` : formatValue(f, x);
+  };
+  switch (c.id) {
+    case "grade":
+      return [d.accepted_grades.map((g) => g.grade).join(" / "), v("grade_raw")];
+    case "standard": {
+      const want = d.accepted_grades.map((g) => [g.standard_id, g.edition].filter(Boolean).join(":")).filter(Boolean);
+      const ed = lot?.fields.standard_edition.normalized_value;
+      const has = v("standard_id");
+      return [want.length ? want.join(" / ") : "any", ed && has !== "?" && has !== "not shared" ? `${has}:${String(ed)}` : has];
+    }
+    case "thickness":
+      return [range(d.thickness_mm, "mm"), v("thickness_mm")];
+    case "width":
+      return [range(d.width_mm, "mm"), v("width_mm")];
+    case "quantity":
+      return [`${d.quantity_kg.min / 1000}–${d.quantity_kg.max / 1000} t${d.allow_partial_delivery ? ", partial OK" : ""}`, v("total_kg")];
+    case "available_date":
+      return [d.need_by ? `by ${d.need_by}` : "any date", v("available_from")];
+    case "condition":
+      return [d.acceptable_conditions.join(", ").replaceAll("_", " "), v("condition")];
+    case "certificates":
+      return [d.must_have_certificates.join(", ") || "none", v("certificate_claims")];
+    case "product_form":
+      return [d.product_form.replaceAll("_", " "), v("product_form")];
+    case "freshness":
+      return [`≤ ${FRESHNESS_WINDOW_HOURS} h ago`, c.detail.replace(/^(Last )?[Cc]onfirmed /, "").split(/[;(]/)[0].trim()];
+    case "lot_status":
+      return ["available", c.status === "pass" ? "published" : c.detail.replace(/^Lot is /, "")];
+    case "heat_link":
+      return ["cert matches lot", "needs the document"];
+    default:
+      return ["", c.detail];
+  }
+}
+
+function Requirements({ checks, demand, lot }: { checks: Check[]; demand: Demand; lot: InventoryLot | null }) {
+  const rows = checks.filter((c) => c.id !== "access").sort((a, b) => SEVERITY.indexOf(a.status) - SEVERITY.indexOf(b.status));
+  const counts = new Map<MarkKind, number>();
+  for (const c of rows) counts.set(markOf(c), (counts.get(markOf(c)) ?? 0) + 1);
+  const summary = (["fail", "review", "unknown", "conditional", "claim", "not_checked", "pass"] as MarkKind[])
+    .filter((k) => counts.get(k))
+    .map((k) => `${counts.get(k)} ${markLabel(k).split(",")[0].toLowerCase()}`)
+    .join(" · ");
   return (
-    <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-      {checks.map((c) => (
-        <li key={c.id} className="flex gap-2 py-1.5 text-sm">
-          <CheckIcon status={c.status} />
-          <div>
-            <span className="font-medium">{c.label}</span> <span className="text-zinc-600 dark:text-zinc-400">— {c.detail}</span>
-            {c.basis && BASIS[c.basis] && <span className="ml-1 text-xs text-zinc-500">({BASIS[c.basis]})</span>}
-          </div>
-        </li>
-      ))}
-    </ul>
+    <Card title="Requirements" aside={<span className="text-[13px] text-zinc-600 dark:text-zinc-400">{summary}</span>}>
+      <div className="-mx-1 overflow-x-auto px-1">
+        <table className="w-full min-w-[520px] text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+              <th className="pb-2.5 font-medium">Check</th>
+              <th className="pb-2.5 font-medium">You need</th>
+              <th className="pb-2.5 font-medium">Lot has</th>
+              <th className="w-8 pb-2.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => {
+              const [need, has] = needHas(c, demand, lot);
+              const tip = [c.detail, c.basis ? BASIS[c.basis] : ""].filter(Boolean).join(" · ");
+              return (
+                <tr key={c.id} title={tip} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
+                  <td className="py-3 pr-3 font-medium">{SHORT_LABEL[c.id] ?? c.label}</td>
+                  <td className="py-3 pr-3 text-zinc-600 tabular-nums dark:text-zinc-400">{need}</td>
+                  <td className={`py-3 pr-3 font-medium tabular-nums ${has === "?" || has === "not shared" ? "text-amber-700 dark:text-amber-400" : ""}`}>{has}</td>
+                  <td className="py-3 text-right">
+                    <Mark kind={markOf(c)} title={tip} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
   );
+}
+
+function lotTitle(lot: InventoryLot) {
+  const v = (f: InventoryLotField) => lot.fields[f].normalized_value;
+  const n = (x: unknown) => (x === null ? "?" : String(x));
+  const kg = v("total_kg") as number | null;
+  return `${n(v("grade_raw"))} · ${n(v("thickness_mm"))} × ${n(v("width_mm"))} mm · ${kg === null ? "?" : kg / 1000} t`;
+}
+
+function lotLine(lot: InventoryLot, ref: string | null) {
+  const v = (f: InventoryLotField) => lot.fields[f].normalized_value;
+  const terms = [v("incoterm"), v("incoterm_place")].filter((x) => x !== null).join(" ");
+  const price = v("price_amount") !== null ? `${v("price_currency") ?? ""} ${v("price_amount")}/MT`.trim() : null;
+  return [ref ? `Lot ${ref}` : null, terms || null, price].filter(Boolean).join(" · ");
 }
 
 async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["params"] }) {
@@ -60,34 +157,43 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
   }
   const decisions = await listDecisions(db, actor, id);
   const { opportunity: o, demand, lot, checks, score } = view;
-  const passed = checks.filter((c) => c.status === "pass" && c.id !== "access");
-  const open = checks.filter((c) => ["unknown", "review", "conditional", "not_checked"].includes(c.status));
-  const failed = checks.filter((c) => c.status === "fail");
-  const nextSteps = open.filter((c) => c.ask);
+  const nextSteps = checks.filter((c) => ["unknown", "review", "conditional", "not_checked"].includes(c.status) && c.ask);
   const invalid = o.status === "invalidated";
   const canShortlist = REVIEWABLE.includes(view.compatibility_status);
+  const ref = lot?.fields.seller_lot_ref.normalized_value ? String(lot.fields.seller_lot_ref.normalized_value) : null;
+  const sellerName = view.seller_label.split(" (")[0].replace(/^Seller in /, "");
 
   return (
     <Page
-      title={demand.title}
-      subtitle={
-        <span className="flex flex-wrap items-center gap-2">
-          <StatusPill status={view.compatibility_status} />
-          {o.novelty === "cross_network" ? <Badge tone="sky">Cross-network · {view.seller_label}</Badge> : <Badge>{view.seller_label}</Badge>}
-          <Badge tone={invalid ? "rose" : "zinc"}>{o.status.replaceAll("_", " ")}</Badge>
-        </span>
+      back={
+        <Link href="/opportunities" className="inline-flex min-h-8 items-center gap-1.5 text-sm text-accent hover:underline">
+          <BackIcon size={16} />
+          Opportunities
+        </Link>
       }
-      actions={<Link href="/opportunities" className="text-sm underline">← All opportunities</Link>}
+      title={lot ? lotTitle(lot) : demand.title}
+      subtitle={
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusPill status={view.compatibility_status} />
+            {o.novelty === "cross_network" ? <Badge tone="sky">{sellerName} · shared with you</Badge> : <Badge>Your network</Badge>}
+            {o.status !== "discovered" && <Badge tone={invalid ? "rose" : "violet"}>{o.status.replaceAll("_", " ")}</Badge>}
+          </div>
+          <p>{lot ? lotLine(lot, ref) || `For ${demand.title}` : "Lot details hidden"}</p>
+        </div>
+      }
     >
       {invalid && (
-        <div className="mb-4 rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200">
-          <b>Invalidated:</b> {o.invalidated_reason}. Decisions made earlier do not carry over to a new assessment.
+        <div className="mb-5 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200">
+          <b>Invalidated:</b> {o.invalidated_reason}. Earlier decisions do not carry over.
         </div>
       )}
-      {view.access_note && !invalid && <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">{view.access_note}</div>}
+      {view.access_note && !invalid && <div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">{view.access_note}</div>}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="flex flex-wrap items-start gap-5">
+        <div className="min-w-0 flex-[999_1_560px] space-y-5">
+          <Requirements checks={checks} demand={demand} lot={lot} />
+
           <ExplanationCard
             oppId={o.id}
             stored={(o.explanation as StoredExplanation | null)?.assessment_id === o.assessment_id ? (o.explanation as StoredExplanation) : null}
@@ -96,140 +202,121 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
             meta={metaAvailable()}
           />
 
-          <Card title="Why this was found">
-            <p className="text-sm">
-              {o.novelty === "cross_network"
-                ? `This stock is held in another network. ${view.seller_label.split(" (")[0]} shared it for discovery with your network, so HiddenLot matched it against your demand as soon as it was published. Your own network's stock would not have shown it.`
-                : "This stock is in your own network and was matched when it or your demand last changed."}
-            </p>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              It also had to be readable: the seller wrote the offer in their own format (free text, a spreadsheet or a PDF, often mixed Chinese and English). HiddenLot turned it into comparable fields with cited sources before any rule ran, so a keyword search for your spec would not necessarily have found it.
-            </p>
-            <p className="mt-2 text-xs text-zinc-500">
-              Lot: {lot?.fields.seller_lot_ref.normalized_value ? String(lot.fields.seller_lot_ref.normalized_value) : "seller's reference not shared"} · HiddenLot ID {o.lot_id}
-            </p>
-          </Card>
-
-          {failed.length > 0 && (
-            <Card title="Hard requirements that fail">
-              <CheckList checks={failed} />
-            </Card>
-          )}
-          <Card title="What is satisfied">
-            {passed.length ? <CheckList checks={passed} /> : <p className="text-sm text-zinc-500">Nothing confirmed yet.</p>}
-          </Card>
-          <Card title="Still open">
-            {open.length ? <CheckList checks={open} /> : <p className="text-sm text-zinc-500">No open requirements.</p>}
-          </Card>
-
-          <Card title={lot ? "Lot as shared with you" : "Lot details"}>
-            {lot ? (
-              <>
+          {lot && (
+            <details className="rounded-xl border border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
+              <summary className="flex min-h-7 cursor-pointer items-center gap-2 text-[15px] font-semibold">
+                All lot fields <span className="font-mono text-[13px] font-medium text-zinc-500">{Object.keys(lot.fields).length}</span>
+                {o.novelty === "cross_network" && <Hint text="Values as the seller shared them. Quotes and file locations stay private; unshared fields show as Unknown." />}
+              </summary>
+              <div className="mt-4 overflow-x-auto">
                 <FieldTable lot={lot} />
-                {o.novelty === "cross_network" && (
-                  <p className="mt-2 text-xs text-zinc-500">
-                    Values are what the seller shared. Quotes and file locations stay in the seller&apos;s private document; fields they did not share show as Unknown.
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-zinc-500">Hidden: you no longer have access to this lot.</p>
-            )}
-          </Card>
+              </div>
+            </details>
+          )}
         </div>
 
-        <div className="space-y-4">
-          <Card title="Review priority">
+        <aside className="min-w-0 flex-[1_1_300px] space-y-5">
+          {!invalid && lot && view.compatibility_status !== "incompatible" && (
+            <Card title="Your decision">
+              <ActionForm action={decideAction} className="space-y-3">
+                <input type="hidden" name="opportunity_id" value={o.id} />
+                <label htmlFor="reason" className="sr-only">
+                  Reason
+                </label>
+                <textarea id="reason" name="reason" required placeholder="Reason (required)" className={inputCls} rows={2} />
+                <div className="flex flex-wrap gap-2">
+                  <Submit
+                    name="decision"
+                    value="shortlisted"
+                    className={primaryCls}
+                    disabled={!canShortlist}
+                    title={canShortlist ? "Worth enquiring" : "Only evidence-backed, declared or conditional candidates can be shortlisted"}
+                  >
+                    Shortlist
+                  </Submit>
+                  <Submit name="decision" value="information_requested" className={buttonCls}>
+                    Request info
+                  </Submit>
+                  <Submit name="decision" value="dismissed" className={buttonCls}>
+                    Dismiss
+                  </Submit>
+                </div>
+              </ActionForm>
+            </Card>
+          )}
+
+          <Card title="Review priority" aside={<Hint text="A priority for human review, not a probability of a deal, of quality or of credit. Freight, insurance, duty and FX are excluded." />}>
             {score && score.observed !== null ? (
-              <>
-                <p className="text-2xl font-semibold">
-                  {score.lower}–{score.upper}
+              <div className="space-y-4">
+                <p className="flex items-baseline gap-2.5">
+                  <span className="font-mono text-[44px] leading-none font-medium tracking-tight">{score.observed}</span>
+                  <span className="text-[13px] text-zinc-600 dark:text-zinc-400">
+                    {Math.round(score.coverage * 100)}% known{score.lower !== score.upper ? ` · range ${score.lower}–${score.upper}` : ""}
+                  </span>
                 </p>
-                <p className="text-xs text-zinc-500">
-                  {score.observed} on the {Math.round(score.coverage * 100)}% that is known. A priority for human review — not a probability of a deal, of quality, or of credit.
-                </p>
-                <ul className="mt-3 space-y-1 text-xs">
+                <ul className="space-y-3">
                   {Object.entries(score.components).map(([k, c]) => (
-                    <li key={k}>
-                      <span className="font-medium capitalize">{k}</span>: {c.value === null ? <span className="text-amber-700 dark:text-amber-400">unknown</span> : c.value.toFixed(2)} <span className="text-zinc-500">— {c.note}</span>
+                    <li key={k} title={c.note} className="grid grid-cols-[96px_minmax(0,1fr)_40px] items-center gap-2.5 text-[13px]">
+                      <span className="capitalize">{k}</span>
+                      <Bar value={c.value} className="bg-accent" />
+                      <span className={`text-right font-mono ${c.value === null ? "text-amber-700 dark:text-amber-400" : ""}`}>{c.value === null ? "?" : c.value.toFixed(2)}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs text-zinc-500">Freight, insurance, duty and FX: not included and not estimated.</p>
-                <p className="mt-1 text-xs">
-                  Commercial:{" "}
-                  {score.commercial === "within_budget" ? "goods price within budget on the same basis (freight, duty and FX not included)" : score.commercial === "over_budget" ? "goods price above budget" : "unknown — not on a comparable basis"}
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Price:{" "}
+                  {score.commercial === "within_budget" ? "within budget (goods only)" : score.commercial === "over_budget" ? "above budget" : "not comparable"}
                 </p>
-              </>
+              </div>
             ) : (
               <p className="text-sm text-zinc-500">Not available.</p>
             )}
           </Card>
 
-          <Card title="Next steps">
+          <Card title="Next steps" aside={<Hint text="HiddenLot sends no messages and reserves no stock. Request info records an internal to-do." />}>
             {nextSteps.length ? (
-              <ul className="space-y-1.5 text-sm">
+              <ul className="space-y-3">
                 {nextSteps.map((c) => (
-                  <li key={c.id}>
-                    <b>{ASK[c.ask!]}</b>: {c.label.toLowerCase()} — <span className="text-zinc-600 dark:text-zinc-400">{c.detail}</span>
+                  <li key={c.id} className="flex items-start gap-3" title={c.detail}>
+                    <Mark kind={markOf(c)} />
+                    <span className="text-sm">
+                      <b className="block font-semibold">{ASK[c.ask!]}</b>
+                      <span className="text-zinc-600 dark:text-zinc-400">{SHORT_LABEL[c.id] ?? c.label}</span>
+                    </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-zinc-500">No open questions. A person still decides whether to enquire.</p>
+              <p className="text-sm text-zinc-500">Nothing open. You decide whether to enquire.</p>
             )}
-            <p className="mt-2 text-xs text-zinc-500">HiddenLot sends no messages and reserves no stock. &ldquo;Request information&rdquo; records an internal to-do.</p>
           </Card>
 
-          {!invalid && lot && view.compatibility_status !== "incompatible" && (
-            <Card title="Your decision">
-              <ActionForm action={decideAction} className="space-y-2">
-                <input type="hidden" name="opportunity_id" value={o.id} />
-                <select name="decision" className={inputCls} defaultValue={canShortlist ? "shortlisted" : "information_requested"}>
-                  <option value="under_review">Under review</option>
-                  <option value="information_requested">Request information</option>
-                  <option value="shortlisted" disabled={!canShortlist}>
-                    Shortlist (worth enquiring){canShortlist ? "" : " — not available for this status"}
-                  </option>
-                  <option value="dismissed">Dismiss</option>
-                </select>
-                <textarea name="reason" required placeholder="Reason (required, saved with the versions you saw)" className={inputCls} rows={2} />
-                <Submit className={primaryCls}>Save decision</Submit>
-              </ActionForm>
-            </Card>
-          )}
+          <Card title="Why you see it">
+            <div className="flex items-center gap-2.5 text-sm font-medium">
+              <span className={`rounded-lg px-2.5 py-1.5 ${o.novelty === "cross_network" ? "bg-accent-soft text-accent" : "bg-zinc-100 dark:bg-zinc-800"}`}>{o.novelty === "cross_network" ? sellerName : "Your stock"}</span>
+              <span className="text-zinc-400">
+                <ArrowIcon size={18} />
+              </span>
+              <span className="rounded-lg bg-zinc-900 px-2.5 py-1.5 text-white dark:bg-zinc-100 dark:text-zinc-900">You</span>
+            </div>
+            <p className="mt-3 text-[13px] text-zinc-600 dark:text-zinc-400">{o.novelty === "cross_network" ? "Shared stock, matched when published. Your network alone would not show it." : "Matched when the lot or your demand last changed."}</p>
+            <p className="mt-2 font-mono text-xs text-zinc-500">{o.lot_id}</p>
+          </Card>
 
-          <Card title="History">
-            {decisions.length === 0 ? (
-              <p className="text-sm text-zinc-500">No decisions yet.</p>
-            ) : (
-              <ul className="space-y-1.5 text-xs">
+          {decisions.length > 0 && (
+            <Card title="History">
+              <ul className="space-y-2.5 text-[13px]">
                 {decisions.map((d) => (
                   <li key={d.id}>
-                    <b>{d.decision.replaceAll("_", " ")}</b> by {d.actor_id} · {new Date(d.created_at).toISOString().slice(0, 16).replace("T", " ")} UTC
+                    <b className="font-semibold capitalize">{d.decision.replaceAll("_", " ")}</b>{" "}
+                    <span className="text-zinc-500">· {new Date(d.created_at).toISOString().slice(0, 16).replace("T", " ")} UTC</span>
                     <div className="text-zinc-600 dark:text-zinc-400">{d.reason}</div>
                   </li>
                 ))}
               </ul>
-            )}
-          </Card>
-
-          <Card title="Buyer requirements">
-            <ul className="space-y-0.5 text-xs text-zinc-700 dark:text-zinc-300">
-              <li>Grades: {demand.accepted_grades.map((g) => [g.grade, g.standard_id, g.edition].filter(Boolean).join(" ")).join(" / ")} ({demand.substitution_policy === "forbidden" ? "no substitution" : "other grades only after engineering review"})</li>
-              <li>
-                Size: {demand.thickness_mm.min ?? "?"}–{demand.thickness_mm.max ?? "?"} × {demand.width_mm.min ?? "?"}–{demand.width_mm.max ?? "?"} mm
-              </li>
-              <li>
-                Quantity: {demand.quantity_kg.min / 1000}–{demand.quantity_kg.max / 1000} t{demand.allow_partial_delivery ? ", partial OK" : ""}
-              </li>
-              <li>Condition: {demand.acceptable_conditions.join(", ")}</li>
-              <li>{FIELD_LABEL.certificate_claims.replace(" (seller says)", "")}: {demand.must_have_certificates.join(", ") || "none required"}</li>
-              <li>Need by: {demand.need_by ?? "no date"}</li>
-              <li>Budget: {demand.budget ? `${demand.budget.currency} ${demand.budget.amount}/MT ${demand.budget.incoterm} ${demand.budget.place}` : "none set"}</li>
-            </ul>
-          </Card>
-        </div>
+            </Card>
+          )}
+        </aside>
       </div>
     </Page>
   );
@@ -243,12 +330,13 @@ function ExplanationCard({ oppId, stored, allowed, ended, meta }: { oppId: strin
   const e = stored?.explanation;
   return (
     <Card
-      title="Explanation · Meta Muse Spark"
+      title="Meta explanation"
       aside={
         allowed && meta ? (
           <ActionForm action={explainAction}>
             <input type="hidden" name="opportunity_id" value={oppId} />
             <Submit className={buttonCls} pending="Asking Meta…">
+              <SparkIcon size={16} />
               {stored ? "Regenerate" : "Explain with Meta"}
             </Submit>
           </ActionForm>
@@ -256,13 +344,13 @@ function ExplanationCard({ oppId, stored, allowed, ended, meta }: { oppId: strin
       }
     >
       {ended ? (
-        <p className="text-sm text-zinc-500">Not available: this opportunity is no longer current.</p>
+        <p className="text-sm text-zinc-500">Not available: no longer current.</p>
       ) : !allowed ? (
-        <p className="text-sm text-zinc-500">The lot owner has not allowed model processing of this lot for your network, so only the rule-based explanation below is shown.</p>
+        <p className="text-sm text-zinc-500">The owner did not allow model processing of this lot. The rule results above are complete.</p>
       ) : !meta ? (
-        <p className="text-sm text-zinc-500">Meta is not configured on this server; the rule-based explanation below is complete on its own.</p>
+        <p className="text-sm text-zinc-500">Meta is not configured. The rule results above are complete.</p>
       ) : !e ? (
-        <p className="text-sm text-zinc-500">Meta can rephrase the rule results for a trader. Every sentence must cite the facts below it; anything unsupported is removed automatically.</p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Every sentence must cite a checked fact. Uncited sentences are dropped.</p>
       ) : (
         <div className="space-y-2 text-sm">
           {e.summary.text && (

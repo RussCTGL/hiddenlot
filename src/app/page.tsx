@@ -1,8 +1,9 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { resetDemo, rerunDiscovery } from "@/app/actions";
 import { listOpportunitiesForActor } from "@/auth/access";
 import { Submit } from "@/components/forms";
-import { ButtonLink, Card, Loading, Page, StatusPill, buttonCls, primaryCls } from "@/components/ui";
+import { CiteIcon, RefreshIcon, SearchIcon, ShareIcon, ShieldIcon, UploadIcon } from "@/components/icons";
+import { ButtonLink, Card, Label, Loading, Page, SHORT_STATUS, STATUS_DOT, StatusDot, buttonCls, primaryCls } from "@/components/ui";
 import { listDemandsOfNetwork, listLotsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import type { CompatibilityStatus } from "@/discovery/constraints";
@@ -46,14 +47,20 @@ async function Overview() {
   for (const o of live) byGroup.set(o.compatibility_status as CompatibilityStatus, (byGroup.get(o.compatibility_status as CompatibilityStatus) ?? 0) + 1);
   const cross = live.filter((o) => o.novelty === "cross_network").length;
 
+  const toReview = lots.filter((l) => l.status === "needs_review").length;
+  const groups = GROUP_ORDER.filter((g) => byGroup.get(g));
+
   return (
     <Page
-      title={`${network.alias} · ${network.name}`}
-      subtitle="HiddenLot finds surplus hot-rolled coil across trade networks that have agreed to share, explains each candidate with evidence from the source, and keeps every unknown visible."
+      title={network.alias}
+      subtitle={network.name.replace(/\s*\(fictional\)/, "")}
       actions={
         <>
           <form action={rerunDiscovery}>
-            <Submit className={buttonCls}>Re-run discovery</Submit>
+            <Submit className={buttonCls} pending="Running…">
+              <RefreshIcon size={16} />
+              Re-run discovery
+            </Submit>
           </form>
           <form action={resetDemo}>
             <Submit className={buttonCls} pending="Resetting…">
@@ -64,61 +71,84 @@ async function Overview() {
       }
     >
       <div className="grid gap-4 md:grid-cols-3">
-        <Card title="Your stock">
-          <p className="text-3xl font-semibold">{lots.filter((l) => l.status === "published").length}</p>
-          <p className="text-sm text-zinc-500">published lots · {lots.filter((l) => l.status === "needs_review").length} awaiting review</p>
-          <div className="mt-3 flex gap-2">
-            <ButtonLink href="/inventory">Inventory</ButtonLink>
-            <ButtonLink href="/intake">Add stock</ButtonLink>
-          </div>
-        </Card>
-        <Card title="Your demands">
-          <p className="text-3xl font-semibold">{demands.filter((d) => d.status === "active").length}</p>
-          <p className="text-sm text-zinc-500">active buyer requirements</p>
-          <div className="mt-3 flex gap-2">
-            <ButtonLink href="/demands">Demands</ButtonLink>
-            <ButtonLink href="/demands/new">New demand</ButtonLink>
-          </div>
-        </Card>
-        <Card title="Opportunities">
-          <p className="text-3xl font-semibold">{live.length}</p>
-          <p className="text-sm text-zinc-500">{cross} found in other networks under their sharing grants</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {GROUP_ORDER.filter((g) => byGroup.get(g)).map((g) => (
-              <span key={g} className="flex items-center gap-1 text-xs">
-                <StatusPill status={g} /> {byGroup.get(g)}
-              </span>
-            ))}
-          </div>
-          <div className="mt-3">
-            <ButtonLink href="/opportunities" primary>
-              Review opportunities
-            </ButtonLink>
-          </div>
-        </Card>
+        <Tile label="Your stock" value={lots.filter((l) => l.status === "published").length} unit={toReview ? `live · ${toReview} to review` : "live"}>
+          <ButtonLink href="/inventory">Inventory</ButtonLink>
+          <ButtonLink href="/intake">Add stock</ButtonLink>
+        </Tile>
+        <Tile label="Your demands" value={demands.filter((d) => d.status === "active").length} unit="active">
+          <ButtonLink href="/demands">Demands</ButtonLink>
+          <ButtonLink href="/demands/new">New demand</ButtonLink>
+        </Tile>
+        <Tile label="Opportunities" value={live.length} unit={cross ? `${cross} from other networks` : undefined} strong>
+          {groups.length > 0 && (
+            <div className="w-full space-y-2">
+              <div role="img" aria-label={groups.map((g) => `${byGroup.get(g)} ${SHORT_STATUS[g]}`).join(", ")} className="flex h-2 gap-0.5 overflow-hidden rounded-full">
+                {groups.map((g) => (
+                  <span key={g} className={STATUS_DOT[g]} style={{ flex: byGroup.get(g) }} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                {groups.map((g) => (
+                  <span key={g} className="flex items-center gap-1.5">
+                    <StatusDot status={g} className="size-2" />
+                    {SHORT_STATUS[g]} {byGroup.get(g)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <ButtonLink href="/opportunities" primary>
+            Review opportunities
+          </ButtonLink>
+        </Tile>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <Card title="How it works">
-          <ol className="list-decimal space-y-1.5 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>A stockist uploads an offer (message text, CSV/XLSX or text PDF). Meta Muse Spark extracts each lot and cites the exact line, cell or page for every value.</li>
-            <li>Deterministic checks verify every citation; units are converted in code. Anything the source does not state stays Unknown.</li>
-            <li>The owner reviews, publishes and chooses which networks may use which fields.</li>
-            <li>Publishing triggers discovery against the authorized demands. Hard constraints decide pass / fail / unknown; there is no grade-equivalence table.</li>
-            <li>Buyers review candidates with evidence. Selling, editing or revoking sharing invalidates them immediately.</li>
-          </ol>
-        </Card>
-        <Card title="Demo walkthrough">
-          <ol className="list-decimal space-y-1.5 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>As <b>Network A</b>, open Opportunities: lot B-018 from Network B is a declared spec match that Network A&apos;s own stock could not provide.</li>
-            <li>See why Network C&apos;s look-alikes are not recommended: wrong standard, too late, or a different grade needing engineering review.</li>
-            <li>Shortlist B-018 with a reason.</li>
-            <li>Switch to <b>Network B</b>, mark B-018 sold, switch back: the opportunity is invalidated and its details are hidden.</li>
-            <li>As Network B, upload a new offer in Intake and watch Meta extract it with evidence.</li>
-          </ol>
-          <p className="mt-3 text-xs text-zinc-500">Meta extraction: {metaAvailable() ? "configured on this server" : "not configured — the regex baseline is used instead"}.</p>
-        </Card>
-      </div>
+      <section className="mt-10 space-y-5">
+        <Label>How it works</Label>
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+          {STEPS.map(([Icon, title, line]) => (
+            <div key={title} className="space-y-2.5">
+              <span className="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                <Icon />
+              </span>
+              <p className="text-[15px] font-semibold">{title}</p>
+              <p className="text-[13px] text-zinc-500 dark:text-zinc-400">{line}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <details className="mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900" open>
+        <summary className="flex min-h-7 cursor-pointer items-center text-[15px] font-semibold">Demo guide · 4 steps</summary>
+        <ol className="mt-4 mb-1 grid list-decimal gap-x-8 gap-y-3 pl-5 text-sm text-zinc-700 sm:grid-cols-2 lg:grid-cols-4 dark:text-zinc-300">
+          <li>As Network A, open lot B-018 in Opportunities</li>
+          <li>Shortlist it with a reason</li>
+          <li>As Network B, mark B-018 sold</li>
+          <li>Revoke sharing and watch it vanish</li>
+        </ol>
+        {!metaAvailable() && <p className="mt-3 text-xs text-zinc-500">Meta is not configured here; the regex baseline extracts instead.</p>}
+      </details>
     </Page>
+  );
+}
+
+const STEPS = [
+  [UploadIcon, "Upload", "Text, sheet or PDF"],
+  [CiteIcon, "Extract & cite", "Meta quotes every value"],
+  [ShieldIcon, "Verify", "Code checks each quote"],
+  [ShareIcon, "Share", "Field by field, revocable"],
+  [SearchIcon, "Match", "Hard rules, no guessing"],
+] as const;
+
+function Tile({ label, value, unit, strong = false, children }: { label: string; value: number; unit?: string; strong?: boolean; children: ReactNode }) {
+  return (
+    <section className={`flex flex-col gap-4 rounded-xl border bg-white p-6 dark:bg-zinc-900 ${strong ? "border-zinc-900 dark:border-zinc-400" : "border-zinc-200 dark:border-zinc-800"}`}>
+      <Label>{label}</Label>
+      <p className="flex items-baseline gap-3">
+        <span className="font-mono text-5xl leading-none font-medium tracking-tight">{value}</span>
+        {unit && <span className="text-sm text-zinc-500 dark:text-zinc-400">{unit}</span>}
+      </p>
+      <div className="mt-auto flex flex-wrap items-end gap-2">{children}</div>
+    </section>
   );
 }

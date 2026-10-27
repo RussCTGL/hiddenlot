@@ -94,7 +94,7 @@ export function FieldTable({ lot, fields = FIELD_ORDER, render }: { lot: Invento
   return (
     <table className="w-full">
       <thead>
-        <tr className="text-left text-[11px] uppercase tracking-wide text-zinc-400">
+        <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
           <th className="pb-1 font-medium">Field</th>
           <th className="pb-1 font-medium">Value</th>
           <th className="pb-1 font-medium">Status</th>

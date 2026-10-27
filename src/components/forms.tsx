@@ -25,10 +25,26 @@ export function ActionForm({
   );
 }
 
-export function Submit({ children, className, pending }: { children: ReactNode; className: string; pending?: string }) {
+export function Submit({
+  children,
+  className,
+  pending,
+  name,
+  value,
+  disabled = false,
+  title,
+}: {
+  children: ReactNode;
+  className: string;
+  pending?: string;
+  name?: string;
+  value?: string;
+  disabled?: boolean;
+  title?: string;
+}) {
   const status = useFormStatus();
   return (
-    <button type="submit" className={className} disabled={status.pending}>
+    <button type="submit" name={name} value={value} title={title} className={className} disabled={disabled || status.pending}>
       {status.pending ? (pending ?? "Working…") : children}
     </button>
   );
