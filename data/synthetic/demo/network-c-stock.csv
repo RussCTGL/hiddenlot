@@ -1,0 +1,6 @@
+SYNTHETIC DEMO DATA — fictional stock list (Network C); not real offers
+Lot,Product,Grade,Standard,Thickness (mm),Width (mm),Weight (MT),Coils,Condition,Certificates,Location,Available from,Price
+C-101,HRC,SS400,KS D3503,3.0,1500,19.5,1,prime,MTC,Incheon,2026-11-05,USD 552/MT CFR Haiphong
+C-102,HRC,S235JR,EN 10025-2,3.0,1500,18,1,prime,EN 10204 3.1,Antwerp,2026-11-10,
+C-103,HRC,SS400,JIS G3101,3.0,1500,18,1,prime,MTC,Kaohsiung,2026-12-15,USD 540/MT CFR Haiphong
+C-105,HRC,Q235B,GB/T 700,2.75,1250,22,2,prime,,Tianjin,2026-11-20,
