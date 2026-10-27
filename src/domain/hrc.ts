@@ -11,9 +11,14 @@ import { z } from "zod";
 //   otherwise for a specific demand.
 // - Money is a decimal string, never a float.
 
-export const HRC_SCHEMA_VERSION = "0.1.0";
+export const HRC_SCHEMA_VERSION = "0.2.0";
 
-export const ProductForm = z.enum(["hot_rolled_coil"]);
+// Matching is HRC-only in the MVP. Other forms are recognised so a plate or a
+// cold-rolled coil offered against an HRC demand fails on product form instead
+// of slipping through as "similar".
+export const ProductForm = z.enum(["hot_rolled_coil", "hot_rolled_plate", "hot_rolled_sheet", "cold_rolled_coil"]);
+export type ProductForm = z.infer<typeof ProductForm>;
+export const MVP_PRODUCT_FORM = "hot_rolled_coil" as const;
 
 export const ObservationStatus = z.enum([
   "not_stated", // source says nothing about this field; value is Unknown
@@ -29,6 +34,9 @@ export const ReviewStatus = z.enum(["pending", "confirmed", "corrected"]);
 export const EvidenceLocator = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("text_span"), start: z.number().int().nonnegative(), end: z.number().int().positive() }),
   z.object({ kind: z.literal("sheet_cell"), sheet: z.string(), row: z.number().int().positive(), cell: z.string() }),
+  // Shown to other networks: the value is traced in the owner's private source,
+  // but the quote and its location are not shared.
+  z.object({ kind: z.literal("owner_private") }),
   z.object({
     kind: z.literal("pdf_text"),
     page: z.number().int().positive(),
@@ -92,6 +100,7 @@ const obsStringList = fieldObservation(z.array(z.string()));
 
 export const InventoryLotFields = z.object({
   seller_lot_ref: obsString,
+  product_form: fieldObservation(ProductForm),
   // Material
   grade_raw: obsString,
   standard_id: obsString,
@@ -130,7 +139,6 @@ export const InventoryLot = z.object({
   lot_id: z.string().min(1),
   version: z.number().int().positive(),
   owner_network_id: z.string().min(1),
-  product_form: ProductForm,
   status: LotStatus,
   fields: InventoryLotFields,
   source_ids: z.array(z.string()).min(1),
@@ -161,7 +169,8 @@ export const Demand = z.object({
   demand_id: z.string().min(1),
   version: z.number().int().positive(),
   buyer_network_id: z.string().min(1),
-  product_form: ProductForm,
+  title: z.string().min(1),
+  product_form: z.literal(MVP_PRODUCT_FORM),
   quantity_kg: z
     .object({ min: z.number().positive(), target: z.number().positive().nullable(), max: z.number().positive() })
     .refine((q) => q.min <= q.max, "min must be <= max"),
@@ -178,7 +187,7 @@ export const Demand = z.object({
   destination: z.string().nullable(),
   need_by: z.iso.date().nullable(),
   budget: z
-    .object({ amount: Decimal, currency: z.string().length(3), basis: PriceBasis, incoterm: z.string(), place: z.string() })
+    .object({ amount: Decimal.refine((d) => !d.startsWith("-"), "budget must not be negative"), currency: z.string().length(3), basis: PriceBasis, incoterm: z.string(), place: z.string() })
     .nullable(),
   expires_at: z.iso.datetime().nullable(),
   synthetic: z.boolean(),
@@ -191,7 +200,7 @@ export type Demand = z.infer<typeof Demand>;
 // lot pass or fail matching on their own.
 
 export const SANITY_BOUNDS = {
-  thickness_mm: { min: 0.8, max: 30 },
+  thickness_mm: { min: 0.8, max: 25.4 },
   width_mm: { min: 500, max: 2500 },
   total_kg: { min: 100, max: 5_000_000 },
 } as const;
@@ -201,3 +210,23 @@ export function sanityIssues(field: keyof typeof SANITY_BOUNDS, value: number | 
   const b = SANITY_BOUNDS[field];
   return value < b.min || value > b.max ? [`implausible_${field}:${value}`] : [];
 }
+
+/**
+ * Comparison key for seller lot references: "Lot B-030", "lot no. b-030" and
+ * "B-030" are the same reference. Used for dedupe and evaluation matching only;
+ * the stored value stays as written.
+ */
+export function lotRefKey(ref: string | null): string | null {
+  if (ref === null) return null;
+  const k = ref
+    .toUpperCase()
+    .replace(/^\s*(LOT|批号|批次)\s*(NO\.?|NUMBER|#)?\s*[:：#]?\s*/u, "")
+    .replace(/\s+/g, "");
+  return k || null;
+}
+
+/** A line that introduces a seller lot ("Lot B-018", "批号：B-018", "Lot no. C-7"). */
+export const LOT_REF_LINE = /(?:\blot(?:\s*(?:no\.?|#|number))?|批号|批次)\s*[:：#]?\s*([A-Z]{1,3}-?\d{2,5}[A-Z]?)(?![A-Za-z0-9])/i;
+
+/** A line that opens with a reference label ("Ref D-100", "Item 7", "编号 D-100"). Line start only, so "heat no. H24-77812" never counts. */
+export const LOT_REF_LINE_START = /^\s*(?:ref(?:erence)?\.?|item|编号|编码)\s*[:：#]?\s*([A-Z]{1,3}-?\d{2,5}[A-Z]?)(?![A-Za-z0-9])/i;

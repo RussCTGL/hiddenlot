@@ -7,12 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "probe:meta": "tsx scripts/meta-probe.ts"
+    "probe:meta": "tsx scripts/meta-probe.ts",
+    "db:seed": "tsx scripts/seed-demo.ts",
+    "data:render": "tsx scripts/render-demo.ts",
+    "eval:extraction": "tsx scripts/eval-extraction.ts",
+    "data:eval": "tsx scripts/gen-eval.ts",
+    "eval:discovery": "tsx scripts/eval-discovery.ts"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.5.11",
+    "exceljs": "4.4.0",
     "next": "16.4.3",
+    "pdfjs-dist": "6.3.289",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
@@ -25,6 +33,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "pdf-lib": "1.17.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
