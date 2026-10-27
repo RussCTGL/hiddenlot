@@ -5,10 +5,17 @@ Commit history is the primary record.
 
 ## Log
 
-| Date | Who | New during hackathon | Third-party used | In demo |
-|---|---|---|---|---|
-| 2026-10-26 | RussCTGL | Project scaffold; Meta API adapter with server-only guard; HRC schema v0.1; unit normalization; ExtractSupply prompt v1 and post-checks; synthetic probe fixture with expected values; Meta probe script; offline tests | Next.js 16.4.3, React 19.3, Tailwind CSS 4, zod 4.6, server-only, tsx (all MIT) | Extraction (yes) |
-| 2026-10-26/27 | RussCTGL | Postgres schema and data layer; deterministic constraint engine (plan §11) and review-priority score; event-driven, authorization-first discovery with invalidation; shared-listing projection; review workflow; CSV/XLSX/PDF parsers with cell/page locators and limits; evidence integrity checks (token boundaries, cell scoping, cross-row/cross-lot, dates, units, currency); regex baseline B1; intake pipeline with dedupe; ExplainCandidate with citation checks; synthetic three-network demo and held-out eval set; evaluation scripts; web UI (overview, intake & review, inventory, demands, opportunities, sharing) | PGlite (Apache-2.0), exceljs (MIT), pdfjs-dist (Apache-2.0), pdf-lib (MIT, dev) | Yes |
+| Date | Who | New during hackathon | Commits | Third-party used | In demo |
+|---|---|---|---|---|---|
+| 2026-10-26 | RussCTGL | Project scaffold; Meta API adapter with server-only guard; HRC schema v0.1; unit normalization; ExtractSupply prompt v1 and post-checks; synthetic probe fixture with expected values; Meta probe script; offline tests | `89f02c3`, `c55d2f9` | Next.js 16.4.3, React 19.3, Tailwind CSS 4, zod 4.6, server-only, tsx (all MIT) | Extraction (yes) |
+| 2026-10-26/27 | RussCTGL | **P1 core engine:** Postgres schema and data layer; deterministic constraint engine (plan §11) and review-priority score; authorization-first, event-driven discovery with invalidation; shared-listing projection; review workflow | `a744206` | PGlite (Apache-2.0) | Yes |
+| 2026-10-26/27 | RussCTGL | **P2 ingestion:** CSV/XLSX/PDF parsers with cell/page locators and limits; evidence integrity checks (token boundaries, cell scoping, cross-row/cross-lot, dates, units, currency, missed lots); ExtractSupply prompt v6; regex baseline B1; intake pipeline with dedupe | `e75da82` | exceljs (MIT), pdfjs-dist (Apache-2.0) | Yes |
+| 2026-10-26/27 | RussCTGL | **P3 dataset:** synthetic three-network demo (hand-written truth, rendered documents, labels for 22 pairs) and seed through the real pipeline | `81343f8` | pdf-lib (MIT, dev) | Yes |
+| 2026-10-26/27 | RussCTGL | **P4 UI:** overview, intake & review, inventory, demands, opportunity feed and detail, sharing; server actions; ExplainCandidate with citation checks | `412e462` | — | Yes |
+| 2026-10-26/27 | RussCTGL | **P5 evaluation:** held-out set generator (two template families), extraction and discovery evals, result files, evaluation write-up | `83e540d` | — | Numbers only |
+| 2026-10-26/27 | RussCTGL | **P6 docs:** README, architecture, build log, demo script, third-party notices | `604b0d6` | — | — |
+
+The phase commits group files by build phase in their final state; `docs/build-log.md` records the order of work, each phase's review gate and what it found.
 
 ## Not counted as hackathon work
 
