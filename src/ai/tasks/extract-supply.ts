@@ -16,9 +16,10 @@ import type { TextFragment } from "@/ingestion/text-fragments";
 
 // Task A (plan §10.2): ExtractSupply. The model reads untrusted seller text
 // and returns claims {value, raw, evidence}. Everything after that is
-// deterministic: evidence must exist, raw must be a verbatim substring of the
-// cited fragment, numbers and units must appear in raw, and unit conversion
-// happens here, not in the model. Anything that fails stays Unknown.
+// deterministic: evidence must exist, raw must match a span of the cited
+// fragment (differences in quotes, apostrophes and whitespace only), numbers
+// and units must appear in that source span, and unit conversion happens here,
+// not in the model. Anything that fails stays Unknown.
 
 export const EXTRACT_SUPPLY_PROMPT_VERSION = "extract-supply.v1";
 export const EXTRACT_SUPPLY_SCHEMA_NAME = "hrc_supply_extraction_v0_1";
@@ -188,7 +189,13 @@ type Claim = {
 
 type Observation = InventoryLotFields[InventoryLotField];
 
-const squash = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+// Characters a model may drop, add or swap when copying text. Ignoring them
+// never changes a digit, letter or unit, and everything downstream is checked
+// against the source span, not the model's copy.
+const LOOSE = /[\s'"`´‘’‚‛“”„‟′″＇＂「」『』]/u;
+const LOOSE_ALL = new RegExp(LOOSE.source, "gu");
+
+const squash = (s: string) => s.replace(LOOSE_ALL, "").toLowerCase();
 
 export function numbersIn(text: string): number[] {
   const out: number[] = [];
@@ -203,16 +210,36 @@ export function numbersIn(text: string): number[] {
 
 const numberInRaw = (value: number, rawText: string) => numbersIn(rawText).some((n) => Math.abs(n - value) < 1e-9);
 
+// Finds rawText in a fragment: exactly if possible, otherwise ignoring LOOSE
+// characters. Returns [start, end) offsets into the fragment text.
+export function findSpan(rawText: string, text: string): [number, number] | null {
+  const exact = text.indexOf(rawText);
+  if (exact >= 0) return [exact, exact + rawText.length];
+
+  const needle = rawText.replace(LOOSE_ALL, "");
+  if (!needle) return null;
+  const kept: number[] = [];
+  let hay = "";
+  for (let i = 0; i < text.length; i++) {
+    if (LOOSE.test(text[i])) continue;
+    kept.push(i);
+    hay += text[i];
+  }
+  const idx = hay.indexOf(needle);
+  if (idx < 0) return null;
+  return [kept[idx], kept[idx + needle.length - 1] + 1];
+}
+
 function locate(rawText: string, cited: TextFragment[], sourceId: string): EvidenceRef[] {
   const refs: EvidenceRef[] = [];
   for (const f of cited) {
-    const idx = f.text.indexOf(rawText);
-    if (idx >= 0) {
+    const span = findSpan(rawText, f.text);
+    if (span) {
       refs.push({
         source_id: sourceId,
         fragment_id: f.id,
-        locator: { kind: "text_span", start: f.start + idx, end: f.start + idx + rawText.length },
-        quote: rawText,
+        locator: { kind: "text_span", start: f.start + span[0], end: f.start + span[1] },
+        quote: f.text.slice(span[0], span[1]),
       });
     }
   }
@@ -239,7 +266,7 @@ function processClaim(claim: Claim, spec: FieldSpec, ctx: PostProcessContext, by
     else issues.push(`unknown_evidence_id:${id}`);
   }
 
-  const rawText = claim.raw?.trim() ? claim.raw : null;
+  let rawText = claim.raw?.trim() ? claim.raw : null;
   const hasValue = claim.value !== null && !(Array.isArray(claim.value) && claim.value.length === 0);
 
   const unresolved = (code: string, evidenceRefs: EvidenceRef[]): Observation => ({
@@ -269,6 +296,9 @@ function processClaim(claim: Claim, spec: FieldSpec, ctx: PostProcessContext, by
 
   const refs = locate(rawText, cited, ctx.sourceId);
   if (refs.length === 0) return unresolved("raw_not_in_evidence", wholeFragmentRefs(cited, ctx.sourceId));
+  // From here on, raw is the source's own text, so every check below runs on
+  // what the seller wrote rather than on the model's copy of it.
+  rawText = refs[0].quote;
   if (!hasValue) return unresolved("raw_without_value", refs);
 
   const stated = (value: unknown, normalization: { rule: string; version: string } | null = null): Observation =>

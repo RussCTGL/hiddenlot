@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { toStrictJsonSchema } from "@/ai/json-schema";
-import { numbersIn, postProcessSupply, SupplyExtraction, type ExtractedLot } from "@/ai/tasks/extract-supply";
+import { findSpan, numbersIn, postProcessSupply, SupplyExtraction, type ExtractedLot } from "@/ai/tasks/extract-supply";
 import { fragmentText } from "@/ingestion/text-fragments";
 
 const text = readFileSync(path.join(__dirname, "../data/synthetic/probe/stock-network-b.txt"), "utf8");
@@ -117,4 +117,44 @@ test("unstated fields are not_stated, not zero", () => {
 test("number parsing does not guess decimal commas", () => {
   assert.deepEqual(numbersIn("1,500mm x 3.0"), [1500, 3]);
   assert.deepEqual(numbersIn("3,5 mm"), []);
+});
+
+test("a quote that only drops an apostrophe resolves to the source's own text", () => {
+  const L = lineOf("L/C cancelled");
+  const fields = run({
+    ...emptyLot(),
+    surplus_reason: { value: "cancelled_lc", raw: "buyers L/C cancelled", evidence: [L] },
+  });
+  assert.equal(fields.surplus_reason.normalized_value, "cancelled_lc");
+  assert.equal(fields.surplus_reason.raw_value, "buyer's L/C cancelled");
+  const ev = fields.surplus_reason.evidence[0];
+  assert.equal(ev.quote, "buyer's L/C cancelled");
+  if (ev.locator.kind === "text_span") assert.equal(text.slice(ev.locator.start, ev.locator.end), ev.quote);
+});
+
+test("span matching ignores only quotes, apostrophes and whitespace", () => {
+  const span = (raw: string, src: string) => {
+    const s = findSpan(raw, src);
+    return s && src.slice(s[0], s[1]);
+  };
+  assert.equal(span("buyers L/C", "Reason: buyer’s L/C cancelled"), "buyer’s L/C");
+  assert.equal(span("3.0 mm", "size 3.0mm x 1500"), "3.0mm");
+  assert.equal(span("“SS400”", "grade SS400, JIS"), "SS400");
+  assert.equal(span("30mm", "3.0mm"), null); // a dropped decimal point is not tolerated
+  assert.equal(span("SS4OO", "SS400"), null); // letter O is not digit 0
+  assert.equal(span("Q235b", "Q235B"), null); // case must match
+  assert.equal(span("''", "it's"), null);
+});
+
+test("numbers are checked on the source span, so whitespace cannot merge digits", () => {
+  const src = "Thickness: 2 75 mm";
+  const frags = fragmentText(src);
+  const out = postProcessSupply(
+    { lots: [{ ...emptyLot(), thickness: { value: 275, unit: "mm", raw: "275mm", evidence: [frags[0].id] } }], ambiguities: [], ignored_instructions: [] },
+    { ...ctx, fragments: frags },
+  );
+  const thickness = out.lots[0].fields.thickness_mm;
+  assert.equal(thickness.normalized_value, null);
+  assert.equal(thickness.raw_value, "2 75 mm");
+  assert.deepEqual(thickness.issues, ["value_not_in_raw"]);
 });
