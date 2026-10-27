@@ -174,7 +174,21 @@ export async function createStructuredCompletion<T extends z.ZodType>(
       return finish(null);
     }
 
-    const payload = (await res.json()) as ChatCompletionResponse;
+    // The timeout also covers reading the body; a body that stalls or is not
+    // JSON is a recorded failure, never an exception that escapes the caller.
+    let payload: ChatCompletionResponse;
+    try {
+      payload = (await res.json()) as ChatCompletionResponse;
+    } catch (err) {
+      const isTimeout = err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError");
+      run.result_status = isTimeout ? "timeout" : "invalid_output";
+      run.error = isTimeout ? `timed out after ${config.timeoutMs} ms while reading the response` : "response body is not valid JSON";
+      if (isTimeout && attempt < config.maxRetries) {
+        await sleep(1000 * 2 ** attempt);
+        continue;
+      }
+      return finish(null);
+    }
     run.response_model_id = payload.model ?? null;
     run.usage = payload.usage
       ? {

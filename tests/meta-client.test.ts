@@ -74,3 +74,23 @@ test("error bodies never echo the API key", async () => {
   assert.equal(run.result_status, "http_error");
   assert.ok(!run.error?.includes("sk-test-secret"));
 });
+
+test("a timeout while reading the body is a recorded, retried failure, never an exception", async () => {
+  const stalled = () =>
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+  const { impl, calls } = fakeFetch([stalled(), stalled(), stalled()]);
+  const { data, run } = await createStructuredCompletion({ ...config, maxRetries: 2 }, request, impl);
+  assert.equal(data, null);
+  assert.equal(run.result_status, "timeout");
+  assert.equal(calls.length, 3);
+  const bad = fakeFetch([new Response("not json", { status: 200 })]);
+  const r2 = await createStructuredCompletion(config, request, bad.impl);
+  assert.equal(r2.run.result_status, "invalid_output");
+});

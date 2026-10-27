@@ -5,6 +5,7 @@
   "notes": "Canonical truth written by hand before any model run. null = the field must stay Unknown after post-processing. {\"contains\": s} = normalized value must contain s.",
   "lots": {
     "B-018": {
+      "product_form": "hot_rolled_coil",
       "grade_raw": "SS400",
       "standard_id": "JIS G3101",
       "standard_edition": null,
@@ -13,19 +14,26 @@
       "total_kg": 18000,
       "piece_count": 1,
       "location_country": null,
-      "location_place": { "contains": "Busan" },
+      "location_place": {
+        "contains": "Busan"
+      },
       "available_from": "2026-11-02",
       "price_amount": "545",
       "price_currency": "USD",
       "price_basis": "per_mt",
       "incoterm": "CFR",
       "incoterm_place": "Haiphong",
-      "heat_numbers": ["H24-77812"],
-      "certificate_claims": ["MTC"],
+      "heat_numbers": [
+        "H24-77812"
+      ],
+      "certificate_claims": [
+        "MTC"
+      ],
       "condition": null,
       "surplus_reason": "cancelled_lc"
     },
     "B-021": {
+      "product_form": "hot_rolled_coil",
       "grade_raw": "Q235B",
       "standard_id": null,
       "standard_edition": null,
@@ -34,7 +42,9 @@
       "total_kg": null,
       "piece_count": 2,
       "location_country": null,
-      "location_place": { "contains": "天津" },
+      "location_place": {
+        "contains": "天津"
+      },
       "available_from": null,
       "price_amount": null,
       "price_currency": null,

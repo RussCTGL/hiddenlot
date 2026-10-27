@@ -4,11 +4,21 @@ import { createHash } from "node:crypto";
 // character offsets into the original string, so every extracted value can
 // be traced back to an exact span (plan P0-03).
 
+export interface CellSpan {
+  sheet: string;
+  row: number; // 1-based sheet row
+  cell: string; // A1 reference
+  start: number; // offset of the cell value inside the fragment text
+  end: number;
+}
+
 export interface TextFragment {
-  id: string; // "L<line number>", 1-based over the original text
+  id: string; // "L<line>" for text, "<sheet>!R<row>" for tables, "P<page>L<line>" for PDFs
   text: string;
-  start: number; // inclusive offset in the original text
+  start: number; // inclusive offset in the original text (text) or page text (PDF)
   end: number; // exclusive offset
+  cells?: CellSpan[]; // tabular rows: where each cell value sits inside `text`
+  page?: number; // PDF page, 1-based
 }
 
 export function fragmentText(text: string): TextFragment[] {

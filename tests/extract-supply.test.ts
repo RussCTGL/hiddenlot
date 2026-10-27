@@ -13,6 +13,7 @@ const lineOf = (needle: string) => fragments.find((f) => f.text.includes(needle)
 const none = { value: null, raw: null, evidence: [] };
 const emptyLot = (): ExtractedLot => ({
   seller_lot_ref: none,
+  product_form: none,
   grade: none,
   standard_id: none,
   standard_edition: none,
@@ -45,7 +46,15 @@ const ctx = {
   observedAt: "2026-10-26T00:00:00.000Z",
 };
 
+// Each claim belongs to the lot whose section contains the cited line, so the
+// helper adds that lot's reference (the probe text has two lots).
 function run(lot: ExtractedLot) {
+  if (lot.seller_lot_ref.value === null) {
+    const cited = Object.values(lot).flatMap((c) => (c as { evidence: string[] }).evidence);
+    const at = Math.max(0, ...cited.map((id) => fragments.findIndex((f) => f.id === id)));
+    const refLine = fragments.slice(0, at + 1).reverse().find((f) => /Lot B-\d+/.test(f.text));
+    if (refLine) lot = { ...lot, seller_lot_ref: { value: refLine.text.match(/B-\d+/)![0], raw: refLine.text.match(/B-\d+/)![0], evidence: [refLine.id] } };
+  }
   return postProcessSupply({ lots: [lot], ambiguities: [], ignored_instructions: [] }, ctx).lots[0].fields;
 }
 
@@ -157,4 +166,44 @@ test("numbers are checked on the source span, so whitespace cannot merge digits"
   assert.equal(thickness.normalized_value, null);
   assert.equal(thickness.raw_value, "2 75 mm");
   assert.deepEqual(thickness.issues, ["value_not_in_raw"]);
+});
+
+test("§11.4 30 mm thickness is flagged implausible for review", () => {
+  const L = lineOf("3.0mm");
+  const out = postProcessSupply(
+    { lots: [{ ...emptyLot(), thickness: { value: 30, unit: "mm", raw: "30", evidence: [L] } }], ambiguities: [], ignored_instructions: [] },
+    ctx,
+  );
+  // "30" is not in the fragment ("3.0mm"), so it is rejected before any bound check.
+  assert.equal(out.lots[0].fields.thickness_mm.normalized_value, null);
+});
+
+test("§11.4 mm read as inch is caught: the unit must be written in the source span", () => {
+  const L = lineOf("3.0mm");
+  const fields = run({ ...emptyLot(), thickness: { value: 3.0, unit: "inch", raw: "3.0mm", evidence: [L] } });
+  assert.equal(fields.thickness_mm.normalized_value, null);
+  assert.deepEqual(fields.thickness_mm.issues, ["unit_not_in_raw"]);
+});
+
+test("sanity bounds flag 30 mm thickness but not 25 mm", async () => {
+  const { sanityIssues } = await import("@/domain/hrc");
+  assert.deepEqual(sanityIssues("thickness_mm", 30), ["implausible_thickness_mm:30"]);
+  assert.deepEqual(sanityIssues("thickness_mm", 25), []);
+});
+
+test("units count when written next to a number or in a header, never inside a word", async () => {
+  const { unitIn } = await import("@/ai/tasks/extract-supply");
+  assert.ok(unitIn("mm", "3.0mm"));
+  assert.ok(unitIn("MT", "18.0 MT, 1 coil"));
+  assert.ok(unitIn("mm", "Thickness (mm): 3.0"));
+  assert.ok(unitIn("吨", "约22吨"));
+  assert.ok(!unitIn("t", "Thickness (mm): 3.0"));
+  assert.ok(!unitIn("t", "Weight: 19.5"));
+  assert.ok(!unitIn("inch", "3.0mm"));
+});
+
+test("a lot the model skipped is reported, not silently lost", () => {
+  const out = postProcessSupply({ lots: [{ ...emptyLot(), seller_lot_ref: { value: "B-018", raw: "B-018", evidence: [lineOf("Lot B-018")] } }], ambiguities: [], ignored_instructions: [] }, ctx);
+  assert.ok(out.issues.some((i) => i.code === "lot_not_extracted" && i.detail.startsWith("B-021")));
+  assert.ok(!out.issues.some((i) => i.code === "lot_not_extracted" && i.detail.startsWith("B-018")));
 });
