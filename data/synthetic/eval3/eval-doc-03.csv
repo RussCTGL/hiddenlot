@@ -1,0 +1,6 @@
+SYNTHETIC EVAL DATA — fictional net-f stock list
+Lot,Product,Grade,Standard,Thickness,Width,Weight,Coils,Condition,Location,Ready,MTC
+F-108,HRC,S235JR,EN 10025-2:2015,3 mm,1219 mm,18600 kg,2,,Ho Chi Minh City warehouse,2026-12-09,
+F-109,HRC,S235JR,EN 10025-2:2006,3 mm,1500 mm,12.4 ton,1,secondary,Busan port,2026-11-06,
+F-110,HRC,SS400,JIS G3101,3 mm,1500 mm,24.6吨,2,secondary,Incheon,2026-11-06,MTC
+F-111,HRC,SS400,JIS G3101,4 mm,1250 mm,14.4 MT,2,prime,Ho Chi Minh City warehouse,,MTC

@@ -1,0 +1,5 @@
+SYNTHETIC EVAL DATA (net-f, fictional) - stock offers
+
+Ref F-131 | HR plate | Q235B / GB/T 700 | 3.0x1800 | 2 pcs, approx 24400 kg | Busan port | prime | MTC copy | ex 2026-11-06
+Ref F-132 | HR plate | SS400 / JIS G3101 | 2.3 x 1800 mm | 2 pcs, approx 17.9 MT | Ho Chi Minh City warehouse | secondary | ex 2026-12-14
+Ref F-133 | HRC | SS400 / JIS G3101 | 3.0 x 1500 mm | 2 coils, approx 20600 kg | Tianjin port | prime | MTC copy | ex 2026-12-15 | USD 562/MT FOB Tianjin

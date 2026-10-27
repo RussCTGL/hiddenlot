@@ -1,0 +1,43 @@
+{
+  "set": "eval4",
+  "now": "2026-11-01T00:00:00.000Z",
+  "source": "evals/results/extraction-eval4-2026-10-27T07-31-06-996Z.json",
+  "summary": {
+    "B2_truth": {
+      "reviewable": 9,
+      "true_positive": 9,
+      "candidate_recall": "9/9",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": 1,
+      "demands_with_results": 8
+    },
+    "B1_regex": {
+      "reviewable": 0,
+      "true_positive": 0,
+      "candidate_recall": "0/9",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": null,
+      "demands_with_results": 0
+    },
+    "B3_meta": {
+      "reviewable": 9,
+      "true_positive": 9,
+      "candidate_recall": "9/9",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": 1,
+      "demands_with_results": 8
+    },
+    "A1_no_constraints": {
+      "shown": 60,
+      "known_violations_shown": 48
+    },
+    "network_lift": {
+      "local_reviewable": 0,
+      "cross_network_reviewable": 9,
+      "demands_with_no_local_but_cross": 8
+    }
+  }
+}

@@ -1,0 +1,18 @@
+[SYNTHETIC EVAL DATA — fictional net-e offer, not real / 合成评测数据]
+Surplus stock list
+
+Lot E-122
+HRC Q345B (GB/T 1591)
+Size: 4.0mm x 1250mm
+Weight: 24.9 ton, 1 coil
+Quality: prime
+Location: Ho Chi Minh City warehouse
+Available from 2026-12-25
+
+Lot E-123
+HRC A36 (ASTM A36)
+Size: 2.3mm x 1524mm
+Weight: 11900 kg, 3 coils
+Quality: prime
+Location: Ho Chi Minh City warehouse
+Available from 2026-11-23

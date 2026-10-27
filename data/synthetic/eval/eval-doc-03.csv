@@ -1,0 +1,6 @@
+SYNTHETIC EVAL DATA — fictional net-f stock list
+Lot,Product,Grade,Standard,Thickness,Width,Weight,Coils,Condition,Location,Ready,MTC
+F-108,Plate,A36,ASTM A36:2015,2.75 mm,1800 mm,22700 kg,1,prime,Kaohsiung,2026-11-03,
+F-109,HRC,SS400,,4,1800,16.2 MT,2,prime,Incheon,2026-11-26,
+F-110,HRC,Q235B,GB/T 700,3 mm,1500 mm,13.5 ton,1,prime,Incheon,2026-11-08,MTC
+F-111,HRC,SS400,KS D3503:2019,3 mm,1500 mm,14.3吨,2,,Tianjin port,2026-11-20,

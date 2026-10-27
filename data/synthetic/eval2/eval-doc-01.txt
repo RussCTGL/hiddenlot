@@ -1,0 +1,39 @@
+[SYNTHETIC EVAL DATA — fictional net-d offer, not real / 合成评测数据]
+Surplus stock list
+
+Lot D-100
+hot rolled plate SS400 (JIS G3101)
+Size: 3.0mm x 1250mm
+Weight: 22.1 ton, 2 coils
+Quality: prime
+Location: Tianjin port
+Available from 2026-11-23
+MTC available
+
+Lot D-101
+HRC Q345B (GB/T 1591:2015)
+Size: 2.5mm x 1500mm
+Weight: 19.8吨, 3 coils
+Quality: prime
+Location: Kaohsiung
+Available from 2026-12-26
+Price: USD 538 / MT FOB Kaohsiung
+
+Lot D-102
+HRC S235JR (EN 10025-2)
+Size: 2.3mm x 1500mm
+Weight: 19600 kg, 2 coils
+Location: Ho Chi Minh City warehouse
+Available from 2026-12-24
+MTC available
+Price: USD 559 / MT FOB Ho
+
+Lot D-103
+HRC SS400 (JIS G3101:2015)
+Size: 3.2mm x 1219mm
+Weight: 19700 kg, 3 coils
+Quality: prime
+Location: Ho Chi Minh City warehouse
+Available from 2026-11-17
+MTC available
+Price: USD 514 / MT CFR Haiphong

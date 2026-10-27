@@ -1,0 +1,35 @@
+[SYNTHETIC EVAL DATA — fictional net-d offer, not real / 合成评测数据]
+Surplus stock list
+
+Lot D-100
+HRC Q345B (GB/T 1591:2019)
+Size: 3.0mm x 1250mm
+Weight: 21400 kg, 3 coils
+Quality: prime
+Location: Ho Chi Minh City warehouse
+Available from 2026-11-13
+
+Lot D-101
+HRC Q345B (GB/T 1591)
+Size: 3.0mm x 1500mm
+Weight: 23900 kg, 3 coils
+Quality: secondary
+Location: Tianjin port
+Available from 2026-11-04
+Price: USD 489 / MT CFR Haiphong
+
+Lot D-102
+hot rolled plate Q235B (GB/T 700)
+Size: 2.5mm x 1800mm
+Weight: 12000 kg, 2 coils
+Location: Kaohsiung
+Available from 2026-12-12
+MTC available
+Price: USD 506 / MT FOB Kaohsiung
+
+Lot D-103
+HRC S235JR (EN 10025-2)
+Size: 2.75mm x 1500mm
+Weight: 13 MT, 3 coils
+Quality: prime
+Location: Ho Chi Minh City warehouse

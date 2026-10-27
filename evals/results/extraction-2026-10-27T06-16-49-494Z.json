@@ -1,0 +1,419 @@
+{
+  "dataset": "hiddenlot-demo@demo-v1",
+  "created_at": "2026-10-27T06:16:49.494Z",
+  "extractors": [
+    "B1_regex"
+  ],
+  "critical_fields": [
+    "product_form",
+    "grade_raw",
+    "standard_id",
+    "standard_edition",
+    "thickness_mm",
+    "width_mm",
+    "total_kg",
+    "available_from",
+    "condition"
+  ],
+  "tally": {
+    "B1_regex": {
+      "product_form": {
+        "correct": 10,
+        "wrong": 1,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "grade_raw": {
+        "correct": 11,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "standard_id": {
+        "correct": 9,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 2
+      },
+      "standard_edition": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 1,
+        "fabricated": 0,
+        "abstained": 10
+      },
+      "thickness_mm": {
+        "correct": 10,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 1
+      },
+      "width_mm": {
+        "correct": 10,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 1
+      },
+      "total_kg": {
+        "correct": 10,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 1
+      },
+      "available_from": {
+        "correct": 9,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 2
+      },
+      "condition": {
+        "correct": 10,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 1
+      },
+      "seller_lot_ref": {
+        "correct": 11,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "piece_count": {
+        "correct": 4,
+        "wrong": 0,
+        "missed": 6,
+        "fabricated": 0,
+        "abstained": 1
+      },
+      "certificate_claims": {
+        "correct": 4,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 7
+      },
+      "location_place": {
+        "correct": 11,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "price_amount": {
+        "correct": 5,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "price_currency": {
+        "correct": 5,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "incoterm": {
+        "correct": 5,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "surplus_reason": {
+        "correct": 2,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 9
+      }
+    }
+  },
+  "lots": {
+    "B1_regex": {
+      "gold": 11,
+      "matched": 11,
+      "extra": 0
+    }
+  },
+  "results": [
+    {
+      "document": "doc-b-stock",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 4,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-b-018": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "correct",
+          "certificate_claims": "correct",
+          "location_place": "correct",
+          "price_amount": "correct",
+          "price_currency": "correct",
+          "incoterm": "correct",
+          "surplus_reason": "correct"
+        },
+        "lot-b-021": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "abstained",
+          "available_from": "abstained",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "correct",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "correct"
+        },
+        "lot-b-030": {
+          "product_form": "wrong",
+          "grade_raw": "correct",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "abstained",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "abstained",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-b-044": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "missed",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "correct",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "correct",
+          "price_currency": "correct",
+          "incoterm": "correct",
+          "surplus_reason": "abstained"
+        }
+      }
+    },
+    {
+      "document": "doc-c-stock",
+      "kind": "csv",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 4,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-c-101": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "correct",
+          "price_amount": "correct",
+          "price_currency": "correct",
+          "incoterm": "correct",
+          "surplus_reason": "abstained"
+        },
+        "lot-c-102": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-c-103": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "correct",
+          "price_amount": "correct",
+          "price_currency": "correct",
+          "incoterm": "correct",
+          "surplus_reason": "abstained"
+        },
+        "lot-c-105": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      }
+    },
+    {
+      "document": "doc-c-offer-c104",
+      "kind": "pdf",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 1,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-c-104": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "correct",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "correct",
+          "price_currency": "correct",
+          "incoterm": "correct",
+          "surplus_reason": "abstained"
+        }
+      }
+    },
+    {
+      "document": "doc-a-stock",
+      "kind": "xlsx",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 2,
+      "lots_predicted": 2,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-a-007": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "correct",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-a-009": {
+          "product_form": "correct",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "correct",
+          "width_mm": "correct",
+          "total_kg": "correct",
+          "available_from": "correct",
+          "condition": "abstained",
+          "seller_lot_ref": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "correct",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      }
+    }
+  ]
+}

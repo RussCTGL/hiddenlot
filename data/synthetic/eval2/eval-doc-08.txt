@@ -1,0 +1,20 @@
+[SYNTHETIC EVAL DATA — fictional net-e offer, not real / 合成评测数据]
+Surplus stock list
+
+Lot E-122
+HRC SS400
+Size: 3.0mm x 1500mm
+Weight: 23.1 MT, 3 coils
+Location: Kaohsiung
+Available from 2026-11-24
+Price: USD 525 / MT CFR Haiphong
+
+Lot E-123
+HRC S235JR (EN 10025-2)
+Size: 2.0mm x 1800mm
+Weight: 21.6 MT, 2 coils
+Quality: prime
+Location: Tianjin port
+Available from 2026-11-13
+MTC available
+Price: USD 504 / MT CFR Haiphong

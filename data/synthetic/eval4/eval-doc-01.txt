@@ -1,0 +1,6 @@
+SYNTHETIC EVAL DATA (net-d, fictional) - stock offers
+
+Ref D-100 | HRC | Q345B / GB/T 1591 | 3.2 x 1500 mm | 1 coil, approx 12.9 MT | Kaohsiung | prime | ex 2026-11-20
+Ref D-101 | HRC | Q235B / GB/T 700 | 3.2 x 1500 mm | 3 coils, approx 18.5 MT | Tianjin port | prime | MTC copy | ex 2026-11-17 | USD 552/MT CFR Haiphong
+Ref D-102 | HRC | Q235B / GB/T 700 | 2.75 x 1524 mm | 3 coils, approx 24.6 ton | Tianjin port | prime | MTC copy | ex 2026-11-01 | USD 507/MT CFR Haiphong
+Ref D-103 | HRC | SS400 / KS D3503:2019 | 4.0 x 1500 mm | 3 coils, approx 13 MT | Kaohsiung | secondary | MTC copy | ex 2026-11-24 | USD 520/MT FOB Kaohsiung

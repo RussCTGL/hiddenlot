@@ -1,0 +1,37 @@
+[SYNTHETIC EVAL DATA — fictional net-d offer, not real / 合成评测数据]
+Surplus stock list
+
+Lot D-100
+HRC S235JR (EN 10025-2)
+Size: 2.5mm x 1524mm
+Weight: 19.2 MT, 2 coils
+Quality: prime
+Location: Incheon
+Available from 2026-11-22
+MTC available
+
+Lot D-101
+HRC Q235B (GB/T 700)
+Size: 4.0mm x 1500mm
+Weight: 10800 kg, 1 coil
+Quality: prime
+Location: Tianjin port
+Available from 2026-11-07
+
+Lot D-102
+HRC SS400 (KS D3503)
+Size: 3.0 x 1219
+Weight: 15.8吨, 3 coils
+Quality: prime
+Location: Busan port
+Available from 2026-11-20
+MTC available
+Price: USD 548 / MT CFR Haiphong
+
+Lot D-103
+HRC Q345B (GB/T 1591)
+Size: 4.0mm x 1219mm
+Weight: 23.5 MT, 3 coils
+Quality: prime
+Location: Busan port
+Price: USD 509 / MT CFR Haiphong

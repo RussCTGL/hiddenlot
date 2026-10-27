@@ -1,0 +1,43 @@
+{
+  "set": "demo",
+  "now": "2026-10-27T12:00:00.000Z",
+  "source": "evals/results/extraction-demo-2026-10-27T07-10-43-498Z.json",
+  "summary": {
+    "B2_truth": {
+      "reviewable": 2,
+      "true_positive": 2,
+      "candidate_recall": "2/2",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": 1,
+      "demands_with_results": 2
+    },
+    "B1_regex": {
+      "reviewable": 1,
+      "true_positive": 1,
+      "candidate_recall": "1/2",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": 1,
+      "demands_with_results": 1
+    },
+    "B3_meta": {
+      "reviewable": 2,
+      "true_positive": 2,
+      "candidate_recall": "2/2",
+      "hard_constraint_violations": 0,
+      "reviewable_but_gold_needs_evidence_or_review": 0,
+      "precision_at_5_macro": 1,
+      "demands_with_results": 2
+    },
+    "A1_no_constraints": {
+      "shown": 10,
+      "known_violations_shown": 6
+    },
+    "network_lift": {
+      "local_reviewable": 0,
+      "cross_network_reviewable": 2,
+      "demands_with_no_local_but_cross": 2
+    }
+  }
+}

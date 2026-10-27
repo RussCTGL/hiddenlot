@@ -1,0 +1,2955 @@
+{
+  "dataset": "hiddenlot-eval",
+  "version": "eval4-v1",
+  "split": "locked_test",
+  "seed": 20261030,
+  "synthetic": true,
+  "notice": "Generated synthetic truth for evaluation only. Fictional networks and lots. Template family B: no prompt or regex was written with these layouts or phrases in view.",
+  "networks": [
+    {
+      "id": "net-d",
+      "name": "net-d (fictional eval network)",
+      "alias": "net-d",
+      "region": "-"
+    },
+    {
+      "id": "net-e",
+      "name": "net-e (fictional eval network)",
+      "alias": "net-e",
+      "region": "-"
+    },
+    {
+      "id": "net-f",
+      "name": "net-f (fictional eval network)",
+      "alias": "net-f",
+      "region": "-"
+    }
+  ],
+  "demands": [
+    {
+      "demand_id": "eval-dem-1",
+      "buyer_network_id": "net-e",
+      "created_by": "u-net-e",
+      "title": "Eval demand 1: HRC Q235B 3.2 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 16640,
+        "target": 20800,
+        "max": 24960
+      },
+      "thickness_mm": {
+        "min": 3.15,
+        "max": 3.25,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "Q235B",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "forbidden",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": null,
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-2",
+      "buyer_network_id": "net-d",
+      "created_by": "u-net-d",
+      "title": "Eval demand 2: HRC SS400 2 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 11840,
+        "target": 14800,
+        "max": 17760
+      },
+      "thickness_mm": {
+        "min": 1.95,
+        "max": 2.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "SS400",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "forbidden",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-3",
+      "buyer_network_id": "net-e",
+      "created_by": "u-net-e",
+      "title": "Eval demand 3: HRC Q345B 3.2 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 10320,
+        "target": 12900,
+        "max": 15480
+      },
+      "thickness_mm": {
+        "min": 3.15,
+        "max": 3.25,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "Q345B",
+          "standard_id": "GB/T 1591",
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": true,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": null,
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-4",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 4: HRC S235JR 3 × 1250",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 20720,
+        "target": 25900,
+        "max": 31080
+      },
+      "thickness_mm": {
+        "min": 2.95,
+        "max": 3.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1245,
+        "max": 1255,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "S235JR",
+          "standard_id": "EN 10025-2",
+          "edition": null
+        }
+      ],
+      "substitution_policy": "forbidden",
+      "acceptable_conditions": [
+        "prime",
+        "secondary"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": true,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": null,
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-5",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 5: HRC S235JR 2.75 × 1250",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 9760,
+        "target": 12200,
+        "max": 14640
+      },
+      "thickness_mm": {
+        "min": 2.7,
+        "max": 2.8,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1245,
+        "max": 1255,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "S235JR",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": true,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": null,
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-6",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 6: HRC Q235B 3.2 × 1250",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 15040,
+        "target": 18800,
+        "max": 22560
+      },
+      "thickness_mm": {
+        "min": 3.15,
+        "max": 3.25,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1245,
+        "max": 1255,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "Q235B",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-7",
+      "buyer_network_id": "net-d",
+      "created_by": "u-net-d",
+      "title": "Eval demand 7: HRC SS400 3 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 16480,
+        "target": 20600,
+        "max": 24720
+      },
+      "thickness_mm": {
+        "min": 2.95,
+        "max": 3.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "SS400",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": null,
+      "budget": null,
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-8",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 8: HRC Q345B 3.2 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 10320,
+        "target": 12900,
+        "max": 15480
+      },
+      "thickness_mm": {
+        "min": 3.15,
+        "max": 3.25,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "Q345B",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "forbidden",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": null,
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-9",
+      "buyer_network_id": "net-e",
+      "created_by": "u-net-e",
+      "title": "Eval demand 9: HRC Q345B 3 × 1219",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 20480,
+        "target": 25600,
+        "max": 30720
+      },
+      "thickness_mm": {
+        "min": 2.95,
+        "max": 3.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1214,
+        "max": 1224,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "Q345B",
+          "standard_id": "GB/T 1591",
+          "edition": null
+        }
+      ],
+      "substitution_policy": "forbidden",
+      "acceptable_conditions": [
+        "prime",
+        "secondary"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-10",
+      "buyer_network_id": "net-e",
+      "created_by": "u-net-e",
+      "title": "Eval demand 10: HRC S235JR 3 × 1800",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 17040,
+        "target": 21300,
+        "max": 25560
+      },
+      "thickness_mm": {
+        "min": 2.95,
+        "max": 3.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1795,
+        "max": 1805,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "S235JR",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": true,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": {
+        "amount": "560",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Haiphong"
+      },
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-11",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 11: HRC S235JR 2.75 × 1500",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 18960,
+        "target": 23700,
+        "max": 28440
+      },
+      "thickness_mm": {
+        "min": 2.7,
+        "max": 2.8,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1495,
+        "max": 1505,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "S235JR",
+          "standard_id": null,
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime",
+        "secondary"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": null,
+      "expires_at": null
+    },
+    {
+      "demand_id": "eval-dem-12",
+      "buyer_network_id": "net-f",
+      "created_by": "u-net-f",
+      "title": "Eval demand 12: HRC S235JR 6 × 1800",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 13280,
+        "target": 16600,
+        "max": 19920
+      },
+      "thickness_mm": {
+        "min": 5.95,
+        "max": 6.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1795,
+        "max": 1805,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "S235JR",
+          "standard_id": "EN 10025-2",
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Haiphong",
+      "need_by": "2026-12-31",
+      "budget": null,
+      "expires_at": null
+    }
+  ],
+  "documents": [
+    {
+      "id": "eval-doc-01",
+      "network_id": "net-d",
+      "uploaded_by": "u-net-d",
+      "kind": "text",
+      "style": "B-templated",
+      "file": "eval-doc-01.txt",
+      "lots": [
+        {
+          "lot_id": "lot-d-100",
+          "anchor": "D-100",
+          "fields": {
+            "seller_lot_ref": [
+              "D-100",
+              "D-100"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "Q345B",
+              "Q345B"
+            ],
+            "standard_id": [
+              "GB/T 1591",
+              "GB/T 1591"
+            ],
+            "thickness": [
+              3.2,
+              "3.2 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.2 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              12.9,
+              "12.9 MT",
+              "MT"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Kaohsiung"
+            ],
+            "available_from": [
+              "2026-11-20",
+              "2026-11-20"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-101",
+          "anchor": "D-101",
+          "fields": {
+            "seller_lot_ref": [
+              "D-101",
+              "D-101"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              3.2,
+              "3.2 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.2 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              18.5,
+              "18.5 MT",
+              "MT"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-11-17",
+              "2026-11-17"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "552",
+              "USD 552"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "552/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-102",
+          "anchor": "D-102",
+          "fields": {
+            "seller_lot_ref": [
+              "D-102",
+              "D-102"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              2.75,
+              "2.75 x 1524 mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "2.75 x 1524 mm",
+              "mm"
+            ],
+            "total_weight": [
+              24.6,
+              "24.6 ton",
+              "ton"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-11-01",
+              "2026-11-01"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "507",
+              "USD 507"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "507/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-103",
+          "anchor": "D-103",
+          "fields": {
+            "seller_lot_ref": [
+              "D-103",
+              "D-103"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "KS D3503",
+              "KS D3503"
+            ],
+            "standard_edition": [
+              "2019",
+              "KS D3503:2019"
+            ],
+            "thickness": [
+              4,
+              "4.0 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "4.0 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              13,
+              "13 MT",
+              "MT"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "secondary",
+              "secondary"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Kaohsiung"
+            ],
+            "available_from": [
+              "2026-11-24",
+              "2026-11-24"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "520",
+              "USD 520"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "520/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Kaohsiung"
+            ],
+            "incoterm_place": [
+              "Kaohsiung",
+              "FOB Kaohsiung"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-02",
+      "network_id": "net-e",
+      "uploaded_by": "u-net-e",
+      "kind": "text",
+      "style": "B-templated",
+      "file": "eval-doc-02.txt",
+      "lots": [
+        {
+          "lot_id": "lot-e-104",
+          "anchor": "E-104",
+          "fields": {
+            "seller_lot_ref": [
+              "E-104",
+              "E-104"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              2.5,
+              "2.5 x 1250 mm",
+              "mm"
+            ],
+            "width": [
+              1250,
+              "2.5 x 1250 mm",
+              "mm"
+            ],
+            "total_weight": [
+              18.5,
+              "18.5吨",
+              "吨"
+            ],
+            "piece_count": [
+              1,
+              "1卷"
+            ],
+            "condition": [
+              "prime",
+              "正品"
+            ],
+            "location_place": [
+              "高雄",
+              "高雄"
+            ],
+            "available_from": [
+              "2026-12-05",
+              "2026年12月5日"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "带MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-105",
+          "anchor": "E-105",
+          "fields": {
+            "seller_lot_ref": [
+              "E-105",
+              "E-105"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "Q345B",
+              "Q345B"
+            ],
+            "standard_id": [
+              "GB/T 1591",
+              "GB/T 1591"
+            ],
+            "thickness": [
+              6,
+              "6.0x1500",
+              null
+            ],
+            "width": [
+              1500,
+              "6.0x1500",
+              null
+            ],
+            "total_weight": [
+              15.2,
+              "15.2 ton",
+              "ton"
+            ],
+            "piece_count": [
+              3,
+              "3卷"
+            ],
+            "condition": [
+              "prime",
+              "正品"
+            ],
+            "location_place": [
+              "仁川",
+              "仁川"
+            ],
+            "available_from": [
+              "2026-11-26",
+              "2026年11月26日"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "带MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-106",
+          "anchor": "E-106",
+          "fields": {
+            "seller_lot_ref": [
+              "E-106",
+              "E-106"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "S235JR",
+              "S235JR"
+            ],
+            "thickness": [
+              2.75,
+              "2.75x1500",
+              null
+            ],
+            "width": [
+              1500,
+              "2.75x1500",
+              null
+            ],
+            "total_weight": [
+              23700,
+              "23700 kg",
+              "kg"
+            ],
+            "piece_count": [
+              2,
+              "2卷"
+            ],
+            "condition": [
+              "secondary",
+              "次品"
+            ],
+            "location_place": [
+              "高雄",
+              "高雄"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "带MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-107",
+          "anchor": "E-107",
+          "fields": {
+            "seller_lot_ref": [
+              "E-107",
+              "E-107"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "JIS G3101",
+              "JIS G3101"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1524 mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "3.0 x 1524 mm",
+              "mm"
+            ],
+            "total_weight": [
+              10.3,
+              "10.3吨",
+              "吨"
+            ],
+            "piece_count": [
+              2,
+              "2卷"
+            ],
+            "location_place": [
+              "釜山港",
+              "釜山港"
+            ],
+            "available_from": [
+              "2026-12-09",
+              "2026年12月9日"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-03",
+      "network_id": "net-f",
+      "uploaded_by": "u-net-f",
+      "kind": "csv",
+      "style": "B-templated",
+      "file": "eval-doc-03.csv",
+      "lots": [
+        {
+          "lot_id": "lot-f-108",
+          "anchor": "Ref: F-108",
+          "fields": {
+            "seller_lot_ref": [
+              "F-108",
+              "Ref: F-108"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "S235JR",
+              "Grade / Std: S235JR / EN 10025-2"
+            ],
+            "thickness": [
+              3,
+              "Size: 3.0 x 1800 mm",
+              "mm"
+            ],
+            "width": [
+              1800,
+              "Size: 3.0 x 1800 mm",
+              "mm"
+            ],
+            "piece_count": [
+              1,
+              "Pcs: 1"
+            ],
+            "total_weight": [
+              21.3,
+              "Net wt: 21.3 MT",
+              "MT"
+            ],
+            "location_place": [
+              "Busan port",
+              "Store: Busan port"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "Grade / Std: S235JR / EN 10025-2"
+            ],
+            "condition": [
+              "prime",
+              "Status: prime"
+            ],
+            "available_from": [
+              "2026-11-11",
+              "ETD: 2026-11-11"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-109",
+          "anchor": "Ref: F-109",
+          "fields": {
+            "seller_lot_ref": [
+              "F-109",
+              "Ref: F-109"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "A36",
+              "Grade / Std: A36 / ASTM A36"
+            ],
+            "thickness": [
+              3,
+              "Size: 3.0 x 1219 mm",
+              "mm"
+            ],
+            "width": [
+              1219,
+              "Size: 3.0 x 1219 mm",
+              "mm"
+            ],
+            "piece_count": [
+              3,
+              "Pcs: 3"
+            ],
+            "total_weight": [
+              12.7,
+              "Net wt: 12.7吨",
+              "吨"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Store: Tianjin port"
+            ],
+            "standard_id": [
+              "ASTM A36",
+              "Grade / Std: A36 / ASTM A36"
+            ],
+            "condition": [
+              "secondary",
+              "Status: secondary"
+            ],
+            "available_from": [
+              "2026-11-10",
+              "ETD: 2026-11-10"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-110",
+          "anchor": "Ref: F-110",
+          "fields": {
+            "seller_lot_ref": [
+              "F-110",
+              "Ref: F-110"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "SS400",
+              "Grade / Std: SS400 / KS D3503"
+            ],
+            "thickness": [
+              2.5,
+              "Size: 2.5 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "Size: 2.5 x 1500 mm",
+              "mm"
+            ],
+            "piece_count": [
+              1,
+              "Pcs: 1"
+            ],
+            "total_weight": [
+              20.2,
+              "Net wt: 20.2 MT",
+              "MT"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Store: Kaohsiung"
+            ],
+            "standard_id": [
+              "KS D3503",
+              "Grade / Std: SS400 / KS D3503"
+            ],
+            "available_from": [
+              "2026-12-01",
+              "ETD: 2026-12-01"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-111",
+          "anchor": "Ref: F-111",
+          "fields": {
+            "seller_lot_ref": [
+              "F-111",
+              "Ref: F-111"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Grade / Std: Q235B / GB/T 700"
+            ],
+            "thickness": [
+              3,
+              "Size: 3.0 x 1524 mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "Size: 3.0 x 1524 mm",
+              "mm"
+            ],
+            "piece_count": [
+              1,
+              "Pcs: 1"
+            ],
+            "total_weight": [
+              16.4,
+              "Net wt: 16.4 MT",
+              "MT"
+            ],
+            "location_place": [
+              "Incheon",
+              "Store: Incheon"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "Grade / Std: Q235B / GB/T 700"
+            ],
+            "condition": [
+              "prime",
+              "Status: prime"
+            ],
+            "available_from": [
+              "2026-11-04",
+              "ETD: 2026-11-04"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-04",
+      "network_id": "net-d",
+      "uploaded_by": "u-net-d",
+      "kind": "xlsx",
+      "style": "B-templated",
+      "file": "eval-doc-04.xlsx",
+      "lots": [
+        {
+          "lot_id": "lot-d-112",
+          "anchor": "Ref: D-112",
+          "fields": {
+            "seller_lot_ref": [
+              "D-112",
+              "Ref: D-112"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Grade / Std: Q235B / GB/T 700"
+            ],
+            "thickness": [
+              3.2,
+              "Size: 3.2 x 1250",
+              null
+            ],
+            "width": [
+              1250,
+              "Size: 3.2 x 1250",
+              null
+            ],
+            "piece_count": [
+              3,
+              "Pcs: 3"
+            ],
+            "total_weight": [
+              18.8,
+              "Net wt: 18.8 ton",
+              "ton"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Store: Ho Chi Minh City warehouse"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "Grade / Std: Q235B / GB/T 700"
+            ],
+            "condition": [
+              "prime",
+              "Status: prime"
+            ],
+            "available_from": [
+              "2026-12-05",
+              "ETD: 2026-12-05"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-113",
+          "anchor": "Ref: D-113",
+          "fields": {
+            "seller_lot_ref": [
+              "D-113",
+              "Ref: D-113"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Grade / Std: Q235B / GB/T 700:2006"
+            ],
+            "thickness": [
+              6,
+              "Size: 6.0 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "Size: 6.0 x 1500 mm",
+              "mm"
+            ],
+            "piece_count": [
+              2,
+              "Pcs: 2"
+            ],
+            "total_weight": [
+              20.1,
+              "Net wt: 20.1 ton",
+              "ton"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Store: Tianjin port"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "Grade / Std: Q235B / GB/T 700:2006"
+            ],
+            "standard_edition": [
+              "2006",
+              "Grade / Std: Q235B / GB/T 700:2006"
+            ],
+            "condition": [
+              "prime",
+              "Status: prime"
+            ],
+            "available_from": [
+              "2026-11-04",
+              "ETD: 2026-11-04"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-114",
+          "anchor": "Ref: D-114",
+          "fields": {
+            "seller_lot_ref": [
+              "D-114",
+              "Ref: D-114"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "Q345B",
+              "Grade / Std: Q345B / GB/T 1591:2015"
+            ],
+            "thickness": [
+              3,
+              "Size: 3.0 x 1250",
+              null
+            ],
+            "width": [
+              1250,
+              "Size: 3.0 x 1250",
+              null
+            ],
+            "piece_count": [
+              3,
+              "Pcs: 3"
+            ],
+            "total_weight": [
+              25.3,
+              "Net wt: 25.3 ton",
+              "ton"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Store: Ho Chi Minh City warehouse"
+            ],
+            "standard_id": [
+              "GB/T 1591",
+              "Grade / Std: Q345B / GB/T 1591:2015"
+            ],
+            "standard_edition": [
+              "2015",
+              "Grade / Std: Q345B / GB/T 1591:2015"
+            ],
+            "condition": [
+              "prime",
+              "Status: prime"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-115",
+          "anchor": "Ref: D-115",
+          "fields": {
+            "seller_lot_ref": [
+              "D-115",
+              "Ref: D-115"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Item: HR coil"
+            ],
+            "grade": [
+              "Q345B",
+              "Grade / Std: Q345B / GB/T 1591"
+            ],
+            "thickness": [
+              3,
+              "Size: 3.0 x 1219 mm",
+              "mm"
+            ],
+            "width": [
+              1219,
+              "Size: 3.0 x 1219 mm",
+              "mm"
+            ],
+            "piece_count": [
+              1,
+              "Pcs: 1"
+            ],
+            "total_weight": [
+              25600,
+              "Net wt: 25600 kg",
+              "kg"
+            ],
+            "location_place": [
+              "Incheon",
+              "Store: Incheon"
+            ],
+            "standard_id": [
+              "GB/T 1591",
+              "Grade / Std: Q345B / GB/T 1591"
+            ],
+            "condition": [
+              "secondary",
+              "Status: secondary"
+            ],
+            "available_from": [
+              "2026-12-09",
+              "ETD: 2026-12-09"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Docs: MTC"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-05",
+      "network_id": "net-e",
+      "uploaded_by": "u-net-e",
+      "kind": "pdf",
+      "style": "B-templated",
+      "file": "eval-doc-05.pdf",
+      "lots": [
+        {
+          "lot_id": "lot-e-116",
+          "anchor": "E-116",
+          "fields": {
+            "seller_lot_ref": [
+              "E-116",
+              "E-116"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.0 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              24.3,
+              "24.3 MT",
+              "MT"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-12-07",
+              "2026-12-07"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "514",
+              "USD 514"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "514/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-117",
+          "anchor": "E-117",
+          "fields": {
+            "seller_lot_ref": [
+              "E-117",
+              "E-117"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "S235JR",
+              "S235JR"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "EN 10025-2"
+            ],
+            "thickness": [
+              2.75,
+              "2.75 x 1250 mm",
+              "mm"
+            ],
+            "width": [
+              1250,
+              "2.75 x 1250 mm",
+              "mm"
+            ],
+            "total_weight": [
+              12.2,
+              "12.2 MT",
+              "MT"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Busan port",
+              "Busan port"
+            ],
+            "price_amount": [
+              "496",
+              "USD 496"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "496/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Busan"
+            ],
+            "incoterm_place": [
+              "Busan",
+              "FOB Busan"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-118",
+          "anchor": "E-118",
+          "fields": {
+            "seller_lot_ref": [
+              "E-118",
+              "E-118"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "thickness": [
+              2,
+              "2.0 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "2.0 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              14800,
+              "14800 kg",
+              "kg"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Ho Chi Minh City warehouse"
+            ],
+            "available_from": [
+              "2026-11-22",
+              "2026-11-22"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "499",
+              "USD 499"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "499/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-06",
+      "network_id": "net-f",
+      "uploaded_by": "u-net-f",
+      "kind": "text",
+      "style": "B-prose",
+      "file": "eval-doc-06.txt",
+      "lots": [
+        {
+          "lot_id": "lot-f-119",
+          "anchor": "F-119",
+          "fields": {
+            "seller_lot_ref": [
+              "F-119",
+              "F-119"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "standard_id": [
+              "ASTM A36",
+              "ASTM A36"
+            ],
+            "standard_edition": [
+              "2015",
+              "ASTM A36:2015"
+            ],
+            "thickness": [
+              4,
+              "4.0 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "4.0 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              13.2,
+              "13.2 ton",
+              "ton"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-11-01",
+              "2026-11-01"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ],
+            "price_amount": [
+              "561",
+              "USD 561"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "561/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Tianjin"
+            ],
+            "incoterm_place": [
+              "Tianjin",
+              "FOB Tianjin"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-120",
+          "anchor": "F-120",
+          "fields": {
+            "seller_lot_ref": [
+              "F-120",
+              "F-120"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "S235JR",
+              "S235JR"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "EN 10025-2"
+            ],
+            "standard_edition": [
+              "2019",
+              "EN 10025-2:2019"
+            ],
+            "thickness": [
+              2.75,
+              "2.75 x 1524mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "2.75 x 1524mm",
+              "mm"
+            ],
+            "total_weight": [
+              17.5,
+              "17.5吨",
+              "吨"
+            ],
+            "piece_count": [
+              3,
+              "3 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Kaohsiung"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-121",
+          "anchor": "F-121",
+          "fields": {
+            "seller_lot_ref": [
+              "F-121",
+              "F-121"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "Q345B",
+              "Q345B"
+            ],
+            "thickness": [
+              3.2,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              11,
+              "11 MT",
+              "MT"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Ho Chi Minh City warehouse"
+            ],
+            "available_from": [
+              "2026-12-16",
+              "2026-12-16"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ],
+            "price_amount": [
+              "506",
+              "USD 506"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "506/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Ho"
+            ],
+            "incoterm_place": [
+              "Ho",
+              "FOB Ho"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-122",
+          "anchor": "F-122",
+          "fields": {
+            "seller_lot_ref": [
+              "F-122",
+              "F-122"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "hot-rolled plates"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "standard_id": [
+              "ASTM A36",
+              "ASTM A36"
+            ],
+            "thickness": [
+              3.2,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              12.6,
+              "12.6 ton",
+              "ton"
+            ],
+            "piece_count": [
+              2,
+              "2 pcs"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Kaohsiung"
+            ],
+            "available_from": [
+              "2026-11-21",
+              "2026-11-21"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-07",
+      "network_id": "net-d",
+      "uploaded_by": "u-net-d",
+      "kind": "text",
+      "style": "B-prose",
+      "file": "eval-doc-07.txt",
+      "lots": [
+        {
+          "lot_id": "lot-d-123",
+          "anchor": "D-123",
+          "fields": {
+            "seller_lot_ref": [
+              "D-123",
+              "D-123"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "KS D3503",
+              "KS D3503"
+            ],
+            "thickness": [
+              6,
+              "6.0 x 1524mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "6.0 x 1524mm",
+              "mm"
+            ],
+            "total_weight": [
+              18.9,
+              "18.9 ton",
+              "ton"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Incheon",
+              "Incheon"
+            ],
+            "available_from": [
+              "2026-11-18",
+              "2026-11-18"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-124",
+          "anchor": "D-124",
+          "fields": {
+            "seller_lot_ref": [
+              "D-124",
+              "D-124"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              3.2,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.2 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              20.8,
+              "20.8吨",
+              "吨"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-11-23",
+              "2026-11-23"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-125",
+          "anchor": "D-125",
+          "fields": {
+            "seller_lot_ref": [
+              "D-125",
+              "D-125"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "S235JR",
+              "S235JR"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "EN 10025-2"
+            ],
+            "thickness": [
+              6,
+              "6.0 x 1800mm",
+              "mm"
+            ],
+            "width": [
+              1800,
+              "6.0 x 1800mm",
+              "mm"
+            ],
+            "total_weight": [
+              16.6,
+              "16.6 MT",
+              "MT"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-11-12",
+              "2026-11-12"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ],
+            "price_amount": [
+              "543",
+              "USD 543"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "543/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-126",
+          "anchor": "D-126",
+          "fields": {
+            "seller_lot_ref": [
+              "D-126",
+              "D-126"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "hot-rolled plates"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "standard_id": [
+              "ASTM A36",
+              "ASTM A36"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.0 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              11.5,
+              "11.5 MT",
+              "MT"
+            ],
+            "piece_count": [
+              3,
+              "3 pcs"
+            ],
+            "condition": [
+              "secondary",
+              "seconds"
+            ],
+            "defect_notes": [
+              "surface marks",
+              "surface marks"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Ho Chi Minh City warehouse"
+            ],
+            "available_from": [
+              "2026-11-18",
+              "2026-11-18"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ],
+            "price_amount": [
+              "525",
+              "USD 525"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "525/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Ho"
+            ],
+            "incoterm_place": [
+              "Ho",
+              "FOB Ho"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-08",
+      "network_id": "net-e",
+      "uploaded_by": "u-net-e",
+      "kind": "text",
+      "style": "B-prose",
+      "file": "eval-doc-08.txt",
+      "lots": [
+        {
+          "lot_id": "lot-e-127",
+          "anchor": "E-127",
+          "fields": {
+            "seller_lot_ref": [
+              "E-127",
+              "E-127"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "JIS G3101",
+              "JIS G3101"
+            ],
+            "standard_edition": [
+              "2015",
+              "JIS G3101:2015"
+            ],
+            "thickness": [
+              2.5,
+              "2.5 x 1500",
+              null
+            ],
+            "width": [
+              1500,
+              "2.5 x 1500",
+              null
+            ],
+            "total_weight": [
+              13.2,
+              "13.2吨",
+              "吨"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Busan port",
+              "Busan port"
+            ],
+            "available_from": [
+              "2026-11-14",
+              "2026-11-14"
+            ],
+            "price_amount": [
+              "488",
+              "USD 488"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "488/MT"
+            ],
+            "incoterm": [
+              "CFR",
+              "CFR Haiphong"
+            ],
+            "incoterm_place": [
+              "Haiphong",
+              "CFR Haiphong"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-128",
+          "anchor": "E-128",
+          "fields": {
+            "seller_lot_ref": [
+              "E-128",
+              "E-128"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "hot-rolled plates"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "thickness": [
+              2.75,
+              "2.75 x 1219mm",
+              "mm"
+            ],
+            "width": [
+              1219,
+              "2.75 x 1219mm",
+              "mm"
+            ],
+            "total_weight": [
+              11.9,
+              "11.9吨",
+              "吨"
+            ],
+            "piece_count": [
+              3,
+              "3 pcs"
+            ],
+            "condition": [
+              "secondary",
+              "seconds"
+            ],
+            "defect_notes": [
+              "surface marks",
+              "surface marks"
+            ],
+            "location_place": [
+              "Kaohsiung",
+              "Kaohsiung"
+            ],
+            "available_from": [
+              "2026-12-10",
+              "2026-12-10"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-129",
+          "anchor": "E-129",
+          "fields": {
+            "seller_lot_ref": [
+              "E-129",
+              "E-129"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              2,
+              "2.0 x 1500mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "2.0 x 1500mm",
+              "mm"
+            ],
+            "total_weight": [
+              23.9,
+              "23.9吨",
+              "吨"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Incheon",
+              "Incheon"
+            ],
+            "available_from": [
+              "2026-11-20",
+              "2026-11-20"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-130",
+          "anchor": "E-130",
+          "fields": {
+            "seller_lot_ref": [
+              "E-130",
+              "E-130"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "hot-rolled coil"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1250mm",
+              "mm"
+            ],
+            "width": [
+              1250,
+              "3.0 x 1250mm",
+              "mm"
+            ],
+            "total_weight": [
+              19.4,
+              "19.4 ton",
+              "ton"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime material"
+            ],
+            "location_place": [
+              "Incheon",
+              "Incheon"
+            ],
+            "available_from": [
+              "2026-11-09",
+              "2026-11-09"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "mill test certificate (MTC) sent on request"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-09",
+      "network_id": "net-f",
+      "uploaded_by": "u-net-f",
+      "kind": "text",
+      "style": "B-templated",
+      "file": "eval-doc-09.txt",
+      "lots": [
+        {
+          "lot_id": "lot-f-131",
+          "anchor": "F-131",
+          "fields": {
+            "seller_lot_ref": [
+              "F-131",
+              "F-131"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "HR plate"
+            ],
+            "grade": [
+              "Q235B",
+              "Q235B"
+            ],
+            "standard_id": [
+              "GB/T 700",
+              "GB/T 700"
+            ],
+            "thickness": [
+              3,
+              "3.0x1800",
+              null
+            ],
+            "width": [
+              1800,
+              "3.0x1800",
+              null
+            ],
+            "total_weight": [
+              24400,
+              "24400 kg",
+              "kg"
+            ],
+            "piece_count": [
+              2,
+              "2 pcs"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Busan port",
+              "Busan port"
+            ],
+            "available_from": [
+              "2026-11-06",
+              "2026-11-06"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-132",
+          "anchor": "F-132",
+          "fields": {
+            "seller_lot_ref": [
+              "F-132",
+              "F-132"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "HR plate"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "JIS G3101",
+              "JIS G3101"
+            ],
+            "thickness": [
+              2.3,
+              "2.3 x 1800 mm",
+              "mm"
+            ],
+            "width": [
+              1800,
+              "2.3 x 1800 mm",
+              "mm"
+            ],
+            "total_weight": [
+              17.9,
+              "17.9 MT",
+              "MT"
+            ],
+            "piece_count": [
+              2,
+              "2 pcs"
+            ],
+            "condition": [
+              "secondary",
+              "secondary"
+            ],
+            "location_place": [
+              "Ho Chi Minh City warehouse",
+              "Ho Chi Minh City warehouse"
+            ],
+            "available_from": [
+              "2026-12-14",
+              "2026-12-14"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-f-133",
+          "anchor": "F-133",
+          "fields": {
+            "seller_lot_ref": [
+              "F-133",
+              "F-133"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "SS400",
+              "SS400"
+            ],
+            "standard_id": [
+              "JIS G3101",
+              "JIS G3101"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1500 mm",
+              "mm"
+            ],
+            "width": [
+              1500,
+              "3.0 x 1500 mm",
+              "mm"
+            ],
+            "total_weight": [
+              20600,
+              "20600 kg",
+              "kg"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Tianjin port",
+              "Tianjin port"
+            ],
+            "available_from": [
+              "2026-12-15",
+              "2026-12-15"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC copy"
+            ],
+            "price_amount": [
+              "562",
+              "USD 562"
+            ],
+            "price_currency": [
+              "USD",
+              "USD"
+            ],
+            "price_basis": [
+              "per_mt",
+              "562/MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB Tianjin"
+            ],
+            "incoterm_place": [
+              "Tianjin",
+              "FOB Tianjin"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "eval-doc-10",
+      "network_id": "net-d",
+      "uploaded_by": "u-net-d",
+      "kind": "text",
+      "style": "B-templated",
+      "file": "eval-doc-10.txt",
+      "lots": [
+        {
+          "lot_id": "lot-d-134",
+          "anchor": "D-134",
+          "fields": {
+            "seller_lot_ref": [
+              "D-134",
+              "D-134"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "standard_id": [
+              "ASTM A36",
+              "ASTM A36"
+            ],
+            "standard_edition": [
+              "2015",
+              "ASTM A36:2015"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1524 mm",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "3.0 x 1524 mm",
+              "mm"
+            ],
+            "total_weight": [
+              12.4,
+              "12.4 MT",
+              "MT"
+            ],
+            "piece_count": [
+              1,
+              "1卷"
+            ],
+            "condition": [
+              "prime",
+              "正品"
+            ],
+            "location_place": [
+              "天津港",
+              "天津港"
+            ],
+            "available_from": [
+              "2026-11-10",
+              "2026年11月10日"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "带MTC"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-135",
+          "anchor": "D-135",
+          "fields": {
+            "seller_lot_ref": [
+              "D-135",
+              "D-135"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "热卷"
+            ],
+            "grade": [
+              "S235JR",
+              "S235JR"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "EN 10025-2"
+            ],
+            "thickness": [
+              3,
+              "3.0 x 1250 mm",
+              "mm"
+            ],
+            "width": [
+              1250,
+              "3.0 x 1250 mm",
+              "mm"
+            ],
+            "total_weight": [
+              25.9,
+              "25.9吨",
+              "吨"
+            ],
+            "piece_count": [
+              1,
+              "1卷"
+            ],
+            "condition": [
+              "secondary",
+              "次品"
+            ],
+            "location_place": [
+              "仁川",
+              "仁川"
+            ],
+            "available_from": [
+              "2026-12-24",
+              "2026年12月24日"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "带MTC"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

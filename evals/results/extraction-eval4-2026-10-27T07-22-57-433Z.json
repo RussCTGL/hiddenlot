@@ -1,0 +1,3262 @@
+{
+  "run_meta": {
+    "prompt_version": "extract-supply.v6",
+    "model": null,
+    "dataset_sha256": "3bbf3a45a87ab0d8cf684e20fa6dcafad4846fd9f89eb2751dfd3782e0fc472f",
+    "git_head": "c55d2f99b3a18c6fc17d8b9585a519d2aec5eddf",
+    "git_dirty": true,
+    "node": "v24.22.0"
+  },
+  "attempts_on_unknown": {
+    "B1_regex": {
+      "attempted": 7,
+      "caught": 7
+    }
+  },
+  "dataset": "hiddenlot-eval@eval4-v1",
+  "set": "eval4",
+  "created_at": "2026-10-27T07:22:57.454Z",
+  "extractors": [
+    "B1_regex"
+  ],
+  "critical_fields": [
+    "product_form",
+    "grade_raw",
+    "standard_id",
+    "standard_edition",
+    "thickness_mm",
+    "width_mm",
+    "total_kg",
+    "available_from",
+    "condition"
+  ],
+  "tally": {
+    "B1_regex": {
+      "product_form": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 36,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "grade_raw": {
+        "correct": 8,
+        "wrong": 0,
+        "missed": 28,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "standard_id": {
+        "correct": 8,
+        "wrong": 0,
+        "missed": 22,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "standard_edition": {
+        "correct": 2,
+        "wrong": 0,
+        "missed": 5,
+        "fabricated": 0,
+        "abstained": 29
+      },
+      "thickness_mm": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 30,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "width_mm": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 30,
+        "fabricated": 0,
+        "abstained": 6
+      },
+      "total_kg": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 27,
+        "fabricated": 0,
+        "abstained": 9
+      },
+      "available_from": {
+        "correct": 7,
+        "wrong": 0,
+        "missed": 25,
+        "fabricated": 0,
+        "abstained": 4
+      },
+      "condition": {
+        "correct": 7,
+        "wrong": 0,
+        "missed": 26,
+        "fabricated": 0,
+        "abstained": 3
+      },
+      "piece_count": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 36,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "certificate_claims": {
+        "correct": 6,
+        "wrong": 0,
+        "missed": 21,
+        "fabricated": 0,
+        "abstained": 9
+      },
+      "location_place": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 36,
+        "fabricated": 0,
+        "abstained": 0
+      },
+      "price_amount": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 12,
+        "fabricated": 0,
+        "abstained": 24
+      },
+      "price_currency": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 12,
+        "fabricated": 0,
+        "abstained": 24
+      },
+      "incoterm": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 12,
+        "fabricated": 0,
+        "abstained": 24
+      },
+      "surplus_reason": {
+        "correct": 0,
+        "wrong": 0,
+        "missed": 0,
+        "fabricated": 0,
+        "abstained": 36
+      }
+    }
+  },
+  "lots": {
+    "B1_regex": {
+      "gold": 36,
+      "matched": 16,
+      "extra": 0
+    }
+  },
+  "results": [
+    {
+      "document": "eval-doc-01",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-d-100": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-101": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-102": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-103": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "missed",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "HRC",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "grade": {
+              "value": "Q345B",
+              "raw": "Q345B",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 1591",
+              "raw": "GB/T 1591",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": 1,
+              "raw": "1 coil",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-20",
+              "raw": "2026-11-20",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "price_amount": {
+              "value": "552",
+              "raw": "USD 552/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 552/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm": {
+              "value": "CFR",
+              "raw": "CFR",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Haiphong",
+              "raw": "Haiphong",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "secondary",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 3.2,
+              "unit": null,
+              "raw": "3.2",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "width": {
+              "value": 1500,
+              "unit": "mm",
+              "raw": "1500 mm",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "total_weight": {
+              "value": 12.9,
+              "unit": "MT",
+              "raw": "12.9 MT",
+              "evidence": [
+                "L3"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-02",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-e-104": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-105": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-106": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "missed",
+          "available_from": "abstained",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-107": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "abstained",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "热卷",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "grade": {
+              "value": "Q235B",
+              "raw": "Q235B",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 700",
+              "raw": "GB/T 700",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": 1,
+              "raw": "1卷",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "次品",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 2.5,
+              "unit": null,
+              "raw": "2.5",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "width": {
+              "value": 1250,
+              "unit": "mm",
+              "raw": "1250 mm",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "total_weight": {
+              "value": 18.5,
+              "unit": "吨",
+              "raw": "18.5吨",
+              "evidence": [
+                "L3"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-03",
+      "kind": "csv",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 4,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-f-108": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-109": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-110": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "correct",
+          "condition": "abstained",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-111": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "S235JR",
+              "raw": "S235JR",
+              "evidence": [
+                "csv!R3"
+              ]
+            },
+            "standard_id": {
+              "value": "EN 10025-2",
+              "raw": "EN 10025-2",
+              "evidence": [
+                "csv!R3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-11",
+              "raw": "2026-11-11",
+              "evidence": [
+                "csv!R3"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "csv!R3"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "A36",
+              "raw": "A36",
+              "evidence": [
+                "csv!R4"
+              ]
+            },
+            "standard_id": {
+              "value": "ASTM A36",
+              "raw": "ASTM A36",
+              "evidence": [
+                "csv!R4"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-10",
+              "raw": "2026-11-10",
+              "evidence": [
+                "csv!R4"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "secondary",
+              "evidence": [
+                "csv!R4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "csv!R4"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "SS400",
+              "raw": "SS400",
+              "evidence": [
+                "csv!R5"
+              ]
+            },
+            "standard_id": {
+              "value": "KS D3503",
+              "raw": "KS D3503",
+              "evidence": [
+                "csv!R5"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-12-01",
+              "raw": "2026-12-01",
+              "evidence": [
+                "csv!R5"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "Q235B",
+              "raw": "Q235B",
+              "evidence": [
+                "csv!R6"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 700",
+              "raw": "GB/T 700",
+              "evidence": [
+                "csv!R6"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-04",
+              "raw": "2026-11-04",
+              "evidence": [
+                "csv!R6"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "csv!R6"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "csv!R6"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-04",
+      "kind": "xlsx",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 4,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-d-112": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "abstained",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-113": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "correct",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-114": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "correct",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "abstained",
+          "available_from": "abstained",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-115": {
+          "product_form": "missed",
+          "grade_raw": "correct",
+          "standard_id": "correct",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "correct",
+          "condition": "correct",
+          "piece_count": "missed",
+          "certificate_claims": "correct",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "Q235B",
+              "raw": "Q235B",
+              "evidence": [
+                "Positions!R3"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 700",
+              "raw": "GB/T 700",
+              "evidence": [
+                "Positions!R3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-12-05",
+              "raw": "2026-12-05",
+              "evidence": [
+                "Positions!R3"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "Positions!R3"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "Positions!R3"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "Q235B",
+              "raw": "Q235B",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 700",
+              "raw": "GB/T 700",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "standard_edition": {
+              "value": "2006",
+              "raw": "GB/T 700:2006",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-04",
+              "raw": "2026-11-04",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "Positions!R4"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "Q345B",
+              "raw": "Q345B",
+              "evidence": [
+                "Positions!R5"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 1591",
+              "raw": "GB/T 1591",
+              "evidence": [
+                "Positions!R5"
+              ]
+            },
+            "standard_edition": {
+              "value": "2015",
+              "raw": "GB/T 1591:2015",
+              "evidence": [
+                "Positions!R5"
+              ]
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "Positions!R5"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "Positions!R5"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          },
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "grade": {
+              "value": "Q345B",
+              "raw": "Q345B",
+              "evidence": [
+                "Positions!R6"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 1591",
+              "raw": "GB/T 1591",
+              "evidence": [
+                "Positions!R6"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-12-09",
+              "raw": "2026-12-09",
+              "evidence": [
+                "Positions!R6"
+              ]
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "secondary",
+              "evidence": [
+                "Positions!R6"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "Positions!R6"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "width": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            },
+            "total_weight": {
+              "value": null,
+              "unit": null,
+              "raw": null,
+              "evidence": []
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-05",
+      "kind": "pdf",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 3,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-e-116": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-117": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "abstained",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-118": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "HRC",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "grade": {
+              "value": "A36",
+              "raw": "A36",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "standard_id": {
+              "value": "EN 10025-2",
+              "raw": "EN 10025-2",
+              "evidence": [
+                "P1L3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": 2,
+              "raw": "2 coils",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-12-07",
+              "raw": "2026-12-07",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "price_amount": {
+              "value": "514",
+              "raw": "USD 514/MT",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 514/MT",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "incoterm": {
+              "value": "CFR",
+              "raw": "CFR",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Haiphong",
+              "raw": "Haiphong",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 3,
+              "unit": null,
+              "raw": "3.0",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "width": {
+              "value": 1500,
+              "unit": "mm",
+              "raw": "1500 mm",
+              "evidence": [
+                "P1L2"
+              ]
+            },
+            "total_weight": {
+              "value": 24.3,
+              "unit": "MT",
+              "raw": "24.3 MT",
+              "evidence": [
+                "P1L2"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-06",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-f-119": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "missed",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-120": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "missed",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "abstained",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-121": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "abstained",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-122": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "hot-rolled coil",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "grade": {
+              "value": "A36",
+              "raw": "A36",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_id": {
+              "value": "ASTM A36",
+              "raw": "ASTM A36",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_edition": {
+              "value": "2015",
+              "raw": "ASTM A36:2015",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "piece_count": {
+              "value": 3,
+              "raw": "3 coils",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-01",
+              "raw": "2026-11-01",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_amount": {
+              "value": "561",
+              "raw": "USD 561/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 561/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm": {
+              "value": "FOB",
+              "raw": "FOB",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Tianjin",
+              "raw": "Tianjin",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 4,
+              "unit": null,
+              "raw": "4.0",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "width": {
+              "value": 1500,
+              "unit": "mm",
+              "raw": "1500mm",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "total_weight": {
+              "value": 13.2,
+              "unit": "ton",
+              "raw": "13.2 ton",
+              "evidence": [
+                "L4"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-07",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-d-123": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-124": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-125": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-126": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "hot-rolled coil",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "grade": {
+              "value": "SS400",
+              "raw": "SS400",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_id": {
+              "value": "KS D3503",
+              "raw": "KS D3503",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": 2,
+              "raw": "2 coils",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-18",
+              "raw": "2026-11-18",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_amount": {
+              "value": "543",
+              "raw": "USD 543/MT",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 543/MT",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "incoterm": {
+              "value": "CFR",
+              "raw": "CFR",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Haiphong",
+              "raw": "Haiphong",
+              "evidence": [
+                "L6"
+              ]
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 6,
+              "unit": null,
+              "raw": "6.0",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "width": {
+              "value": 1524,
+              "unit": "mm",
+              "raw": "1524mm",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "total_weight": {
+              "value": 18.9,
+              "unit": "ton",
+              "raw": "18.9 ton",
+              "evidence": [
+                "L4"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-08",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 4,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-e-127": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "missed",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-128": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-129": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-e-130": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "abstained",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "abstained",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "hot-rolled coil",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "grade": {
+              "value": "SS400",
+              "raw": "SS400",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_id": {
+              "value": "JIS G3101",
+              "raw": "JIS G3101",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "standard_edition": {
+              "value": "2015",
+              "raw": "JIS G3101:2015",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "piece_count": {
+              "value": 1,
+              "raw": "1 coil",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-14",
+              "raw": "2026-11-14",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_amount": {
+              "value": "488",
+              "raw": "USD 488/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 488/MT",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm": {
+              "value": "CFR",
+              "raw": "CFR",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Haiphong",
+              "raw": "Haiphong",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "condition": {
+              "value": "prime",
+              "raw": "prime",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 2.5,
+              "unit": null,
+              "raw": "2.5",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "width": {
+              "value": 1500,
+              "unit": null,
+              "raw": "1500",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "total_weight": {
+              "value": 13.2,
+              "unit": "吨",
+              "raw": "13.2吨",
+              "evidence": [
+                "L4"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-09",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 3,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-f-131": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "abstained",
+          "width_mm": "abstained",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-132": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "abstained",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-f-133": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "missed",
+          "price_currency": "missed",
+          "incoterm": "missed",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "HRC",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "grade": {
+              "value": "Q235B",
+              "raw": "Q235B",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_id": {
+              "value": "GB/T 700",
+              "raw": "GB/T 700",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_edition": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "piece_count": {
+              "value": 2,
+              "raw": "2 pcs",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": "2026-11-06",
+              "raw": "2026-11-06",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "price_amount": {
+              "value": "562",
+              "raw": "USD 562/MT",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "price_currency": {
+              "value": "USD",
+              "raw": "USD",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "price_basis": {
+              "value": "per_mt",
+              "raw": "USD 562/MT",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "incoterm": {
+              "value": "FOB",
+              "raw": "FOB",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "incoterm_place": {
+              "value": "Tianjin",
+              "raw": "Tianjin",
+              "evidence": [
+                "L5"
+              ]
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "secondary",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 3,
+              "unit": null,
+              "raw": "3.0",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "width": {
+              "value": 1800,
+              "unit": null,
+              "raw": "1800",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "total_weight": {
+              "value": 24400,
+              "unit": "kg",
+              "raw": "24400 kg",
+              "evidence": [
+                "L3"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    },
+    {
+      "document": "eval-doc-10",
+      "kind": "text",
+      "extractor": "B1_regex",
+      "ok": true,
+      "error": null,
+      "latency_ms": null,
+      "usage": null,
+      "lots_gold": 2,
+      "lots_predicted": 1,
+      "evidence_coverage_100pct": true,
+      "ignored_instructions": 0,
+      "fields": {
+        "lot-d-134": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "missed",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        },
+        "lot-d-135": {
+          "product_form": "missed",
+          "grade_raw": "missed",
+          "standard_id": "missed",
+          "standard_edition": "abstained",
+          "thickness_mm": "missed",
+          "width_mm": "missed",
+          "total_kg": "missed",
+          "available_from": "missed",
+          "condition": "missed",
+          "piece_count": "missed",
+          "certificate_claims": "missed",
+          "location_place": "missed",
+          "price_amount": "abstained",
+          "price_currency": "abstained",
+          "incoterm": "abstained",
+          "surplus_reason": "abstained"
+        }
+      },
+      "output": {
+        "lots": [
+          {
+            "seller_lot_ref": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "product_form": {
+              "value": "hot_rolled_coil",
+              "raw": "热卷",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "grade": {
+              "value": "A36",
+              "raw": "A36",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_id": {
+              "value": "ASTM A36",
+              "raw": "ASTM A36",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "standard_edition": {
+              "value": "2015",
+              "raw": "ASTM A36:2015",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "piece_count": {
+              "value": 1,
+              "raw": "1卷",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "splittable": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_country": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "location_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "available_from": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_amount": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_currency": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "price_basis": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "incoterm_place": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "condition": {
+              "value": "secondary",
+              "raw": "次品",
+              "evidence": [
+                "L4"
+              ]
+            },
+            "defect_notes": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "surplus_reason": {
+              "value": null,
+              "raw": null,
+              "evidence": []
+            },
+            "certificate_claims": {
+              "value": [
+                "MTC"
+              ],
+              "raw": "MTC",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "heat_numbers": {
+              "value": [],
+              "raw": null,
+              "evidence": []
+            },
+            "thickness": {
+              "value": 3,
+              "unit": null,
+              "raw": "3.0",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "width": {
+              "value": 1524,
+              "unit": "mm",
+              "raw": "1524 mm",
+              "evidence": [
+                "L3"
+              ]
+            },
+            "total_weight": {
+              "value": 12.4,
+              "unit": "MT",
+              "raw": "12.4 MT",
+              "evidence": [
+                "L3"
+              ]
+            }
+          }
+        ],
+        "ambiguities": [],
+        "ignored_instructions": []
+      }
+    }
+  ]
+}
