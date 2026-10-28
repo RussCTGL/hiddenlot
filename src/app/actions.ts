@@ -4,14 +4,15 @@ import { cookies } from "next/headers";
 import { ZodError } from "zod";
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
-import { getUser, VersionConflictError } from "@/db/repo";
+import { getClockOffsetHours, getUser, setClockOffsetHours, VersionConflictError } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { discoverAll } from "@/discovery/engine";
 import { InventoryLotFields, LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
 import { intakeDocument, type ExtractorName } from "@/ingestion/intake";
 import { getExplainCall, getMetaExtract } from "@/lib/meta";
+import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, recordQuote, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
-import { ACTOR_COOKIE, requireSession } from "@/lib/session";
+import { ACTOR_COOKIE, requestNow, requireSession } from "@/lib/session";
 import { seedDemo } from "@/seed/demo";
 import {
   ALL_LOT_FIELDS,
@@ -82,13 +83,13 @@ const resetAllowed = () => (process.env.HIDDENLOT_ALLOW_RESET ?? (process.env.NO
 export async function resetDemo() {
   if (!resetAllowed()) return;
   const db = await getDb();
-  await seedDemo(db, new Date());
+  await seedDemo(db, new Date()); // also puts the demo clock back to real time
   refresh();
 }
 
 export async function rerunDiscovery() {
   const { actor } = await requireSession();
-  await discoverAll(await getDb(), new Date(), actor.network_id);
+  await discoverAll(await getDb(), await requestNow(), actor.network_id);
   refresh();
 }
 
@@ -115,7 +116,7 @@ export async function intakeAction(_prev: ActionState, formData: FormData): Prom
     } else throw new UserError("Choose a file or paste a message.");
     const extractor = (str(formData, "extractor") || "meta") as ExtractorName;
     if (extractor !== "meta" && extractor !== "regex_baseline") throw new UserError("Unknown extractor");
-    const r = await intakeDocument(await getDb(), actor, { bytes, filename, mime, extractor, synthetic: true }, getMetaExtract(), new Date());
+    const r = await intakeDocument(await getDb(), actor, { bytes, filename, mime, extractor, synthetic: true }, getMetaExtract(), await requestNow());
     target = r.document_id;
   });
   if (target) redirect(`/documents/${target}`);
@@ -178,7 +179,7 @@ export async function correctFieldAction(_prev: ActionState, formData: FormData)
     const note = str(formData, "note");
     if (!note) throw new UserError("Say why you are correcting the value");
     const edit: FieldEdit = { field, action: "correct", value: parseCorrection(field, str(formData, "value")), note };
-    await reviewLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), [edit], new Date());
+    await reviewLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), [edit], await requestNow());
     refresh();
     return { ok: "Corrected; the original stays in the previous version" };
   });
@@ -187,7 +188,7 @@ export async function correctFieldAction(_prev: ActionState, formData: FormData)
 export async function confirmAllAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return run(async () => {
     const { actor } = await requireSession();
-    await reviewLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), ALL_LOT_FIELDS.map((field) => ({ field, action: "confirm" as const })), new Date());
+    await reviewLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), ALL_LOT_FIELDS.map((field) => ({ field, action: "confirm" as const })), await requestNow());
     refresh();
     return { ok: "Confirmed; Unknown values stay Unknown" };
   });
@@ -196,7 +197,7 @@ export async function confirmAllAction(_prev: ActionState, formData: FormData): 
 export async function publishAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return run(async () => {
     const { actor } = await requireSession();
-    const { stats } = await publishLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), new Date());
+    const { stats } = await publishLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), await requestNow());
     refresh();
     return { ok: `Published; discovery checked ${stats.pairs} demand(s), ${stats.new_opportunities} new opportunity(ies)` };
   });
@@ -205,7 +206,7 @@ export async function publishAction(_prev: ActionState, formData: FormData): Pro
 export async function reconfirmAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return run(async () => {
     const { actor } = await requireSession();
-    await reconfirmLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), new Date());
+    await reconfirmLot(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), await requestNow());
     refresh();
     return { ok: "Stock reconfirmed" };
   });
@@ -216,7 +217,7 @@ export async function setLotStatusAction(_prev: ActionState, formData: FormData)
     const { actor } = await requireSession();
     const status = str(formData, "status");
     if (status !== "sold" && status !== "withdrawn") throw new UserError("Unknown status");
-    const { invalidated } = await setLotStatus(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), status, new Date());
+    const { invalidated } = await setLotStatus(await getDb(), actor, str(formData, "lot_id"), Number(str(formData, "version")), status, await requestNow());
     refresh();
     return { ok: `Marked ${status}; ${invalidated} opportunity(ies) invalidated` };
   });
@@ -271,7 +272,7 @@ export async function createDemandAction(_prev: ActionState, formData: FormData)
       expires_at: null,
     };
     if (input.acceptable_conditions.length === 0) throw new UserError("Choose at least one acceptable condition");
-    const { demand } = await createDemand(await getDb(), actor, input, new Date());
+    const { demand } = await createDemand(await getDb(), actor, input, await requestNow());
     created = demand.demand_id;
   });
   if (created) redirect(`/opportunities?demand=${created}`);
@@ -281,7 +282,7 @@ export async function createDemandAction(_prev: ActionState, formData: FormData)
 export async function withdrawDemandAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return run(async () => {
     const { actor } = await requireSession();
-    await withdrawDemand(await getDb(), actor, str(formData, "demand_id"), new Date());
+    await withdrawDemand(await getDb(), actor, str(formData, "demand_id"), await requestNow());
     refresh();
     return { ok: "Withdrawn" };
   });
@@ -304,9 +305,9 @@ export async function createGrantAction(_prev: ActionState, formData: FormData):
         field_scope: scope,
         allow_identity_disclosure: formData.get("identity") === "on",
         allow_model_processing: formData.get("model_processing") === "on",
-        expires_at: days ? new Date(Date.now() + days * 86_400_000) : null,
+        expires_at: days ? new Date((await requestNow()).getTime() + days * 86_400_000) : null,
       },
-      new Date(),
+      await requestNow(),
     );
     refresh();
     return { ok: `Shared (${grant_id}); discovery ran for the recipient's demands` };
@@ -316,7 +317,7 @@ export async function createGrantAction(_prev: ActionState, formData: FormData):
 export async function revokeGrantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return run(async () => {
     const { actor } = await requireSession();
-    const { invalidated } = await revokeGrant(await getDb(), actor, str(formData, "grant_id"), new Date());
+    const { invalidated } = await revokeGrant(await getDb(), actor, str(formData, "grant_id"), await requestNow());
     refresh();
     return { ok: `Revoked; ${invalidated} opportunity(ies) invalidated` };
   });
@@ -328,10 +329,83 @@ export async function decideAction(_prev: ActionState, formData: FormData): Prom
   return run(async () => {
     const { actor } = await requireSession();
     const decision = ReviewDecision.parse(str(formData, "decision"));
-    await decideOpportunity(await getDb(), actor, str(formData, "opportunity_id"), decision, str(formData, "reason"), new Date());
+    const db = await getDb();
+    const now = await requestNow();
+    const oppId = str(formData, "opportunity_id");
+    const reason = str(formData, "reason");
+    await decideOpportunity(db, actor, oppId, decision, reason, now);
+    // Acting on a candidate starts tracking it as a deal.
+    if (decision === "shortlisted") await startDeal(db, actor, oppId, "quote_requested", null, `Shortlisted: ${reason}`, now);
+    if (decision === "information_requested") await startDeal(db, actor, oppId, "waiting", reason, `Asked: ${reason}`, now);
     refresh();
-    return { ok: "Decision saved with the versions it was based on" };
+    return { ok: decision === "shortlisted" || decision === "information_requested" ? "Saved and tracked in Deals" : "Decision saved with the versions it was based on" };
   });
+}
+
+// --- daily digest and deals ---------------------------------------------------------
+
+export async function acceptSuggestionsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const keys = formData.getAll("key").map(String);
+    const { done, skipped } = await acceptSuggestions(await getDb(), actor, keys, await requestNow());
+    refresh();
+    return { ok: `${done} done${skipped ? `; ${skipped} no longer applied` : ""}. Nothing was sent: copy the drafts to send them.` };
+  });
+}
+
+export async function declineSuggestionAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    if (!(await declineSuggestion(await getDb(), actor, str(formData, "key"), await requestNow()))) throw new UserError("This suggestion no longer applies");
+    refresh();
+  });
+}
+
+export async function recordQuoteAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const price = str(formData, "price").replace(/,/g, "");
+    if (!price) throw new UserError("Enter the offered price");
+    await recordQuote(
+      await getDb(),
+      actor,
+      str(formData, "deal_id"),
+      { price, currency: str(formData, "currency").toUpperCase() || "USD", incoterm: str(formData, "incoterm") || "—", valid_until: str(formData, "valid_until") || null, quantity_t: num(formData, "quantity_t") },
+      await requestNow(),
+    );
+    refresh();
+    return { ok: "Offer recorded" };
+  });
+}
+
+export async function moveDealAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const to = str(formData, "to");
+    if (to !== "quote_requested" && to !== "negotiating") throw new UserError("Unknown stage");
+    await moveDeal(await getDb(), actor, str(formData, "deal_id"), to, await requestNow());
+    refresh();
+  });
+}
+
+export async function closeDealAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const outcome = str(formData, "outcome");
+    if (outcome !== "won" && outcome !== "lost") throw new UserError("Unknown outcome");
+    await closeDeal(await getDb(), actor, str(formData, "deal_id"), outcome, str(formData, "reason"), await requestNow());
+    refresh();
+  });
+}
+
+/** Demo only: move the shared demo clock so time-based rules can be shown. */
+export async function shiftClockAction(formData: FormData) {
+  if (!resetAllowed()) return;
+  const db = await getDb();
+  const step = str(formData, "hours");
+  await setClockOffsetHours(db, step === "reset" ? 0 : Math.min(24 * 30, (await getClockOffsetHours(db)) + Math.max(0, Math.min(72, Number(step) || 0))));
+  refresh();
 }
 
 const explainAttempts = new Map<string, number>();
@@ -346,7 +420,7 @@ export async function explainAction(_prev: ActionState, formData: FormData): Pro
     const last = explainAttempts.get(id);
     if (last !== undefined && Date.now() - last < 60_000) throw new UserError("An explanation was requested less than a minute ago; wait before trying again");
     explainAttempts.set(id, Date.now());
-    const stored = await explainOpportunity(await getDb(), actor, id, call, new Date());
+    const stored = await explainOpportunity(await getDb(), actor, id, call, await requestNow());
     refresh();
     return { ok: `Explanation written by ${stored.model.model_id}${stored.dropped.length ? `; ${stored.dropped.length} unsupported sentence(s) removed` : ""}` };
   });

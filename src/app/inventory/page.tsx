@@ -36,7 +36,7 @@ function Hidden({ lot, children }: { lot: LotWithData; children: React.ReactNode
 async function Inventory() {
   const { actor, network } = await requireSession();
   const lots = await listLotsOfNetwork(await getDb(), actor.network_id);
-  const now = requestNow().getTime();
+  const now = (await requestNow()).getTime();
   return (
     <Page title="Inventory" subtitle={`${network.alias} · published lots join discovery`} actions={<ButtonLink href="/intake" primary>Add stock</ButtonLink>}>
       {lots.length === 0 ? (

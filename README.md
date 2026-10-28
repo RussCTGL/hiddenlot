@@ -16,6 +16,19 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
 3. **Lets the owner review and choose what to share** with which network, field by field, with revocation that takes effect immediately.
 4. **Discovers candidates automatically** when stock or demands change, across networks, using a deterministic constraint engine with no grade-equivalence table. A known failure is never outweighed by a score.
 5. **Explains each candidate** with evidence, what is still unknown, and who must confirm what next. Meta can rephrase the rule results, but every sentence must cite fact IDs; unsupported sentences are removed.
+6. **Prepares a daily digest on a map** (the **Today** page) so a buyer decides in a few clicks instead of reading every candidate. Each decision is a row in a short list and, when the owner shares a location, a pin on a map of East and Southeast Asia. The pin is placed at the stock location, the loading port (FOB) or the delivery port (CFR), with a route to the buyer's delivery port. A location the owner withheld is never drawn. The digest has three groups:
+   - **Move forward:** every hard requirement passes. HiddenLot shortlists the lot and drafts a quote request.
+   - **Needs an answer:** one or two facts are open. HiddenLot drafts the questions for the seller.
+   - **Deals need attention:** something changed on a deal already in progress.
+
+   A buyer can accept the whole digest at once. Each suggestion is checked against the rules again when it is accepted.
+7. **Tracks deals after the decision** (**Deals** board): waiting for an answer → quote requested → quote in hand → negotiating → won or lost. Every day it watches for:
+   - stock older than 48 h;
+   - silence past the follow-up date;
+   - expired offers;
+   - changed lots.
+
+   A deal closes as lost by itself when the lot is sold or sharing ends. After that its lot details are hidden. Messages are drafts built only from fields the owner shared; HiddenLot never sends anything.
 
 ## How Meta is used
 
@@ -50,8 +63,8 @@ npm run db:seed                 # loads the synthetic three-network demo (stop t
 npm run dev                     # http://localhost:3000
 ```
 
-Use the **Acting as** menu to switch between the three fictional networks. The overview page has a walkthrough.
-Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before recording a demo.
+Use the **Acting as** menu to switch between the three fictional networks. **Today** is the start page; **How it works** (footer) has the walkthrough and **Reset demo**.
+Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before recording a demo. The footer's **Skip ahead 1 day** moves a demo clock, so freshness, follow-ups and expiry can be shown without waiting; **Reset demo** puts it back to real time.
 
 | Command | What it does |
 |---|---|
@@ -60,6 +73,7 @@ Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before rec
 | `npm run db:seed` | Reset the local database and load the demo through the real pipeline |
 | `npm run eval:extraction -- --set eval4 --meta` | B1 regex vs B3 Meta extraction on the newest held-out set (paid API calls); without `--meta` only B1 runs |
 | `npm run eval:discovery -- --set eval4` | Discovery metrics (B1/B2/B3, A1 ablation, network lift) from the latest saved extraction outputs for that set; no model calls |
+| `npm run eval:scale -- --size m` | Volume test: 2,000 fictional lots across 8 networks, checked against an independent oracle, with timings; no model calls |
 | `npm run probe:meta` | One-document Meta smoke test |
 | `npm run data:render` / `npm run data:eval` | Re-render demo PDF/XLSX; regenerate the held-out eval set (fixed seed) |
 
@@ -75,7 +89,8 @@ See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact
 - A seller's certificate claim is a claim: the best such candidate can reach is "declared spec match".
 - Sold, withdrawn or changed stock and revoked sharing invalidate opportunities at once. Expiry and staleness (time-based) take effect on the next page view or discovery run. Earlier decisions never carry over.
 - Other networks see only the fields shared with them — never files, quotes, locations in the file, or identity unless disclosed.
-- Nothing is sent, reserved or committed on anyone's behalf.
+- Nothing is sent, reserved or committed on anyone's behalf. Digest messages are drafts from shared fields only, and accepting a suggestion re-checks it against the current rules.
+- Deals belong to the buyer's network. A deal never shows lot details the buyer can no longer see.
 
 ## Limitations
 

@@ -5,7 +5,7 @@ import { Badge, Bar, Empty, Hint, Loading, MARK_LEGEND, Mark, Page, StatusDot, S
 import { listDemandsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import type { Check, CheckStatus, CompatibilityStatus } from "@/discovery/constraints";
-import { requireSession } from "@/lib/session";
+import { requestNow, requireSession } from "@/lib/session";
 
 export default function OpportunitiesPage(props: PageProps<"/opportunities">) {
   return (
@@ -62,7 +62,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
   const demandFilter = typeof sp.demand === "string" ? sp.demand : null;
   const { actor } = await requireSession();
   const db = await getDb();
-  const now = new Date();
+  const now = await requestNow();
   const [all, demands, rejected] = await Promise.all([listOpportunitiesForActor(db, actor, now), listDemandsOfNetwork(db, actor.network_id), listRejectedForActor(db, actor, now)]);
   const opps = all.filter((o) => !demandFilter || o.demand_id === demandFilter);
   const live = opps.filter((o) => o.status !== "invalidated");

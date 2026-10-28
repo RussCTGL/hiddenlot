@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import type { Actor } from "@/auth/access";
-import { getNetwork, getUser, listUsers, type NetworkRow, type UserRow } from "@/db/repo";
+import { getClockOffsetHours, getNetwork, getUser, listUsers, type NetworkRow, type UserRow } from "@/db/repo";
 import { getDb } from "@/db/server";
 
 // Demo sign-in: a cookie selects one of the synthetic users. There is no
@@ -41,7 +41,12 @@ export async function listDemoUsers() {
   return listUsers(await getDb());
 }
 
-/** Request time for rendering (freshness, expiry). Pages here are request-time, never prerendered. */
-export function requestNow(): Date {
-  return new Date();
+/**
+ * Request time for rendering and actions (freshness, expiry, follow-ups). The
+ * demo clock can be moved forward so time-based rules show without waiting;
+ * pages here are request-time, never prerendered.
+ */
+export async function requestNow(): Promise<Date> {
+  await connection();
+  return new Date(Date.now() + (await getClockOffsetHours(await getDb())) * 3_600_000);
 }

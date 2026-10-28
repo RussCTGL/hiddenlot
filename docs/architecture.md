@@ -33,6 +33,15 @@ opportunity (immutable assessment keyed by lot/demand/permission/rules versions 
   ▼
 buyer review (shortlist / request info / dismiss, with reason and versions) — nothing is sent or reserved
   │
+  ├─ daily digest (src/workflow/deals.ts · buildDigest): computed on request from assessments, deals and the clock;
+  │    drawn on a server-projected SVG map (src/geo: Natural Earth land, built-in port list — no map service);
+  │    pins use shared fields only: stock location, else loading port (FOB…), else delivery port (CFR…)
+  │    move forward (all hard checks pass) · needs an answer (≤ 2 seller questions) · deal risks;
+  │    drafts built from the shared projection only; accepting re-computes the digest and runs only suggestions that still exist
+  ├─ deals (table `deals`, one open deal per demand × lot pair, survives re-assessment):
+  │    waiting → quote requested → quote in hand → negotiating → won / lost; history in `deal_events`;
+  │    auto-closed as lost when the lot is sold or withdrawn, sharing ends, or the demand ends
+  │
   └─ optional Meta · ExplainCandidate (src/ai/tasks/explain-candidate.ts): rephrases rule results;
      every sentence must cite fact IDs; unsupported numbers / equivalence / certification language removed;
      only if the lot owner's grant allows model processing
@@ -40,7 +49,8 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
 
 ## Storage
 
-Postgres schema in `db/migrations/0001_init.sql`, run on embedded PGlite locally (`.data/pglite`). Raw documents
+Postgres schema in `db/migrations/` (`0001_init.sql`; `0002_deals.sql` adds deals, deal events and the demo
+clock), run on embedded PGlite locally (`.data/pglite`). Raw documents
 stay with the owner network; other networks only ever receive the shared projection.
 
 ## Authorization

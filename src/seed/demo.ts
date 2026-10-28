@@ -12,6 +12,8 @@ import { canonicalExtractor, documentBytes, loadCanonical } from "./canonical";
 // demands → discovery. Nothing is inserted around the rules.
 
 const TABLES = [
+  "deal_events",
+  "deals",
   "audit_events",
   "review_decisions",
   "opportunities",
@@ -31,6 +33,7 @@ const TABLES = [
 export async function resetDatabase(db: Db) {
   await db.transaction(async (tx) => {
     for (const t of TABLES) await tx.query(`DELETE FROM ${t}`);
+    await tx.query(`UPDATE demo_clock SET offset_hours = 0`);
   });
 }
 
@@ -41,6 +44,13 @@ export interface SeedReport {
   grants: number;
   opportunities: number;
 }
+
+/**
+ * Stock confirmations differ in age, as they do in practice. B-018 was last
+ * confirmed 30 h before the demo starts, so it is the first lot to pass the
+ * 48 h window when the presenter skips a day.
+ */
+const CONFIRMED_HOURS_BEFORE: Record<string, number> = { "lot-b-018": 30 };
 
 export async function seedDemo(db: Db, now: Date): Promise<SeedReport> {
   const c = loadCanonical();
@@ -72,7 +82,7 @@ export async function seedDemo(db: Db, now: Date): Promise<SeedReport> {
       // Scripted stand-in for the owner's review of hand-written truth; the audit
       // note says so. Unknowns stay Unknown (confirming skips empty values).
       await reviewLot(db, actor, lotId, lot!.current_version, ALL_LOT_FIELDS.map((field) => ({ field, action: "confirm" as const })), now, "seed: scripted confirmation of synthetic canonical truth (not a human review)");
-      await publishLot(db, actor, lotId, lot!.current_version + 1, now);
+      await publishLot(db, actor, lotId, lot!.current_version + 1, new Date(now.getTime() - (CONFIRMED_HOURS_BEFORE[lotId] ?? 0) * 3_600_000));
       lots++;
     }
   }

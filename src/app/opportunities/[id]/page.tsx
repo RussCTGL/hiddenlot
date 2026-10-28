@@ -11,7 +11,7 @@ import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, type Check, type CheckStatus } from "@/discovery/constraints";
 import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { listDecisions } from "@/workflow/actions";
-import { requireSession } from "@/lib/session";
+import { requestNow, requireSession } from "@/lib/session";
 import { metaAvailable } from "@/lib/meta";
 import type { StoredExplanation } from "@/workflow/explain";
 
@@ -150,7 +150,7 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
   const db = await getDb();
   let view;
   try {
-    view = await getOpportunityForActor(db, actor, id, new Date());
+    view = await getOpportunityForActor(db, actor, id, await requestNow());
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;

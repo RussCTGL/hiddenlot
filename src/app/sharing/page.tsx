@@ -23,7 +23,7 @@ async function Sharing() {
   const [grants, networks, lots] = await Promise.all([listGrantsByOwner(db, actor.network_id), listNetworks(db), listLotsOfNetwork(db, actor.network_id)]);
   const alias = new Map(networks.map((n) => [n.id, n.alias]));
   const lotLabel = new Map(lots.map((l) => [l.id, String(l.data.fields.seller_lot_ref.normalized_value ?? l.id)]));
-  const now = requestNow().getTime();
+  const now = (await requestNow()).getTime();
   return (
     <Page
       title="Sharing"
