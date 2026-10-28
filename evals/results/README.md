@@ -17,5 +17,8 @@ Files backing the numbers in `docs/evaluation.md`:
 | eval4 discovery: recall 9/9, A1 48/60 | `discovery-eval4-2026-10-27T07-31-07-666Z.json` |
 | eval4 first attempt (crashed on a client timeout bug, superseded) | `discovery-eval4-2026-10-27T07-25-21-297Z.json` |
 | Demo set (development data) | `extraction-2026-10-27T06-18-24-672Z.json` (v2 prompt, 81/81), `extraction-2026-10-27T06-28-16-327Z.json` (v3, 75/81) |
+| Volume test, size s (500 lots), before the performance fix: 0 oracle failures | `scale-s-2026-10-27T23-22-10-562Z.json` |
+| Volume test, size m (2,000 lots), before the performance fix: 0 oracle failures, 532 s grant creation | `scale-m-2026-10-27T23-21-31-972Z.json` |
+| Volume test, size m, after the fix: 0 oracle failures, 0.77 s grant creation, 0.09 s per page | `scale-m-2026-10-27T23-40-19-810Z.json` |
 
-Files without `--meta` in their run contain only the B1 baseline.
+Files without `--meta` in their run contain only the B1 baseline. Volume-test files (`scale-*`) make no model calls.

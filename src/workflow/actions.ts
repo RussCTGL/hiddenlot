@@ -13,7 +13,7 @@ import {
   type GrantRow,
 } from "@/db/repo";
 import { REVIEWABLE } from "@/discovery/constraints";
-import { discoverForDemand, discoverForLot, invalidateStale, type DiscoveryStats } from "@/discovery/engine";
+import { discoverAll, discoverForDemand, discoverForLot, invalidateStale, type DiscoveryStats } from "@/discovery/engine";
 import { Demand, HRC_SCHEMA_VERSION, InventoryLot, InventoryLotFields, type InventoryLotField } from "@/domain/hrc";
 
 // State changes (plan §16.1, §8.4). Each one checks the actor, writes an
@@ -160,12 +160,9 @@ export async function createGrant(db: Db, actor: Actor, input: GrantInput, now: 
       },
       id,
     );
-    // Run discovery for the recipient's demands against the newly visible lots.
-    const lots = input.lot_id
-      ? [input.lot_id]
-      : (await tx.query<{ id: string }>(`SELECT id FROM lots WHERE owner_network_id = $1 AND status = 'published'`, [actor.network_id])).map((r) => r.id);
-    const stats: DiscoveryStats[] = [];
-    for (const lotId of lots) stats.push(await discoverForLot(tx, lotId, now));
+    // Only the recipient's view changed: one discovery pass over its demands,
+    // where pairs it could already see are skipped as unchanged.
+    const stats: DiscoveryStats[] = [await discoverAll(tx, now, input.recipient_network_id)];
     return { grant_id: grantId, stats };
   });
 }

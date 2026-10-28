@@ -86,6 +86,82 @@ The demo documents were used to build the regex baseline and the prompts, so the
 - **Small samples, single runs.** Differences of a few fields are not significant.
 - **What the result files record.** From eval4 on, the result files record prompt version, model, dataset hash and git state. Earlier files predate this; their prompt version follows from the timeline in `docs/build-log.md`.
 
+## Volume test (`npm run eval:scale -- --size m`)
+
+The design assumed MVP size, about 60 lots × 15 demands (plan §12.1). This test generates a much larger fictional world from a fixed seed and checks that discovery stays correct. It also measures how long user actions take. There are no documents and no model calls: lots, demands and grants are loaded straight into the tables (`src/seed/scale.ts`).
+
+**World.**
+- About half the lots are built from some network's demand. Most of those carry one planted deviation: out of range, another grade or standard, secondary without notes, below minimum, single coil over maximum, missing certificate, too late, plate, width unknown, or an implausible thickness.
+- Lot status: 85 % published; the rest sold, withdrawn or awaiting review. 15 % of lots have stale stock confirmations.
+- Grants are network-wide or per lot. Field scopes are all fields, all except private fields, or all except one matching field. Some grants are revoked, expired or have no discovery right.
+- Free-text fields (seller reference, heat number, location, defect notes) hold unique canary strings.
+
+**Oracle** (`src/seed/scale-check.ts`). The oracle reads the source tables and recomputes, without engine code:
+- which pairs each network may see, including which grant is newest and which fields it withholds;
+- whether a pair may be offered for review;
+- whether a grade or standard mismatch exists.
+
+It then compares this with what the engine stored and with what the list and detail pages return. It counts 15 kinds of failure, and each must be zero:
+- **Authorization:** missing or unauthorized assessments; unauthorized, outdated, duplicate or incompatible open opportunities; missing opportunities.
+- **Matching:** hard-constraint violations, missed clean matches, unexpected engineering review.
+- **Withheld fields:** a withheld field decided a check, or a withheld value appears in an assessment.
+- **Pages:** canary strings or private seller names in the list or detail pages, and lot values in a detail page after access ended.
+
+The check runs twice: after load, and after a round of changes made through the real actions (lots sold, grants revoked, demands edited, one new network-wide grant) with the clock moved forward 30 h.
+
+**Does the oracle catch bugs?** Eight engine bugs were injected one at a time (`--size test`). Seven were caught:
+
+| Injected bug | Caught by |
+|---|---|
+| Range check never fails | hard-constraint violation (33) |
+| Projection ignores grant scope | leak in detail page (10) |
+| Revoked grants keep sharing | unauthorized opportunity, missing assessment (7) |
+| Expired grants keep sharing | unauthorized assessment (6) |
+| Required certificates ignored | hard-constraint violation (1) |
+| Another grade passes as listed | hard-constraint violation (2) |
+| Stale stock counts as fresh | missing assessments (820); the second run also changes data |
+| Sold lots not invalidated | not caught: selling also creates a new lot version, which invalidates the opportunity anyway |
+
+The last bug does not change the outcome; only the stated invalidation reason differs.
+
+**Results.** One run per row, in-memory PGlite, Apple M5 Ultra, Node 24. The first m run exposed the performance problems below; the fix then went in and m was run again on the same seed.
+
+| | s (after fix) | m, before fix | m, after fix |
+|---|---:|---:|---:|
+| Networks · lots · demands · grants | 5 · 500 · 20 · 52 | 8 · 2,000 · 64 · 201 | same |
+| Visible pairs after load · after changes | 4,148 · 3,816 | 65,665 · 52,372 | same |
+| Open opportunities (reviewable) after load | 64 (27) | 653 (174) | same |
+| Oracle failures, both checks (15 kinds) | **0** | **0** | **0** |
+| Second discovery run changes data | no | no | no |
+| Full discovery, cold | 1.2 s | 17.1 s | 17.0 s |
+| Full discovery, nothing changed | 0.07 s | 15.2 s | 0.65 s |
+| Opportunity list or detail page, p50 · max | 0.01 s · 0.03 s | 2.0 s · 2.8 s | **0.09 s · 0.11 s** |
+| Mark sold · revoke grant · edit demand (p50) | 2 ms · 1 ms · 58 ms | 4 ms · 3 ms · 260 ms | 4 ms · 3 ms · 284 ms |
+| **Share all lots with one more network** | 0.12 s | **532 s** | **0.77 s** |
+
+Result files: `scale-s-2026-10-27T23-22-10-562Z.json` (s, before the fix), `scale-m-2026-10-27T23-21-31-972Z.json` (m before) and `scale-m-2026-10-27T23-40-19-810Z.json` (m after).
+
+**What this shows.**
+- **Correctness holds at volume**, before and after the fix. At 2,000 lots and 65,000 visible pairs the oracle finds nothing wrong, before or after changes:
+  - no pair outside a live grant is assessed or offered;
+  - nothing offered for review breaks a known hard requirement, and no clean match is missed;
+  - withheld fields never decide a check;
+  - no withheld value or private seller name reaches the pages;
+  - detail pages show no lot values once access ends.
+- **Performance did not hold at first.** The design re-checks everything because the MVP was small (plan §12.1). Two problems showed up:
+  - **Every page read re-evaluated the whole network.** Time-based rules (expiry, freshness) have no event, so each read refreshes the actor's network. At m this cost about 2 s per page.
+  - **Sharing ran discovery once per lot and per demand.** Creating a grant called `discoverForLot` for each of the owner's lots. That reloaded the buyer's whole visible set for every demand, so the cost grew with lots × demands × visible lots: 9 minutes at m.
+- **The fix** (`src/discovery/engine.ts`, `src/workflow/actions.ts`):
+  - **Unchanged pairs are skipped.** An assessment ID already covers lot version, demand version, grant, rules version and freshness. So discovery computes the ID first and skips evaluation and writes when that assessment exists and its opportunity is already in the right state. Freshness now comes from one shared helper (`isFresh`), so the skip and the freshness check cannot disagree.
+  - **Sharing runs one discovery pass, only for the recipient network**, and pairs it could already see are skipped.
+  - **Single-lot lookups query only that lot** (`visibleLots(…, lotId)`).
+  - The oracle results are identical before and after the fix.
+- **Still open.**
+  - A cold full discovery at m takes 17 s. That happens only when everything is new, for example on first load.
+  - The rejected-candidates list takes about 0.3 s.
+  - Memory reached about 3.5 GB RSS, because each refresh loads every visible lot's JSON.
+  - Size l (6,000 lots) was not run.
+
 ## Safety suite (plan §11.4) — every run of `npm test`
 
 | §11.4 case | Expected | Test (file) |
@@ -116,3 +192,8 @@ The demo documents were used to build the regex baseline and the prompts, so the
 | Grant expiry without any write event | "an expired grant invalidates on the next read…" |
 | Seller reading the buyer's opportunity | "other networks cannot read…" (seller gets not found) |
 | Server actions forged across networks | Checked manually in the P4 review (every attempt returned "not found"); enforced in `src/workflow/actions.ts` |
+| Another network reads or edits a buyer's deal | "deals are the buyer's alone" (deals) |
+| Drafted messages and withheld fields | "drafts use only shared fields: a withheld price never appears" (deals) |
+| Map pins and a withheld stock location | "map places come from shared fields only: a withheld stock location is never drawn" (deals) |
+| Deal after sale or revocation | "a sold lot or ended sharing closes the deal as lost without lot details" (deals) |
+| Stale digest page accepted later | "accept all turns suggestions into tracked deals" (deals): accepted keys that no longer exist do nothing |

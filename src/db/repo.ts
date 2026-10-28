@@ -243,8 +243,8 @@ export async function insertGrant(sql: Sql, g: Omit<GrantRow, "id" | "created_at
   return id;
 }
 
-/** Active grants that let `recipient` use published lots in discovery, one row per (grant, lot). */
-export async function sharedLotsFor(sql: Sql, recipientNetworkId: string, now: Date) {
+/** Active grants that let `recipient` use published lots in discovery, one row per (grant, lot). `lotId` narrows to one lot. */
+export async function sharedLotsFor(sql: Sql, recipientNetworkId: string, now: Date, lotId: string | null = null) {
   return sql.query<LotWithData & { grant_id: string; field_scope: InventoryLotField[]; allow_identity_disclosure: boolean; grant_created_at: Date }>(
     `SELECT l.*, v.data, g.id AS grant_id, g.field_scope, g.allow_identity_disclosure, g.created_at AS grant_created_at
        FROM sharing_grants g
@@ -255,8 +255,9 @@ export async function sharedLotsFor(sql: Sql, recipientNetworkId: string, now: D
         AND g.revoked_at IS NULL
         AND (g.expires_at IS NULL OR g.expires_at > $2)
         AND l.status = 'published'
+        AND ($3::text IS NULL OR l.id = $3)
       ORDER BY l.id, g.created_at DESC, g.id DESC`,
-    [recipientNetworkId, now],
+    [recipientNetworkId, now, lotId],
   );
 }
 
@@ -264,4 +265,14 @@ export async function sharedLotsFor(sql: Sql, recipientNetworkId: string, now: D
 
 export async function getOpportunity(sql: Sql, id: string) {
   return (await sql.query<OpportunityRow>(`SELECT * FROM opportunities WHERE id = $1`, [id]))[0] ?? null;
+}
+
+// --- demo clock --------------------------------------------------------------
+
+export async function getClockOffsetHours(sql: Sql) {
+  return (await sql.query<{ offset_hours: number }>(`SELECT offset_hours FROM demo_clock WHERE id = 1`))[0]?.offset_hours ?? 0;
+}
+
+export async function setClockOffsetHours(sql: Sql, hours: number) {
+  await sql.query(`UPDATE demo_clock SET offset_hours = $1 WHERE id = 1`, [hours]);
 }

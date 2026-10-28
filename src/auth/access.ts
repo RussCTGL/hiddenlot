@@ -88,8 +88,9 @@ interface AssessmentRow {
 
 /**
  * Time-based rules (grant or demand expiry, stock freshness) have no event, so
- * every read first re-evaluates the actor's network. Data is small enough
- * (plan §12.1) that this costs milliseconds.
+ * every read first re-evaluates the actor's network. Pairs whose stored
+ * assessment is still current are skipped without re-evaluation, so a read
+ * only pays for what changed (plus loading the visible lots).
  */
 export async function refreshForActor(sql: Sql, actor: Actor, now: Date) {
   await discoverAll(sql, now, actor.network_id);
@@ -136,7 +137,7 @@ export async function getOpportunityForActor(sql: Sql, actor: Actor, id: string,
     lot = await getLotVersion(sql, a.lot_id, a.lot_version);
     sellerLabel = `${network.name} (your network)`;
   } else {
-    const live = (await visibleLots(sql, actor.network_id, now)).find((v) => v.lot.id === a.lot_id);
+    const live = (await visibleLots(sql, actor.network_id, now, a.lot_id))[0];
     if (opp.status !== "invalidated" && live && `grant:${live.access.grant_id}` === a.permission_version) {
       const assessed = await getLotVersion(sql, a.lot_id, a.lot_version);
       lot = assessed ? projectLot(assessed, live.access) : null;

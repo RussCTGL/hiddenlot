@@ -11,7 +11,7 @@ import {
   type OpportunityRow,
 } from "@/db/repo";
 import { InventoryLotFields, type InventoryLot, type InventoryLotField } from "@/domain/hrc";
-import { evaluateConstraints, FRESHNESS_WINDOW_HOURS, RULES_VERSION, type AccessContext, type CompatibilityStatus } from "./constraints";
+import { evaluateConstraints, FRESHNESS_WINDOW_HOURS, isFresh, RULES_VERSION, type AccessContext, type CompatibilityStatus } from "./constraints";
 import { scoreCandidate } from "./score";
 
 // Discovery (plan §12.1). Runs when a lot or demand changes, or on demand.
@@ -26,16 +26,16 @@ export interface VisibleLot {
   permission_version: string;
 }
 
-/** Published lots a network may use in discovery: its own, plus shared ones. */
-export async function visibleLots(sql: Sql, networkId: string, now: Date): Promise<VisibleLot[]> {
+/** Published lots a network may use in discovery: its own, plus shared ones. `lotId` narrows to one lot. */
+export async function visibleLots(sql: Sql, networkId: string, now: Date, lotId: string | null = null): Promise<VisibleLot[]> {
   const own = await sql.query<LotWithData>(
     `SELECT l.*, v.data FROM lots l JOIN lot_versions v ON v.lot_id = l.id AND v.version = l.current_version
-      WHERE l.owner_network_id = $1 AND l.status = 'published'`,
-    [networkId],
+      WHERE l.owner_network_id = $1 AND l.status = 'published' AND ($2::text IS NULL OR l.id = $2)`,
+    [networkId, lotId],
   );
   const out: VisibleLot[] = own.map((lot) => ({ lot, access: { own: true, grant_id: null, withheld: [] }, permission_version: "own" }));
   const seen = new Set<string>();
-  for (const row of await sharedLotsFor(sql, networkId, now)) {
+  for (const row of await sharedLotsFor(sql, networkId, now, lotId)) {
     if (seen.has(row.id)) continue; // newest grant wins when several cover one lot
     seen.add(row.id);
     const scope = new Set(row.field_scope);
@@ -72,24 +72,73 @@ export interface DiscoveryStats {
 
 const emptyStats = (): DiscoveryStats => ({ pairs: 0, reviewable: 0, needs_evidence: 0, engineering_review: 0, rejected: 0, new_opportunities: 0, invalidated: 0 });
 
-async function assessPair(sql: Sql, demand: DemandWithData, v: VisibleLot, now: Date, stats: DiscoveryStats) {
-  const lot = v.lot;
-  // Matching only ever sees the projection the owner shared with this network.
-  const shared = projectLot(lot.data, v.access);
-  const result = evaluateConstraints(shared, demand.data, v.access, now);
-  const score = scoreCandidate(shared, demand.data, now);
-  // Freshness depends on time, so it is part of the assessment identity:
-  // when stock goes stale a new assessment is made instead of rewriting the
-  // old one, and decisions taken on the old one do not carry over.
-  const freshness = result.checks.find((c) => c.id === "freshness")?.status === "pass" ? "fresh" : "stale";
-  const id = assessmentId([lot.id, lot.current_version, demand.id, demand.current_version, v.permission_version, RULES_VERSION, freshness]);
-  const status = result.compatibility_status;
-
+function count(stats: DiscoveryStats, status: CompatibilityStatus) {
   stats.pairs++;
   if (status === "incompatible") stats.rejected++;
   else if (status === "insufficient_evidence") stats.needs_evidence++;
   else if (status === "engineering_review_required") stats.engineering_review++;
   else stats.reviewable++;
+}
+
+/**
+ * What is already stored for one buyer network. Assessments are immutable and
+ * their ID covers everything the result depends on, so a pair whose
+ * assessment exists and whose opportunity is already in the right state needs
+ * no re-evaluation and no write.
+ */
+interface Stored {
+  assessments: Map<string, CompatibilityStatus>;
+  openByPair: Map<string, string[]>;
+  withOpportunity: Set<string>;
+}
+
+async function loadStored(sql: Sql, networkId: string): Promise<Stored> {
+  const assessments = await sql.query<{ id: string; compatibility_status: CompatibilityStatus }>(
+    `SELECT a.id, a.compatibility_status FROM match_assessments a JOIN demands d ON d.id = a.demand_id WHERE d.buyer_network_id = $1`,
+    [networkId],
+  );
+  const opps = await sql.query<{ demand_id: string; lot_id: string; assessment_id: string; status: string }>(
+    `SELECT demand_id, lot_id, assessment_id, status FROM opportunities WHERE buyer_network_id = $1`,
+    [networkId],
+  );
+  const openByPair = new Map<string, string[]>();
+  for (const o of opps) {
+    if (o.status === "invalidated") continue;
+    const k = `${o.demand_id}|${o.lot_id}`;
+    openByPair.set(k, [...(openByPair.get(k) ?? []), o.assessment_id]);
+  }
+  return {
+    assessments: new Map(assessments.map((a) => [a.id, a.compatibility_status])),
+    openByPair,
+    withOpportunity: new Set(opps.map((o) => o.assessment_id)),
+  };
+}
+
+async function assessPair(sql: Sql, demand: DemandWithData, v: VisibleLot, now: Date, stats: DiscoveryStats, stored?: Stored) {
+  const lot = v.lot;
+  // Freshness depends on time, so it is part of the assessment identity:
+  // when stock goes stale a new assessment is made instead of rewriting the
+  // old one, and decisions taken on the old one do not carry over.
+  const freshness = isFresh(lot.data, now) ? "fresh" : "stale";
+  const id = assessmentId([lot.id, lot.current_version, demand.id, demand.current_version, v.permission_version, RULES_VERSION, freshness]);
+
+  // Unchanged pair: the full path below would write nothing.
+  const known = stored?.assessments.get(id);
+  if (known !== undefined) {
+    const open = stored!.openByPair.get(`${demand.id}|${lot.id}`) ?? [];
+    const settled = open.length === 0 ? known === "incompatible" || stored!.withOpportunity.has(id) : open.length === 1 && open[0] === id;
+    if (settled) {
+      count(stats, known);
+      return;
+    }
+  }
+
+  // Matching only ever sees the projection the owner shared with this network.
+  const shared = projectLot(lot.data, v.access);
+  const result = evaluateConstraints(shared, demand.data, v.access, now);
+  const score = scoreCandidate(shared, demand.data, now);
+  const status = result.compatibility_status;
+  count(stats, status);
 
   await sql.query(
     `INSERT INTO match_assessments (id, lot_id, lot_version, demand_id, demand_version, permission_version, rules_version, freshness, compatibility_status, checks, score)
@@ -190,9 +239,11 @@ export async function discoverForLot(sql: Sql, lotId: string, now: Date): Promis
   stats.invalidated += await invalidateStale(sql, now);
   const lot = await getLot(sql, lotId);
   if (!lot || lot.status !== "published") return stats;
+  const seen = new Map<string, VisibleLot | null>();
   for (const demand of await activeDemands(sql, "true", [])) {
     if (isExpired(demand, now)) continue;
-    const v = (await visibleLots(sql, demand.buyer_network_id, now)).find((x) => x.lot.id === lotId);
+    if (!seen.has(demand.buyer_network_id)) seen.set(demand.buyer_network_id, (await visibleLots(sql, demand.buyer_network_id, now, lotId))[0] ?? null);
+    const v = seen.get(demand.buyer_network_id);
     if (v) await assessPair(sql, demand, v, now, stats);
   }
   return stats;
@@ -204,7 +255,8 @@ export async function discoverForDemand(sql: Sql, demandId: string, now: Date): 
   stats.invalidated += await invalidateStale(sql, now);
   const demand = await getDemand(sql, demandId);
   if (!demand || demand.status !== "active" || isExpired(demand, now)) return stats;
-  for (const v of await visibleLots(sql, demand.buyer_network_id, now)) await assessPair(sql, demand, v, now, stats);
+  const stored = await loadStored(sql, demand.buyer_network_id);
+  for (const v of await visibleLots(sql, demand.buyer_network_id, now)) await assessPair(sql, demand, v, now, stats, stored);
   return stats;
 }
 
@@ -213,11 +265,13 @@ export async function discoverAll(sql: Sql, now: Date, networkId?: string): Prom
   const stats = emptyStats();
   stats.invalidated += await invalidateStale(sql, now);
   const demands = networkId ? await activeDemands(sql, "d.buyer_network_id = $1", [networkId]) : await activeDemands(sql, "true", []);
-  const cache = new Map<string, VisibleLot[]>();
+  const cache = new Map<string, { lots: VisibleLot[]; stored: Stored }>();
   for (const demand of demands) {
     if (isExpired(demand, now)) continue;
-    if (!cache.has(demand.buyer_network_id)) cache.set(demand.buyer_network_id, await visibleLots(sql, demand.buyer_network_id, now));
-    for (const v of cache.get(demand.buyer_network_id)!) await assessPair(sql, demand, v, now, stats);
+    const net = demand.buyer_network_id;
+    if (!cache.has(net)) cache.set(net, { lots: await visibleLots(sql, net, now), stored: await loadStored(sql, net) });
+    const { lots, stored } = cache.get(net)!;
+    for (const v of lots) await assessPair(sql, demand, v, now, stats, stored);
   }
   return stats;
 }

@@ -14,6 +14,10 @@ export const RULES_VERSION = "rules.v2";
 /** Synthetic default; real windows come from partners (plan §12.4). */
 export const FRESHNESS_WINDOW_HOURS = 48;
 
+/** Hours since the owner last confirmed the stock. */
+export const stockAgeHours = (lot: InventoryLot, now: Date) => (now.getTime() - new Date(lot.last_verified_at ?? lot.observed_at).getTime()) / 3_600_000;
+export const isFresh = (lot: InventoryLot, now: Date) => stockAgeHours(lot, now) <= FRESHNESS_WINDOW_HOURS;
+
 export type CheckStatus = "pass" | "conditional" | "review" | "unknown" | "fail" | "not_checked";
 
 /** What a passing check rests on. */
@@ -124,10 +128,9 @@ export function evaluateConstraints(lot: InventoryLot, demand: Demand, access: A
     add({ id: "lot_status", label: "Lot still available", status: "pass", detail: "Published by owner", fields: [], basis: "system", ask: null });
   }
 
-  const verified = lot.last_verified_at ?? lot.observed_at;
-  const ageH = (now.getTime() - new Date(verified).getTime()) / 3_600_000;
+  const ageH = stockAgeHours(lot, now);
   add(
-    ageH <= FRESHNESS_WINDOW_HOURS
+    isFresh(lot, now)
       ? { id: "freshness", label: "Stock recently confirmed", status: "pass", detail: `Confirmed ${fmt(Math.max(0, Math.round(ageH)))} h ago (window ${FRESHNESS_WINDOW_HOURS} h)`, fields: [], basis: "system", ask: null }
       : { id: "freshness", label: "Stock recently confirmed", status: "unknown", detail: `Last confirmed ${fmt(Math.round(ageH))} h ago; ask seller to reconfirm`, fields: [], basis: "system", ask: "seller" },
   );
