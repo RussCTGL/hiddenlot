@@ -1,13 +1,15 @@
 import { Suspense } from "react";
-import { resetDemo } from "@/app/actions";
-import { Submit } from "@/components/forms";
+import { reconfirmAction, resetDemo } from "@/app/actions";
+import { ActionForm, Submit } from "@/components/forms";
 import { TodayBoard, type BoardItem, type BoardKind, type Destination } from "@/components/today-board";
-import { ButtonLink, Card, Loading, Page, primaryCls } from "@/components/ui";
+import { ButtonLink, buttonCls, Card, Loading, Page, primaryCls } from "@/components/ui";
+import { listGrantsByOwner, listLotsOfNetwork, listNetworks } from "@/db/repo";
 import { getDb } from "@/db/server";
+import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import { landPath, MAP_H, MAP_W, project } from "@/geo/map";
 import { findPlace } from "@/geo/places";
 import { getSession, requestNow } from "@/lib/session";
-import { buildDigest, type Digest, type DigestItem, type Suggestion } from "@/workflow/deals";
+import { buildDigest, type DigestItem, type Suggestion } from "@/workflow/deals";
 
 export default function Today() {
   return (
@@ -38,7 +40,7 @@ async function TodayPage() {
   const db = await getDb();
   const now = await requestNow();
   const d = await buildDigest(db, actor, now);
-  if (!d.hasDemands) return <NoDemands digest={d} networkName={network.alias} />;
+  if (!d.hasDemands) return <NoDemands actor={actor} networkName={network.alias} now={now} />;
 
   // Delivery ports of this network's active demands.
   const demands = await db.query<{ destination: string | null }>(
@@ -117,30 +119,79 @@ function fit(points: number[][]) {
   return { x: Math.round(cx - w / 2), y: Math.round(cy - h / 2), w: Math.round(w), h: Math.round(h) };
 }
 
-function NoDemands({ digest, networkName }: { digest: Digest; networkName: string }) {
+async function NoDemands({ actor, networkName, now }: { actor: { network_id: string }; networkName: string; now: Date }) {
+  const db = await getDb();
+  const [lots, grants, networks] = await Promise.all([listLotsOfNetwork(db, actor.network_id), listGrantsByOwner(db, actor.network_id), listNetworks(db)]);
+  const alias = new Map(networks.map((n) => [n.id, n.alias]));
+  const published = lots.filter((l) => l.status === "published");
+  const toReview = lots.filter((l) => l.status === "needs_review").length;
+  const age = (l: (typeof lots)[number]) => (now.getTime() - new Date(l.data.last_verified_at ?? l.data.observed_at).getTime()) / 3_600_000;
+  const stale = published.filter((l) => age(l) > FRESHNESS_WINDOW_HOURS);
+  const live = grants.filter((g) => !g.revoked_at && (!g.expires_at || new Date(g.expires_at) > now));
+  const ref = (l: (typeof lots)[number]) => String(l.data.fields.seller_lot_ref.normalized_value ?? l.id);
+
   return (
-    <Page title="Today" subtitle={`${networkName} has no active demands.`}>
-      <Card>
-        <div className="space-y-4 text-sm">
-          {digest.staleOwnLots > 0 ? (
-            <p className="flex items-center gap-2 font-medium text-rose-800 dark:text-rose-300">
-              <span className="size-2 rounded-full bg-rose-600" aria-hidden />
-              {digest.staleOwnLots} of your lots {digest.staleOwnLots === 1 ? "needs" : "need"} reconfirming (older than 48 h)
+    <Page title="Today" subtitle={`${networkName} · your stock`} actions={<ButtonLink href="/demands/new">New demand</ButtonLink>}>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Card title={stale.length ? `Reconfirm ${stale.length} lot${stale.length === 1 ? "" : "s"}` : "Stock is fresh"}>
+          {stale.length === 0 ? (
+            <p className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300">
+              <span className="size-2 rounded-full bg-emerald-600" aria-hidden />
+              Every published lot was confirmed in the last {FRESHNESS_WINDOW_HOURS} h. Buyers can act on all of them.
             </p>
           ) : (
-            <p className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
-              <span className="size-2 rounded-full bg-emerald-600" aria-hidden />
-              All your stock was confirmed in the last 48 h
-            </p>
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {stale.map((l) => (
+                <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-sm">
+                  <span>
+                    <b className="font-semibold">{ref(l)}</b> <span className="text-zinc-500">· confirmed {Math.ceil(age(l))} h ago; buyers see it as unconfirmed</span>
+                  </span>
+                  <ActionForm action={reconfirmAction}>
+                    <input type="hidden" name="lot_id" value={l.id} />
+                    <input type="hidden" name="version" value={l.current_version} />
+                    <Submit className={buttonCls} pending="…">
+                      Still available
+                    </Submit>
+                  </ActionForm>
+                </li>
+              ))}
+            </ul>
           )}
-          <div className="flex flex-wrap gap-2">
-            <ButtonLink href="/inventory" primary>
-              Inventory
-            </ButtonLink>
-            <ButtonLink href="/demands/new">New demand</ButtonLink>
-          </div>
+        </Card>
+        <div className="space-y-5">
+          <Card title="Your stock">
+            <p className="flex items-baseline gap-2">
+              <b className="font-mono text-3xl leading-none font-medium">{published.length}</b>
+              <span className="text-sm text-zinc-500">published{toReview ? ` · ${toReview} to review` : ""}</span>
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <ButtonLink href="/inventory" primary>
+                Inventory
+              </ButtonLink>
+              <ButtonLink href="/intake">Add stock</ButtonLink>
+            </div>
+          </Card>
+          <Card title="Shared with">
+            {live.length === 0 ? (
+              <p className="text-sm text-zinc-500">No one yet. Buyers in other networks cannot see your stock.</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {live.map((g) => (
+                  <li key={g.id}>
+                    <b className="font-semibold">{alias.get(g.recipient_network_id) ?? g.recipient_network_id}</b>{" "}
+                    <span className="text-zinc-500">
+                      · {g.lot_id ? "one lot" : "all lots"} · {g.field_scope.length} fields
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-4">
+              <ButtonLink href="/sharing">Sharing</ButtonLink>
+            </div>
+          </Card>
         </div>
-      </Card>
+      </div>
     </Page>
   );
 }

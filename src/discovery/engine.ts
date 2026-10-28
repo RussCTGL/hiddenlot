@@ -89,7 +89,6 @@ function count(stats: DiscoveryStats, status: CompatibilityStatus) {
 interface Stored {
   assessments: Map<string, CompatibilityStatus>;
   openByPair: Map<string, string[]>;
-  withOpportunity: Set<string>;
 }
 
 async function loadStored(sql: Sql, networkId: string): Promise<Stored> {
@@ -98,19 +97,17 @@ async function loadStored(sql: Sql, networkId: string): Promise<Stored> {
     [networkId],
   );
   const opps = await sql.query<{ demand_id: string; lot_id: string; assessment_id: string; status: string }>(
-    `SELECT demand_id, lot_id, assessment_id, status FROM opportunities WHERE buyer_network_id = $1`,
+    `SELECT demand_id, lot_id, assessment_id, status FROM opportunities WHERE buyer_network_id = $1 AND status <> 'invalidated'`,
     [networkId],
   );
   const openByPair = new Map<string, string[]>();
   for (const o of opps) {
-    if (o.status === "invalidated") continue;
     const k = `${o.demand_id}|${o.lot_id}`;
     openByPair.set(k, [...(openByPair.get(k) ?? []), o.assessment_id]);
   }
   return {
     assessments: new Map(assessments.map((a) => [a.id, a.compatibility_status])),
     openByPair,
-    withOpportunity: new Set(opps.map((o) => o.assessment_id)),
   };
 }
 
@@ -126,7 +123,8 @@ async function assessPair(sql: Sql, demand: DemandWithData, v: VisibleLot, now: 
   const known = stored?.assessments.get(id);
   if (known !== undefined) {
     const open = stored!.openByPair.get(`${demand.id}|${lot.id}`) ?? [];
-    const settled = open.length === 0 ? known === "incompatible" || stored!.withOpportunity.has(id) : open.length === 1 && open[0] === id;
+    // No open opportunity is only settled for an incompatible pair; otherwise one is (re)created below.
+    const settled = open.length === 0 ? known === "incompatible" : open.length === 1 && open[0] === id;
     if (settled) {
       count(stats, known);
       return;
@@ -169,7 +167,7 @@ async function assessPair(sql: Sql, demand: DemandWithData, v: VisibleLot, now: 
   const inserted = await sql.query(
     `INSERT INTO opportunities (id, assessment_id, demand_id, lot_id, buyer_network_id, seller_network_id, novelty, compatibility_status, status)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'discovered')
-     ON CONFLICT (assessment_id) DO NOTHING RETURNING id`,
+     ON CONFLICT (assessment_id) WHERE status <> 'invalidated' DO NOTHING RETURNING id`,
     [oppId, id, demand.id, lot.id, demand.buyer_network_id, lot.owner_network_id, v.access.own ? "same_network" : "cross_network", status],
   );
   if (inserted.length === 0) return;

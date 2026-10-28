@@ -12,6 +12,7 @@ import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, type Check, type CheckStatus } from
 import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { listDecisions } from "@/workflow/actions";
 import { requestNow, requireSession } from "@/lib/session";
+import { STAGE_LABEL, type DealStage } from "@/workflow/deals";
 import { metaAvailable } from "@/lib/meta";
 import type { StoredExplanation } from "@/workflow/explain";
 
@@ -156,6 +157,12 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
     throw err;
   }
   const decisions = await listDecisions(db, actor, id);
+  const deal = (
+    await db.query<{ id: string; stage: DealStage }>(
+      `SELECT id, stage FROM deals WHERE buyer_network_id = $1 AND demand_id = $2 AND lot_id = $3 ORDER BY created_at DESC LIMIT 1`,
+      [actor.network_id, view.opportunity.demand_id, view.opportunity.lot_id],
+    )
+  )[0];
   const { opportunity: o, demand, lot, checks, score } = view;
   const nextSteps = checks.filter((c) => ["unknown", "review", "conditional", "not_checked"].includes(c.status) && c.ask);
   const invalid = o.status === "invalidated";
@@ -216,6 +223,12 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
         </div>
 
         <aside className="min-w-0 flex-[1_1_300px] space-y-5">
+          {deal && (
+            <Link href={`/deals/${deal.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-accent bg-accent-soft px-5 py-3.5 text-sm font-medium text-accent hover:underline">
+              <span>Tracked in Deals · {STAGE_LABEL[deal.stage]}</span>
+              <span aria-hidden>→</span>
+            </Link>
+          )}
           {!invalid && lot && view.compatibility_status !== "incompatible" && (
             <Card title="Your decision">
               <ActionForm action={decideAction} className="space-y-3">
@@ -249,7 +262,7 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
             {score && score.observed !== null ? (
               <div className="space-y-4">
                 <p className="flex items-baseline gap-2.5">
-                  <span className="font-mono text-[44px] leading-none font-medium tracking-tight">{score.observed}</span>
+                  <span className="font-mono text-[44px] leading-none font-medium tracking-tight">{Math.round(score.observed)}</span>
                   <span className="text-[13px] text-zinc-600 dark:text-zinc-400">
                     {Math.round(score.coverage * 100)}% known{score.lower !== score.upper ? ` · range ${score.lower}–${score.upper}` : ""}
                   </span>

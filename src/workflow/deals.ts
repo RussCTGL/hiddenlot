@@ -753,7 +753,7 @@ export async function listDealsForActor(db: Db, actor: Actor, now: Date): Promis
 function nextStep(d: DealRow) {
   switch (d.stage) {
     case "waiting":
-      return d.ask ? `Asked: ${d.ask}` : "Waiting for an answer";
+      return d.ask ? `Q: ${d.ask}` : "Waiting for an answer";
     case "quote_requested":
       return "Next: wait for the offer";
     case "quote_in_hand":
@@ -839,6 +839,15 @@ export function dealDraft(v: DealView): string | null {
   if (v.deal.stage === "quote_requested" && v.view) return quoteRequestDraft(v.lot, v.deal.lot_id, v.demand, v.sellerLabel === "the lot owner", v.view.checks);
   if (v.deal.stage === "waiting" && v.deal.ask) return askDraft(v.lot, v.deal.lot_id, v.sellerLabel === "the lot owner", lower(v.deal.ask));
   return null;
+}
+
+/** The question(s) that settle an opportunity's open facts, as the digest would ask them; null if none. */
+export async function openQuestions(db: Db, actor: Actor, oppId: string, now: Date): Promise<string | null> {
+  const view = await getOpportunityForActor(db, actor, oppId, now);
+  if (!view.lot) return null;
+  const qs = view.checks.filter((c) => c.status === "unknown").map((c) => questionFor(c, view.demand, view.lot!)).filter((q): q is string => q !== null);
+  if (qs.length === 0) return null;
+  return qs.length === 1 ? cap(qs[0]) : qs.map((q, i) => `${i + 1}) ${cap(q)}`).join(" ");
 }
 
 // --- deal actions --------------------------------------------------------------------

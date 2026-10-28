@@ -141,3 +141,20 @@ test("map places come from shared fields only: a withheld stock location is neve
   // B-018 sits in Busan, which Network A must not learn from the digest.
   assert.ok(!JSON.stringify(d).includes("Busan"));
 });
+
+test("moving the clock past the freshness window and back restores the candidates", async () => {
+  const before = await buildDigest(db, A, NOW);
+  await buildDigest(db, A, hours(24 * 7)); // a week later: every lot is stale
+  const back = await buildDigest(db, A, NOW);
+  assert.deepEqual(refs(back.forward), refs(before.forward));
+  assert.deepEqual(refs(back.ask), refs(before.ask));
+  // One open opportunity per pair, and none carries a decision over.
+  const dup = await db.query(`SELECT demand_id, lot_id FROM opportunities WHERE status <> 'invalidated' GROUP BY 1, 2 HAVING count(*) > 1`);
+  assert.equal(dup.length, 0);
+});
+
+test("requesting information on an opportunity tracks the open question, not the typed reason", async () => {
+  const { openQuestions } = await import("@/workflow/deals");
+  const c104 = (await buildDigest(db, A, NOW)).ask.find((s) => s.lotRef === "C-104")!;
+  assert.equal(await openQuestions(db, A, c104.oppId!, NOW), "Is an MTC available for this lot?");
+});

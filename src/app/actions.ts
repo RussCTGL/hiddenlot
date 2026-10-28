@@ -10,7 +10,7 @@ import { discoverAll } from "@/discovery/engine";
 import { InventoryLotFields, LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
 import { intakeDocument, type ExtractorName } from "@/ingestion/intake";
 import { getExplainCall, getMetaExtract } from "@/lib/meta";
-import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, recordQuote, startDeal } from "@/workflow/deals";
+import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, recordQuote, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
 import { ACTOR_COOKIE, requestNow, requireSession } from "@/lib/session";
 import { seedDemo } from "@/seed/demo";
@@ -74,7 +74,8 @@ export async function switchActor(formData: FormData) {
   const db = await getDb();
   if (!(await getUser(db, id))) return;
   (await cookies()).set(ACTOR_COOKIE, id, { httpOnly: true, sameSite: "lax", path: "/" });
-  refresh();
+  // The page in view may belong to the previous network (a deal, a document): start at Today.
+  redirect("/");
 }
 
 /** Public deployments set HIDDENLOT_ALLOW_RESET=false so visitors cannot wipe the shared demo. */
@@ -336,7 +337,11 @@ export async function decideAction(_prev: ActionState, formData: FormData): Prom
     await decideOpportunity(db, actor, oppId, decision, reason, now);
     // Acting on a candidate starts tracking it as a deal.
     if (decision === "shortlisted") await startDeal(db, actor, oppId, "quote_requested", null, `Shortlisted: ${reason}`, now);
-    if (decision === "information_requested") await startDeal(db, actor, oppId, "waiting", reason, `Asked: ${reason}`, now);
+    if (decision === "information_requested") {
+      // The deal tracks the question the open facts call for; the buyer's reason goes into the history.
+      const ask = (await openQuestions(db, actor, oppId, now)) ?? reason;
+      await startDeal(db, actor, oppId, "waiting", ask, `Requested information: ${reason}`, now);
+    }
     refresh();
     return { ok: decision === "shortlisted" || decision === "information_requested" ? "Saved and tracked in Deals" : "Decision saved with the versions it was based on" };
   });

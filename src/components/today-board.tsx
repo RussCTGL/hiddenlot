@@ -339,24 +339,27 @@ function Summary({ count, deals, keys, inline = false }: { count: number; deals:
         <b className={`font-mono leading-none font-medium ${inline ? "text-2xl" : "text-[32px]"}`}>{count}</b>
         <span className="text-sm text-zinc-600 dark:text-zinc-400">{count === 1 ? "decision" : "decisions"}</span>
       </span>
-      {count > 0 ? (
-        <ActionForm action={acceptSuggestionsAction} className="max-w-56">
-          {keys.map((key) => (
-            <input key={key} type="hidden" name="key" value={key} />
-          ))}
-          <Submit
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            pending="Working…"
-          >
-            <CheckMarkIcon size={14} />
-            Accept all
-          </Submit>
-        </ActionForm>
-      ) : deals > 0 ? (
-        <Link href="/deals" className="text-sm text-accent hover:underline">
-          {deals} deal{deals === 1 ? "" : "s"} in progress
-        </Link>
-      ) : null}
+      <span className={`flex gap-2.5 ${inline ? "items-center" : "flex-col"}`}>
+        {count > 0 && (
+          <ActionForm action={acceptSuggestionsAction} className="max-w-56">
+            {keys.map((key) => (
+              <input key={key} type="hidden" name="key" value={key} />
+            ))}
+            <Submit
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              pending="Working…"
+            >
+              <CheckMarkIcon size={14} />
+              Accept all
+            </Submit>
+          </ActionForm>
+        )}
+        {deals > 0 && (
+          <Link href="/deals" className="text-sm font-medium text-accent hover:underline">
+            {deals} deal{deals === 1 ? "" : "s"} in progress →
+          </Link>
+        )}
+      </span>
     </>
   );
 }

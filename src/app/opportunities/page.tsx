@@ -66,7 +66,11 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
   const [all, demands, rejected] = await Promise.all([listOpportunitiesForActor(db, actor, now), listDemandsOfNetwork(db, actor.network_id), listRejectedForActor(db, actor, now)]);
   const opps = all.filter((o) => !demandFilter || o.demand_id === demandFilter);
   const live = opps.filter((o) => o.status !== "invalidated");
-  const invalidated = opps.filter((o) => o.status === "invalidated");
+  // Latest invalidation per pair, and only for pairs with no open opportunity again.
+  const openPairs = new Set(live.map((o) => `${o.demand_id}|${o.lot_id}`));
+  const invalidated = opps.filter(
+    (o, i) => o.status === "invalidated" && !openPairs.has(`${o.demand_id}|${o.lot_id}`) && opps.findIndex((x) => x.status === "invalidated" && x.demand_id === o.demand_id && x.lot_id === o.lot_id) === i,
+  );
   const rej = rejected.filter((r) => !demandFilter || r.demand_id === demandFilter);
   const liveAll = all.filter((o) => o.status !== "invalidated");
   const chip = (on: boolean) =>
@@ -144,7 +148,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
                               <span className="w-16">
                                 <Bar value={s ? (s.observed ?? 0) / 100 : 0} />
                               </span>
-                              <span className="w-10 text-right font-mono">{s ? s.observed : "—"}</span>
+                              <span className="w-10 text-right font-mono">{s ? Math.round(s.observed ?? 0) : "—"}</span>
                             </div>
                           </td>
                         </tr>
