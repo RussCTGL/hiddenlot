@@ -77,6 +77,29 @@ Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before rec
 | `npm run probe:meta` | One-document Meta smoke test |
 | `npm run data:render` / `npm run data:eval` | Re-render demo PDF/XLSX; regenerate the held-out eval set (fixed seed) |
 
+## Docker
+
+One container runs the whole app: pages, server actions and the embedded Postgres.
+
+```bash
+docker compose up --build        # http://localhost:3000
+```
+
+- **Data** lives in the `hiddenlot-data` volume. The demo is seeded on first start.
+- **The Meta key** is read from `.env.local` at runtime and is never part of the image. Without a key, the regex baseline extracts.
+- **Paid Meta calls** are capped by `HIDDENLOT_META_DAILY_LIMIT` (50 a day in `compose.yaml`). Once the cap is used up, intake asks for the regex baseline.
+- **For a public deployment** use the same image. Set `HIDDENLOT_ALLOW_RESET=false`, so visitors get neither **Reset demo** nor the demo clock, and set `HIDDENLOT_RESEED_HOURS=24`, so the shared demo is reloaded daily and its stock never goes stale.
+- **One instance only:** the embedded database is single-process.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `META_API_KEY` | unset | Enables Meta extraction and explanations |
+| `HIDDENLOT_META_DAILY_LIMIT` | no cap | Paid Meta calls per UTC day |
+| `HIDDENLOT_SEED_ON_START` | `false` | Load the demo when the database is empty |
+| `HIDDENLOT_RESEED_HOURS` | off | Reload the demo every N hours |
+| `HIDDENLOT_ALLOW_RESET` | `true` in dev, `false` in production | Show **Reset demo** and the demo clock |
+| `HIDDENLOT_DB_DIR` | `.data/pglite` (image: `/app/.data/pglite`) | Database directory |
+
 ## Architecture
 
 See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact locators → Meta extraction → deterministic evidence checks → owner review → authorized, projected universe → constraint engine → immutable, versioned assessments → buyer review. Storage is plain Postgres SQL (`db/migrations`), run locally on embedded PGlite.

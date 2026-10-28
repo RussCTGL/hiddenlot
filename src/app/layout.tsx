@@ -8,6 +8,7 @@ import { ClockIcon, LogoIcon } from "@/components/icons";
 import { Nav, NavLinks } from "@/components/nav";
 import { getDb } from "@/db/server";
 import { getClockOffsetHours, listNetworks } from "@/db/repo";
+import { demoControlsAllowed } from "@/lib/demo";
 import { getSession, listDemoUsers, requestNow } from "@/lib/session";
 import "./globals.css";
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 
 /** Demo only: skip ahead so freshness and follow-ups can be shown without waiting. */
 async function DemoClock() {
-  if (!(await getSession())) return null;
+  if (!demoControlsAllowed() || !(await getSession())) return null;
   const now = await requestNow();
   const offset = await getClockOffsetHours(await getDb());
   const btn = "inline-flex min-h-8 items-center rounded-md border border-zinc-300 bg-white px-2.5 font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800";

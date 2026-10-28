@@ -1,0 +1,24 @@
+# Local run:   docker compose up --build        → http://localhost:3000
+# The key is read from .env.local at runtime (optional; without it the regex
+# baseline extracts). Data persists in the "hiddenlot-data" volume.
+services:
+  hiddenlot:
+    build: .
+    image: hiddenlot:local
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: .env.local
+        required: false
+    environment:
+      HIDDENLOT_SEED_ON_START: "true"
+      # Local demo: Reset demo and the demo clock are available.
+      # For a public deployment set this to "false" and HIDDENLOT_RESEED_HOURS to "24".
+      HIDDENLOT_ALLOW_RESET: "true"
+      HIDDENLOT_META_DAILY_LIMIT: "50"
+    volumes:
+      - hiddenlot-data:/app/.data
+    restart: unless-stopped
+
+volumes:
+  hiddenlot-data:

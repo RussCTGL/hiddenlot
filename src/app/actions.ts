@@ -9,7 +9,8 @@ import { getDb } from "@/db/server";
 import { discoverAll } from "@/discovery/engine";
 import { InventoryLotFields, LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
 import { intakeDocument, type ExtractorName } from "@/ingestion/intake";
-import { getExplainCall, getMetaExtract } from "@/lib/meta";
+import { demoControlsAllowed } from "@/lib/demo";
+import { getExplainCall, getMetaExtract, metaCallsLeft } from "@/lib/meta";
 import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, recordQuote, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
 import { ACTOR_COOKIE, requestNow, requireSession } from "@/lib/session";
@@ -78,8 +79,7 @@ export async function switchActor(formData: FormData) {
   redirect("/");
 }
 
-/** Public deployments set HIDDENLOT_ALLOW_RESET=false so visitors cannot wipe the shared demo. */
-const resetAllowed = () => (process.env.HIDDENLOT_ALLOW_RESET ?? (process.env.NODE_ENV === "production" ? "false" : "true")) === "true";
+const resetAllowed = demoControlsAllowed;
 
 export async function resetDemo() {
   if (!resetAllowed()) return;
@@ -117,6 +117,8 @@ export async function intakeAction(_prev: ActionState, formData: FormData): Prom
     } else throw new UserError("Choose a file or paste a message.");
     const extractor = (str(formData, "extractor") || "meta") as ExtractorName;
     if (extractor !== "meta" && extractor !== "regex_baseline") throw new UserError("Unknown extractor");
+    // Refuse before parsing rather than half-way through, when today's paid calls are used up.
+    if (extractor === "meta" && (await metaCallsLeft()) === 0) throw new UserError("Today's Meta limit for this demo is used up. Choose the regex baseline, or try again tomorrow.");
     const r = await intakeDocument(await getDb(), actor, { bytes, filename, mime, extractor, synthetic: true }, getMetaExtract(), await requestNow());
     target = r.document_id;
   });
@@ -420,6 +422,7 @@ export async function explainAction(_prev: ActionState, formData: FormData): Pro
     const { actor } = await requireSession();
     const call = getExplainCall();
     if (!call) throw new UserError("Meta is not configured on this server");
+    if ((await metaCallsLeft()) === 0) throw new UserError("Today's Meta limit for this demo is used up. Try again tomorrow.");
     const id = str(formData, "opportunity_id");
     // One paid call per opportunity per minute, counting attempts and calls in flight (per server process).
     const last = explainAttempts.get(id);

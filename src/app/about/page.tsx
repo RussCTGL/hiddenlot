@@ -9,6 +9,7 @@ import { getDb } from "@/db/server";
 import type { CompatibilityStatus } from "@/discovery/constraints";
 import { GROUP_ORDER } from "@/discovery/engine";
 import { getSession, requestNow } from "@/lib/session";
+import { demoControlsAllowed } from "@/lib/demo";
 import { metaAvailable } from "@/lib/meta";
 
 export default function About() {
@@ -62,11 +63,13 @@ async function Overview() {
               Re-run discovery
             </Submit>
           </form>
-          <form action={resetDemo}>
-            <Submit className={buttonCls} pending="Resetting…">
-              Reset demo
-            </Submit>
-          </form>
+          {demoControlsAllowed() && (
+            <form action={resetDemo}>
+              <Submit className={buttonCls} pending="Resetting…">
+                Reset demo
+              </Submit>
+            </form>
+          )}
         </>
       }
     >
