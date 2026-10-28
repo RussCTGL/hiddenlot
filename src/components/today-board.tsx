@@ -53,7 +53,8 @@ const ORDER: BoardKind[] = ["risk", "forward", "ask", "parked", "missing", "out"
 type View = { x: number; y: number; w: number; h: number };
 
 export function TodayBoard({
-  land,
+  land: coarse,
+  extent,
   view: initial,
   items,
   destinations,
@@ -61,6 +62,8 @@ export function TodayBoard({
   deals,
 }: {
   land: string;
+  /** Size of the whole map in map units. */
+  extent: { w: number; h: number };
   view: View;
   items: BoardItem[];
   destinations: Destination[];
@@ -71,6 +74,7 @@ export function TodayBoard({
   const [selected, setSelected] = useState<string | null>(null);
   const [draftOpen, setDraftOpen] = useState(false);
   const [view, setView] = useState<View>(initial);
+  const [land, setLand] = useState(coarse);
   const [size, setSize] = useState({ w: 900, h: 700 });
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ px: number; py: number; view: View } | null>(null);
@@ -81,6 +85,18 @@ export function TodayBoard({
     const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width || 1, h: e.contentRect.height || 1 }));
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  // The page draws a light coastline; the detailed one follows (the browser keeps it).
+  useEffect(() => {
+    let live = true;
+    fetch("/map/land")
+      .then((r) => (r.ok ? r.text() : null))
+      .then((d) => live && d && setLand(d))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
   }, []);
 
   const count = (k: BoardKind) => items.filter((i) => i.kind === k).length;
@@ -113,7 +129,7 @@ export function TodayBoard({
 
   function zoom(f: number) {
     setView((v) => {
-      const w = Math.min(Math.max(v.w * f, 120), 1400);
+      const w = Math.min(Math.max(v.w * f, extent.w / 40), extent.w);
       const h = (v.h / v.w) * w;
       return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h };
     });

@@ -1,6 +1,6 @@
 {
   "dataset": "hiddenlot-demo",
-  "version": "demo-v2",
+  "version": "demo-v3",
   "synthetic": true,
   "notice": "All networks, people, companies, lots, prices and certificates are fictional. Written by hand as canonical truth before any model run.",
   "networks": [
@@ -21,6 +21,18 @@
       "name": "Tidewater Steel Exchange (fictional)",
       "alias": "Network C",
       "region": "KR/TW/EU"
+    },
+    {
+      "id": "net-d",
+      "name": "Gulfline Fabricators Group (fictional)",
+      "alias": "Network D",
+      "region": "US"
+    },
+    {
+      "id": "net-e",
+      "name": "Atlantic Coil Exchange (fictional)",
+      "alias": "Network E",
+      "region": "US/MX/EU"
     }
   ],
   "users": [
@@ -40,6 +52,18 @@
       "id": "u-chen",
       "network_id": "net-c",
       "name": "Chen · stockist (fictional)",
+      "role": "trader"
+    },
+    {
+      "id": "u-dana",
+      "network_id": "net-d",
+      "name": "Dana · buyer-side trader (fictional)",
+      "role": "trader"
+    },
+    {
+      "id": "u-eli",
+      "network_id": "net-e",
+      "name": "Eli · stockist (fictional)",
       "role": "trader"
     }
   ],
@@ -846,6 +870,502 @@
           }
         }
       ]
+    },
+    {
+      "id": "doc-d-stock",
+      "network_id": "net-d",
+      "uploaded_by": "u-dana",
+      "kind": "text",
+      "file": "network-d-stock.txt",
+      "lots": [
+        {
+          "lot_id": "lot-d-201",
+          "anchor": "Lot D-201",
+          "fields": {
+            "seller_lot_ref": [
+              "D-201",
+              "D-201"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "CS Type B",
+              "CS Type B"
+            ],
+            "standard_id": [
+              "ASTM A1011",
+              "ASTM A1011"
+            ],
+            "thickness": [
+              0.118,
+              "0.118 in",
+              "in"
+            ],
+            "width": [
+              48,
+              "48 in",
+              "in"
+            ],
+            "total_weight": [
+              36000,
+              "36,000 lbs",
+              "lbs"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "condition": [
+              "prime",
+              "Condition: prime"
+            ],
+            "location_place": [
+              "Houston",
+              "Location: Houston"
+            ],
+            "available_from": [
+              "2026-10-30",
+              "2026-10-30"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-d-204",
+          "anchor": "Lot D-204",
+          "fields": {
+            "seller_lot_ref": [
+              "D-204",
+              "D-204"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "CS Type B",
+              "CS Type B"
+            ],
+            "standard_id": [
+              "ASTM A1011",
+              "ASTM A1011"
+            ],
+            "thickness": [
+              0.118,
+              "0.118 in",
+              "in"
+            ],
+            "width": [
+              60,
+              "60 in",
+              "in"
+            ],
+            "total_weight": [
+              38500,
+              "38,500 lbs",
+              "lbs"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "location_place": [
+              "Houston",
+              "Location: Houston"
+            ],
+            "available_from": [
+              "2026-10-29",
+              "2026-10-29"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-e-stock",
+      "network_id": "net-e",
+      "uploaded_by": "u-eli",
+      "kind": "text",
+      "file": "network-e-stock.txt",
+      "lots": [
+        {
+          "lot_id": "lot-e-301",
+          "anchor": "Lot E-301",
+          "fields": {
+            "seller_lot_ref": [
+              "E-301",
+              "E-301"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "CS Type B",
+              "CS Type B"
+            ],
+            "standard_id": [
+              "ASTM A1011",
+              "ASTM A1011"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC available"
+            ],
+            "heat_numbers": [
+              [
+                "N25-30117"
+              ],
+              "N25-30117"
+            ],
+            "thickness": [
+              0.118,
+              "0.118 in",
+              "in"
+            ],
+            "width": [
+              60,
+              "60 in",
+              "in"
+            ],
+            "total_weight": [
+              39683,
+              "39,683 lbs",
+              "lbs"
+            ],
+            "piece_count": [
+              1,
+              "1 coil"
+            ],
+            "location_place": [
+              "Port of New Orleans warehouse",
+              "Port of New Orleans warehouse"
+            ],
+            "available_from": [
+              "2026-11-04",
+              "2026-11-04"
+            ],
+            "price_amount": [
+              "905",
+              "USD 905 / MT"
+            ],
+            "price_currency": [
+              "USD",
+              "USD 905"
+            ],
+            "price_basis": [
+              "per_mt",
+              "905 / MT"
+            ],
+            "incoterm": [
+              "FOB",
+              "FOB New Orleans"
+            ],
+            "incoterm_place": [
+              "New Orleans",
+              "FOB New Orleans"
+            ],
+            "condition": [
+              "prime",
+              "Condition: prime"
+            ],
+            "surplus_reason": [
+              "other",
+              "service-center order cancelled"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-305",
+          "anchor": "Lot E-305",
+          "fields": {
+            "seller_lot_ref": [
+              "E-305",
+              "E-305"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "HRC"
+            ],
+            "grade": [
+              "CS Type B",
+              "CS Type B"
+            ],
+            "standard_id": [
+              "ASTM A1011",
+              "ASTM A1011"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "MTC available"
+            ],
+            "thickness": [
+              0.118,
+              "0.118\"",
+              "\""
+            ],
+            "width": [
+              60,
+              "60\"",
+              "\""
+            ],
+            "total_weight": [
+              20,
+              "20 tons",
+              "tons"
+            ],
+            "piece_count": [
+              2,
+              "2 coils"
+            ],
+            "location_place": [
+              "Altamira, Mexico",
+              "Altamira, Mexico"
+            ],
+            "available_from": [
+              "2026-11-12",
+              "2026-11-12"
+            ],
+            "price_amount": [
+              "860",
+              "USD 860 / MT"
+            ],
+            "price_currency": [
+              "USD",
+              "USD 860"
+            ],
+            "price_basis": [
+              "per_mt",
+              "860 / MT"
+            ],
+            "incoterm": [
+              "FCA",
+              "FCA Altamira"
+            ],
+            "incoterm_place": [
+              "Altamira",
+              "FCA Altamira"
+            ],
+            "condition": [
+              "prime",
+              "Condition: prime"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-309",
+          "anchor": "Lot E-309",
+          "fields": {
+            "seller_lot_ref": [
+              "E-309",
+              "E-309"
+            ],
+            "product_form": [
+              "hot_rolled_plate",
+              "hot rolled plate"
+            ],
+            "grade": [
+              "A36",
+              "A36"
+            ],
+            "thickness": [
+              0.25,
+              "0.25 in",
+              "in"
+            ],
+            "width": [
+              96,
+              "96 in",
+              "in"
+            ],
+            "total_weight": [
+              30000,
+              "30,000 lbs",
+              "lbs"
+            ],
+            "condition": [
+              "prime",
+              "prime"
+            ],
+            "location_place": [
+              "Houston",
+              "Location: Houston"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-e-europe",
+      "network_id": "net-e",
+      "uploaded_by": "u-eli",
+      "kind": "csv",
+      "file": "network-e-europe.csv",
+      "lots": [
+        {
+          "lot_id": "lot-e-410",
+          "anchor": "E-410",
+          "fields": {
+            "seller_lot_ref": [
+              "E-410",
+              "Lot: E-410"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Product: HRC"
+            ],
+            "grade": [
+              "S235JR",
+              "Grade: S235JR"
+            ],
+            "standard_id": [
+              "EN 10025-2",
+              "Standard: EN 10025-2"
+            ],
+            "thickness": [
+              3.0,
+              "Thickness (mm): 3.0",
+              "mm"
+            ],
+            "width": [
+              1525,
+              "Width (mm): 1525",
+              "mm"
+            ],
+            "total_weight": [
+              18.5,
+              "Weight (MT): 18.5",
+              "MT"
+            ],
+            "piece_count": [
+              1,
+              "Coils: 1"
+            ],
+            "condition": [
+              "prime",
+              "Condition: prime"
+            ],
+            "certificate_claims": [
+              [
+                "EN 10204 3.1"
+              ],
+              "Certificates: EN 10204 3.1"
+            ],
+            "location_place": [
+              "Antwerp",
+              "Location: Antwerp"
+            ],
+            "available_from": [
+              "2026-11-06",
+              "Available from: 2026-11-06"
+            ],
+            "price_amount": [
+              "610",
+              "Price: EUR 610/MT CFR Houston"
+            ],
+            "price_currency": [
+              "EUR",
+              "Price: EUR 610/MT CFR Houston"
+            ],
+            "price_basis": [
+              "per_mt",
+              "Price: EUR 610/MT CFR Houston"
+            ],
+            "incoterm": [
+              "CFR",
+              "Price: EUR 610/MT CFR Houston"
+            ],
+            "incoterm_place": [
+              "Houston",
+              "Price: EUR 610/MT CFR Houston"
+            ]
+          }
+        },
+        {
+          "lot_id": "lot-e-412",
+          "anchor": "E-412",
+          "fields": {
+            "seller_lot_ref": [
+              "E-412",
+              "Lot: E-412"
+            ],
+            "product_form": [
+              "hot_rolled_coil",
+              "Product: HRC"
+            ],
+            "grade": [
+              "CS Type B",
+              "Grade: CS Type B"
+            ],
+            "standard_id": [
+              "ASTM A1011",
+              "Standard: ASTM A1011"
+            ],
+            "thickness": [
+              3.0,
+              "Thickness (mm): 3.0",
+              "mm"
+            ],
+            "width": [
+              1524,
+              "Width (mm): 1524",
+              "mm"
+            ],
+            "total_weight": [
+              17.2,
+              "Weight (MT): 17.2",
+              "MT"
+            ],
+            "piece_count": [
+              1,
+              "Coils: 1"
+            ],
+            "condition": [
+              "prime",
+              "Condition: prime"
+            ],
+            "certificate_claims": [
+              [
+                "MTC"
+              ],
+              "Certificates: MTC"
+            ],
+            "location_place": [
+              "Rotterdam",
+              "Location: Rotterdam"
+            ],
+            "available_from": [
+              "2026-11-15",
+              "Available from: 2026-11-15"
+            ],
+            "price_amount": [
+              "880",
+              "Price: USD 880/MT CFR Houston"
+            ],
+            "price_currency": [
+              "USD",
+              "Price: USD 880/MT CFR Houston"
+            ],
+            "price_basis": [
+              "per_mt",
+              "Price: USD 880/MT CFR Houston"
+            ],
+            "incoterm": [
+              "CFR",
+              "Price: USD 880/MT CFR Houston"
+            ],
+            "incoterm_place": [
+              "Houston",
+              "Price: USD 880/MT CFR Houston"
+            ]
+          }
+        }
+      ]
     }
   ],
   "grants": [
@@ -890,6 +1410,16 @@
       "allow_identity_disclosure": false,
       "allow_model_processing": false,
       "created_by": "u-chen"
+    },
+    {
+      "id": "grant-e-to-d",
+      "owner_network_id": "net-e",
+      "recipient_network_id": "net-d",
+      "lot_id": null,
+      "field_scope": "all",
+      "allow_identity_disclosure": false,
+      "allow_model_processing": true,
+      "created_by": "u-eli"
     }
   ],
   "demands": [
@@ -980,6 +1510,54 @@
       "need_by": "2026-12-10",
       "budget": null,
       "expires_at": null
+    },
+    {
+      "demand_id": "dem-d-01",
+      "buyer_network_id": "net-d",
+      "created_by": "u-dana",
+      "title": "HRC ASTM A1011 CS Type B 0.118 × 60 in, 16–20 t, CFR Houston",
+      "product_form": "hot_rolled_coil",
+      "quantity_kg": {
+        "min": 16000,
+        "target": 18000,
+        "max": 20000
+      },
+      "thickness_mm": {
+        "min": 2.95,
+        "max": 3.05,
+        "source": "buyer_explicit"
+      },
+      "width_mm": {
+        "min": 1520,
+        "max": 1528,
+        "source": "buyer_explicit"
+      },
+      "accepted_grades": [
+        {
+          "grade": "CS Type B",
+          "standard_id": "ASTM A1011",
+          "edition": null
+        }
+      ],
+      "substitution_policy": "review_required",
+      "acceptable_conditions": [
+        "prime"
+      ],
+      "must_have_certificates": [
+        "MTC"
+      ],
+      "allow_partial_delivery": false,
+      "allow_multi_lot": false,
+      "destination": "Houston",
+      "need_by": "2026-11-25",
+      "budget": {
+        "amount": "900",
+        "currency": "USD",
+        "basis": "per_mt",
+        "incoterm": "CFR",
+        "place": "Houston"
+      },
+      "expires_at": null
     }
   ],
   "expected": {
@@ -1008,6 +1586,15 @@
       "lot-c-103": "incompatible",
       "lot-c-104": "incompatible",
       "lot-c-105": "insufficient_evidence"
+    },
+    "dem-d-01": {
+      "lot-d-201": "incompatible",
+      "lot-d-204": "insufficient_evidence",
+      "lot-e-301": "declared_match",
+      "lot-e-305": "insufficient_evidence",
+      "lot-e-309": "incompatible",
+      "lot-e-410": "engineering_review_required",
+      "lot-e-412": "declared_match"
     }
   },
   "why": {
@@ -1023,6 +1610,13 @@
     "dem-a-02/lot-b-044": "Q235B GB/T 700-2006, 2.75 × 1250, 24 t, no certificate required, all fields reviewed.",
     "dem-a-02/lot-b-021": "Grade matches, but standard not stated and units unresolved.",
     "dem-a-02/lot-c-105": "GB/T 700 stated without edition; buyer requires 2006.",
-    "injection": "The instruction to approve the deal sits in lot B-030's section (a plate, incompatible anyway); it is reported as ignored and changes no rule result."
+    "injection": "The instruction to approve the deal sits in lot B-030's section (a plate, incompatible anyway); it is reported as ignored and changes no rule result.",
+    "dem-d-01/lot-e-301": "CS Type B under ASTM A1011, 0.118 × 60 in (3.0 × 1524 mm) and 39,683 lbs (18.0 t) after deterministic inch and pound conversion, prime, before need-by. MTC is a seller claim, so declared match. FOB New Orleans is not on the CFR Houston budget basis, so price is not compared.",
+    "dem-d-01/lot-e-412": "Same grade and standard in a metric stock list from Rotterdam, 17.2 t, CFR Houston at USD 880 against a USD 900 CFR Houston budget. Declared match (MTC is a seller claim).",
+    "dem-d-01/lot-e-305": "Spec matches, but '20 tons' could be short or metric tons: the weight stays Unknown and the seller is asked.",
+    "dem-d-01/lot-e-410": "S235JR under EN 10025-2 is a different grade; buyer allows review, so engineering review. Its EN 10204 3.1 certificate is not the MTC the buyer named.",
+    "dem-d-01/lot-e-309": "Plate, not coil.",
+    "dem-d-01/lot-d-201": "Own network, 48 in (1219.2 mm) is outside 1520–1528 mm.",
+    "dem-d-01/lot-d-204": "Own network, condition not stated and no statement about MTC."
   }
 }

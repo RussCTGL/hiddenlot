@@ -74,12 +74,24 @@ function val<T>(lot: InventoryLot, f: InventoryLotField): T | null {
 }
 const num = (x: number) => String(Math.round(x * 1000) / 1000);
 
+// Sizes and weights read back in the units the seller wrote them in, so a draft
+// to a US mill says "0.118 × 60 in", with the metric value the rules used.
+const convertedBy = (lot: InventoryLot, f: InventoryLotField, rule: string) => lot.fields[f].normalization?.rule === rule;
+
+function size(lot: InventoryLot, t: number | null, w: number | null) {
+  const inches = convertedBy(lot, "thickness_mm", "inch_to_mm") && convertedBy(lot, "width_mm", "inch_to_mm");
+  const show = (x: number | null) => (x === null ? "?" : num(inches ? x / 25.4 : x));
+  return `${show(t)} × ${show(w)} ${inches ? "in" : "mm"}`;
+}
+
+function weight(lot: InventoryLot, kg: number) {
+  return convertedBy(lot, "total_kg", "lb_to_kg") ? `${Math.round(kg / 0.45359237).toLocaleString("en-US")} lbs / ${num(kg / 1000)} t` : `${num(kg / 1000)} t`;
+}
+
 /** "SS400 · 3 × 1500 mm · 18 t", from what this network may see. */
 export function lotTitle(lot: InventoryLot) {
-  const t = val<number>(lot, "thickness_mm");
-  const w = val<number>(lot, "width_mm");
   const kg = val<number>(lot, "total_kg");
-  return [val<string>(lot, "grade_raw") ?? "Grade ?", `${t === null ? "?" : num(t)} × ${w === null ? "?" : num(w)} mm`, kg === null ? "? t" : `${num(kg / 1000)} t`].join(" · ");
+  return [val<string>(lot, "grade_raw") ?? "Grade ?", size(lot, val<number>(lot, "thickness_mm"), val<number>(lot, "width_mm")), kg === null ? "? t" : `${num(kg / 1000)} t`].join(" · ");
 }
 
 /** The seller's own reference when shared, else the internal lot ID. */
@@ -99,8 +111,8 @@ function spec(lot: InventoryLot) {
   const kg = val<number>(lot, "total_kg");
   return [
     [val<string>(lot, "grade_raw"), standardText(lot)].filter(Boolean).join(" "),
-    t !== null && w !== null ? `${num(t)} × ${num(w)} mm` : null,
-    kg !== null ? `${num(kg / 1000)} t` : null,
+    t !== null && w !== null ? size(lot, t, w) : null,
+    kg !== null ? weight(lot, kg) : null,
   ]
     .filter(Boolean)
     .join(", ");
@@ -154,8 +166,12 @@ export function questionFor(c: Check, demand: Demand, lot: InventoryLot): string
       return "is it prime or secondary? If secondary, please describe the defects.";
     case "freshness":
       return "is it still available at the same terms?";
-    case "quantity":
-      return c.detail.includes("split") ? "can the lot be split into a smaller quantity?" : "what is the total weight in tonnes?";
+    case "quantity": {
+      if (c.detail.includes("split")) return "can the lot be split into a smaller quantity?";
+      const o = lot.fields.total_kg;
+      // "Tons" may be short (907 kg), long (1,016 kg) or metric; the raw text itself stays with the owner.
+      return o.issues.includes("ambiguous_ton") ? "is the weight in metric tonnes or short tons?" : "what is the total weight in tonnes?";
+    }
     case "thickness":
     case "width":
       return `what is the ${c.label.toLowerCase()} in mm?`;

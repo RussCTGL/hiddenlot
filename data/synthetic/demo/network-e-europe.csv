@@ -1,0 +1,4 @@
+SYNTHETIC DEMO DATA — fictional stock list (Network E, European yards); not real offers
+Lot,Product,Grade,Standard,Thickness (mm),Width (mm),Weight (MT),Coils,Condition,Certificates,Location,Available from,Price
+E-410,HRC,S235JR,EN 10025-2,3.0,1525,18.5,1,prime,EN 10204 3.1,Antwerp,2026-11-06,EUR 610/MT CFR Houston
+E-412,HRC,CS Type B,ASTM A1011,3.0,1524,17.2,1,prime,MTC,Rotterdam,2026-11-15,USD 880/MT CFR Houston

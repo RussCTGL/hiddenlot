@@ -12,7 +12,7 @@ Recorded on the synthetic demo. Before recording: `npm run db:seed` (or **Reset 
 | 1:45–2:00 | Today → **Accept all** → **Deals** board | "One click: the quote requests and questions are now tracked deals. Nothing is sent — the buyer copies the drafts." |
 | 2:00–2:25 | Footer → **Skip ahead 1 day** → Today: "Deal needs attention: stock not reconfirmed · 55 h" → open the deal | "The next morning HiddenLot is still watching. Network B confirmed this coil 55 hours ago, so before accepting a quote, ask them to reconfirm. The draft is ready." |
 | 2:25–2:45 | Switch to **Network B** → Inventory → **Mark sold** on B-018 → back to **A** → Deals: B-018 under **Closed**, "Lot is sold" | "When the seller sells the coil, the deal closes by itself, and its lot details disappear." |
-| 2:45–3:00 | Today | "Meta reads and explains; deterministic rules decide; the buyer just decides. Built during the hackathon, all on synthetic data." |
+| 2:45–3:00 | Switch to **Network D** → Today: the map opens on the Gulf of Mexico and Rotterdam | "It's global: a buyer in Houston gets the same sorting on US, Mexican and European stock. Inches and pounds are converted by code, and '20 tons' is asked about, never guessed. Meta reads and explains; rules decide; the buyer just decides. All synthetic data." |
 
 ## Must not appear
 

@@ -7,7 +7,7 @@ import { intakeDocument } from "@/ingestion/intake";
 import { ALL_LOT_FIELDS, createDemand, createGrant, publishLot, reviewLot, type DemandInput } from "@/workflow/actions";
 import { canonicalExtractor, documentBytes, loadCanonical } from "./canonical";
 
-// Loads the synthetic three-network demo (plan §7.1) through the real
+// Loads the synthetic five-network demo (plan §7.1) through the real
 // pipeline: intake with evidence checks → owner review → publish → grants →
 // demands → discovery. Nothing is inserted around the rules.
 

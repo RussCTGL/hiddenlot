@@ -16,7 +16,7 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
 3. **Lets the owner review and choose what to share** with which network, field by field, with revocation that takes effect immediately.
 4. **Discovers candidates automatically** when stock or demands change, across networks, using a deterministic constraint engine with no grade-equivalence table. A known failure is never outweighed by a score.
 5. **Explains each candidate** with evidence, what is still unknown, and who must confirm what next. Meta can rephrase the rule results, but every sentence must cite fact IDs; unsupported sentences are removed.
-6. **Prepares a daily digest on a map** (the **Today** page) so a buyer decides in a few clicks instead of reading every candidate. Each decision is a row in a short list and, when the owner shares a location, a pin on a map of East and Southeast Asia. The pin is placed at the stock location, the loading port (FOB) or the delivery port (CFR), with a route to the buyer's delivery port. A location the owner withheld is never drawn. The digest has three groups:
+6. **Prepares a daily digest on a map** (the **Today** page) so a buyer decides in a few clicks instead of reading every candidate. Each decision is a row in a short list and, when the owner shares a location, a pin on a world map that opens on today's lots, wherever they are. The pin is placed at the stock location, the loading port (FOB) or the delivery port (CFR), with a route to the buyer's delivery port. A location the owner withheld is never drawn. The digest has three groups:
    - **Move forward:** every hard requirement passes. HiddenLot shortlists the lot and drafts a quote request.
    - **Needs an answer:** one or two facts are open. HiddenLot drafts the questions for the seller.
    - **Deals need attention:** something changed on a deal already in progress.
@@ -59,11 +59,11 @@ Requires Node 24.
 ```bash
 npm install
 cp .env.example .env.local      # set META_API_KEY to use Meta; without it the regex baseline is used
-npm run db:seed                 # loads the synthetic three-network demo (stop the dev server first)
+npm run db:seed                 # loads the synthetic five-network demo (stop the dev server first)
 npm run dev                     # http://localhost:3000
 ```
 
-Use the **Acting as** menu to switch between the three fictional networks. **Today** is the start page; **How it works** (footer) has the walkthrough and **Reset demo**.
+Use the **Acting as** menu to switch between the five fictional networks: Network A buys in Haiphong from Korean, Chinese and Taiwanese stock (B, C); Network D buys in Houston from US, Mexican and European stock (E), written in inches, pounds and short tons. **Today** is the start page; **How it works** (footer) has the walkthrough and **Reset demo**.
 Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before recording a demo. The footer's **Skip ahead 1 day** moves a demo clock, so freshness, follow-ups and expiry can be shown without waiting; **Reset demo** puts it back to real time.
 
 | Command | What it does |

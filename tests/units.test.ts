@@ -26,6 +26,15 @@ test("the port gazetteer matches English, Chinese and port-suffixed names", asyn
   assert.equal(findPlace("Tianjin port 天津港")?.name, "Tianjin");
   assert.equal(findPlace("天津港")?.name, "Tianjin");
   assert.equal(findPlace("Kaohsiung port")?.name, "Kaohsiung");
-  assert.equal(findPlace("Antwerp"), null);
+  // Global: the Americas, Europe and beyond.
+  assert.equal(findPlace("Port of New Orleans warehouse")?.name, "New Orleans");
+  assert.equal(findPlace("Altamira, Mexico")?.name, "Altamira");
+  assert.equal(findPlace("Antwerpen")?.name, "Antwerp");
+  assert.equal(findPlace("休斯顿")?.name, "Houston");
+  // Common words only match with a qualifier.
+  assert.equal(findPlace("mobile crane on site"), null);
+  assert.equal(findPlace("San Antonio, TX"), null);
+  assert.equal(findPlace("Mobile, AL")?.name, "Mobile");
+  assert.equal(findPlace("Nowhere"), null);
   assert.equal(findPlace(null), null);
 });

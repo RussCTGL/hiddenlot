@@ -1,0 +1,15 @@
+[SYNTHETIC DEMO DATA — fictional stock list (Network D), not real offers]
+Yard stock, Houston
+
+Lot D-201
+HRC, CS Type B, ASTM A1011
+0.118 in x 48 in, 2 coils, 36,000 lbs
+Condition: prime
+Location: Houston
+Available from 2026-10-30
+
+Lot D-204
+HRC, CS Type B, ASTM A1011
+0.118 in x 60 in, 1 coil, 38,500 lbs
+Location: Houston
+Available from 2026-10-29

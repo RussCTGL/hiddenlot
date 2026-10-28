@@ -92,25 +92,26 @@ async function TodayPage() {
     ...d.ruledOut.map((i) => fromItem(i, "out")),
   ];
 
-  // Open on today's decisions and delivery ports; fall back to the whole region.
+  // Open on today's decisions and delivery ports, wherever they are; with none, on every pin; else the world.
   const focus = [...items.filter((i) => i.action && i.pin).map((i) => [i.pin!.x, i.pin!.y]), ...destinations.map((x) => [x.x, x.y])];
-  const view = fit(focus.length ? focus : [[MAP_W * 0.25, MAP_H * 0.2], [MAP_W * 0.75, MAP_H * 0.75]]);
+  const all = items.filter((i) => i.pin).map((i) => [i.pin!.x, i.pin!.y]);
+  const view = focus.length ? fit(focus) : all.length ? fit(all) : { x: 0, y: 0, w: MAP_W, h: MAP_H };
   const day = `${now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${user.name.split(" · ")[0].replace(/\s*\(fictional\)/, "")}`;
 
   return (
     <main className="flex flex-1 flex-col lg:h-[calc(100dvh-61px)] lg:min-h-[600px]">
-      <TodayBoard land={landPath()} view={view} items={items} destinations={destinations} day={day} deals={d.stats.deals} />
+      <TodayBoard land={landPath()} extent={{ w: MAP_W, h: MAP_H }} view={view} items={items} destinations={destinations} day={day} deals={d.stats.deals} />
     </main>
   );
 }
 
-/** A view box around the points, with room for labels, never narrower than a regional view. */
+/** A view box around the points, with room for labels, never narrower than a regional view (about 30° across). */
 function fit(points: number[][]) {
   const xs = points.map((p) => p[0]);
   const ys = points.map((p) => p[1]);
-  const pad = 110;
-  let w = Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, 420);
-  let h = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, 320);
+  const pad = MAP_W * 0.022;
+  let w = Math.min(Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, MAP_W * 0.082), MAP_W);
+  let h = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, MAP_W * 0.064);
   // Roughly the map panel's shape, so the points sit in the middle.
   if (w / h < 1.25) w = h * 1.25;
   else h = w / 1.25;

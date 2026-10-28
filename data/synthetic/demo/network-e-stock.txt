@@ -1,0 +1,28 @@
+[SYNTHETIC DEMO DATA — fictional stockist, not a real offer]
+From: Network E member (fictional)
+Gulf of Mexico surplus — HRC
+
+Lot E-301
+Grade: CS Type B (ASTM A1011, edition not stated)
+Size: 0.118 in x 60 in, 1 coil
+Weight: 39,683 lbs
+Condition: prime
+Location: Port of New Orleans warehouse
+Reason: service-center order cancelled
+MTC available, heat no. N25-30117
+Available from 2026-11-04
+Price: USD 905 / MT FOB New Orleans
+
+Lot E-305
+Grade: CS Type B (ASTM A1011)
+Size: 0.118" x 60", 2 coils
+Weight: 20 tons
+Condition: prime
+MTC available
+Location: Altamira, Mexico
+Available from 2026-11-12
+Price: USD 860 / MT FCA Altamira
+
+Lot E-309
+A36 hot rolled plate 0.25 in x 96 in, 30,000 lbs, prime
+Location: Houston

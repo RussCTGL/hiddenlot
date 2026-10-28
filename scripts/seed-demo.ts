@@ -1,5 +1,5 @@
 /**
- * Resets the local database and loads the synthetic three-network demo.
+ * Resets the local database and loads the synthetic five-network demo.
  * Stop `npm run dev` first: the embedded database allows one process at a time.
  *
  *   npm run db:seed

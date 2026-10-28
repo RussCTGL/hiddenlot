@@ -198,3 +198,11 @@ reason, so they can be revisited.
   - AI-tool disclosure;
   - a license for code and data.
 - Settled 2026-10-28: all rights reserved (no open-source license; `LICENSE` says so); a one-line note that the code was written with AI coding assistance; commit author email rewritten to the GitHub noreply address before the first push (every commit hash changed; `CONTRIBUTIONS.md` and `evals/results/README.md` list the new ones).
+
+### Global map and a second region (2026-10-28)
+- The Today map was framed on East and Southeast Asia, and any port outside it was dropped. Now:
+  - the base map is the whole world (Mercator, 56°S–75°N), opening on the day's pins and delivery ports, wherever they are;
+  - the page draws the 1:110m coastline; the 1:50m one is fetched once from `/map/land` and cached by the browser;
+  - the port gazetteer covers the Americas, Europe, the Middle East, South Asia, Africa and Oceania. Common words (Mobile, San Antonio, Valencia) only match with a qualifier.
+- Demo data `demo-v3` adds Network D, a buyer in Houston, and Network E, a stockist with yards in New Orleans, Altamira, Antwerp and Rotterdam. E's offers are written in inches, pounds and "tons"; all 7 new pairs reproduce their hand labels through the real pipeline.
+- Drafts read sizes and weights back in the seller's units ("0.118 × 60 in, 39,683 lbs / 18 t"). An ambiguous "tons" asks the seller "metric tonnes or short tons?" without quoting their private text.

@@ -158,3 +158,25 @@ test("requesting information on an opportunity tracks the open question, not the
   const c104 = (await buildDigest(db, A, NOW)).ask.find((s) => s.lotRef === "C-104")!;
   assert.equal(await openQuestions(db, A, c104.oppId!, NOW), "Is an MTC available for this lot?");
 });
+
+test("a Houston buyer gets the same digest from US, Mexican and European stock, in the seller's units", async () => {
+  const D: Actor = { id: "u-dana", network_id: "net-d", role: "trader" };
+  const d = await buildDigest(db, D, NOW);
+  assert.deepEqual(refs(d.forward), ["Lot E-301", "Lot E-412"]);
+  assert.deepEqual(refs(d.ask), ["Lot D-204", "Lot E-305"]);
+  assert.deepEqual(d.engineering.map((e) => e.lotRef), ["E-410"]);
+  assert.deepEqual(d.ruledOut.map((e) => e.lotRef).sort(), ["D-201", "E-309"]);
+
+  const where = (ref: string) => allSuggestions(d).find((s) => s.lotRef === ref)!.where;
+  assert.deepEqual([where("E-301")?.name, where("E-305")?.name, where("E-412")?.name], ["New Orleans", "Altamira", "Rotterdam"]);
+  assert.equal(allSuggestions(d).find((s) => s.lotRef === "E-412")!.destination?.name, "Houston");
+
+  // The seller wrote inches and pounds; the draft reads them back, with the metric value the rules used.
+  const e301 = d.forward.find((s) => s.lotRef === "E-301")!;
+  assert.match(e301.draft!, /0\.118 × 60 in, 39,683 lbs \/ 18 t, FOB New Orleans/);
+  // "20 tons" is never guessed: the seller is asked which ton.
+  assert.equal(d.ask.find((s) => s.lotRef === "E-305")!.question, "Is the weight in metric tonnes or short tons?");
+
+  // Network A sees none of it.
+  assert.ok(!JSON.stringify(await buildDigest(db, A, NOW)).match(/E-3|E-4|D-20|Houston/));
+});

@@ -21,8 +21,8 @@ after(async () => db.close());
 
 test("seed loads through intake, review and publish", async () => {
   const r = await seedDemo(db, NOW);
-  assert.equal(r.lots, 11);
-  assert.equal(r.demands, 2);
+  assert.equal(r.lots, 18);
+  assert.equal(r.demands, 3);
   assert.ok(r.opportunities > 0);
 });
 
@@ -66,7 +66,7 @@ test("demo story: revoking Network C's grant hides its candidates", async () => 
   assert.equal(live.length, 0);
 });
 
-test("canonical truth post-processes with only the intended issues (B-021 unit-less sizes and 'ton')", async () => {
+test("canonical truth post-processes with only the intended issues (B-021 unit-less sizes and 'ton', E-305 'tons')", async () => {
   const { canonicalClaims, documentBytes } = await import("@/seed/canonical");
   const { parseDocument } = await import("@/ingestion/intake");
   const { postProcessSupply } = await import("@/ai/tasks/extract-supply");
@@ -76,12 +76,12 @@ test("canonical truth post-processes with only the intended issues (B-021 unit-l
     const r = postProcessSupply(canonicalClaims(doc, fragments), { fragments, sourceId: doc.id, ownerNetworkId: doc.network_id, synthetic: true, extractionRunId: null, observedAt: NOW.toISOString() });
     codes.push(...r.issues.map((i) => `${doc.lots[i.lot_index!].lot_id}.${i.field}:${i.code}`));
   }
-  assert.deepEqual(codes.sort(), ["lot-b-021.thickness_mm:unit_missing", "lot-b-021.total_kg:ambiguous_ton", "lot-b-021.width_mm:unit_missing"]);
+  assert.deepEqual(codes.sort(), ["lot-b-021.thickness_mm:unit_missing", "lot-b-021.total_kg:ambiguous_ton", "lot-b-021.width_mm:unit_missing", "lot-e-305.total_kg:ambiguous_ton"]);
 });
 
 test("the planted instruction is reported as ignored and sits in an incompatible lot's section", async () => {
   const runs = await db.query<{ ignored_instructions: { note: string; evidence: string[] }[] }>(`SELECT ignored_instructions FROM extraction_runs WHERE document_id = (SELECT source_document_id FROM lots WHERE id = 'lot-b-030')`);
   assert.equal(runs[0].ignored_instructions.length, 1);
   const audit = await db.query<{ n: string }>(`SELECT count(*) AS n FROM lot_versions WHERE change_note LIKE 'seed: scripted%'`);
-  assert.equal(Number(audit[0].n), 11);
+  assert.equal(Number(audit[0].n), 18);
 });
