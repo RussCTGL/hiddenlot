@@ -1,31 +1,30 @@
-import { Suspense, type ReactNode } from "react";
-import { resetDemo, rerunDiscovery } from "@/app/actions";
-import { listOpportunitiesForActor } from "@/auth/access";
+import { Suspense } from "react";
+import { resetDemo } from "@/app/actions";
 import { Submit } from "@/components/forms";
-import { CiteIcon, RefreshIcon, SearchIcon, ShareIcon, ShieldIcon, UploadIcon } from "@/components/icons";
-import { ButtonLink, Card, Label, Loading, Page, SHORT_STATUS, STATUS_DOT, StatusDot, buttonCls, primaryCls } from "@/components/ui";
-import { listDemandsOfNetwork, listLotsOfNetwork } from "@/db/repo";
+import { TodayBoard, type BoardItem, type BoardKind, type Destination } from "@/components/today-board";
+import { ButtonLink, Card, Loading, Page, primaryCls } from "@/components/ui";
 import { getDb } from "@/db/server";
-import type { CompatibilityStatus } from "@/discovery/constraints";
-import { GROUP_ORDER } from "@/discovery/engine";
-import { getSession } from "@/lib/session";
-import { metaAvailable } from "@/lib/meta";
+import { landPath, MAP_H, MAP_W, project } from "@/geo/map";
+import { findPlace } from "@/geo/places";
+import { getSession, requestNow } from "@/lib/session";
+import { buildDigest, type Digest, type DigestItem, type Suggestion } from "@/workflow/deals";
 
-export default function Home() {
+export default function Today() {
   return (
-    <Suspense fallback={<Loading />}>
-      <Overview />
+    <Suspense fallback={<Loading label="Preparing today's digest…" />}>
+      <TodayPage />
     </Suspense>
   );
 }
 
-async function Overview() {
+const shortTitle = (t: string) => t.replace(" mm", "");
+
+async function TodayPage() {
   const session = await getSession();
   if (!session) {
     return (
       <Page title="HiddenLot" subtitle="No demo data loaded yet.">
         <Card>
-          <p className="mb-3 text-sm">Load the synthetic three-network demo to start.</p>
           <form action={resetDemo}>
             <Submit className={primaryCls} pending="Loading demo…">
               Load demo data
@@ -35,120 +34,113 @@ async function Overview() {
       </Page>
     );
   }
+  const { actor, user, network } = session;
   const db = await getDb();
-  const { actor, network } = session;
-  const [lots, demands, opps] = await Promise.all([
-    listLotsOfNetwork(db, actor.network_id),
-    listDemandsOfNetwork(db, actor.network_id),
-    listOpportunitiesForActor(db, actor, new Date()),
-  ]);
-  const live = opps.filter((o) => o.status !== "invalidated");
-  const byGroup = new Map<CompatibilityStatus, number>();
-  for (const o of live) byGroup.set(o.compatibility_status as CompatibilityStatus, (byGroup.get(o.compatibility_status as CompatibilityStatus) ?? 0) + 1);
-  const cross = live.filter((o) => o.novelty === "cross_network").length;
+  const now = await requestNow();
+  const d = await buildDigest(db, actor, now);
+  if (!d.hasDemands) return <NoDemands digest={d} networkName={network.alias} />;
 
-  const toReview = lots.filter((l) => l.status === "needs_review").length;
-  const groups = GROUP_ORDER.filter((g) => byGroup.get(g));
+  // Delivery ports of this network's active demands.
+  const demands = await db.query<{ destination: string | null }>(
+    `SELECT v.data->>'destination' AS destination FROM demands x JOIN demand_versions v ON v.demand_id = x.id AND v.version = x.current_version WHERE x.buyer_network_id = $1 AND x.status = 'active'`,
+    [actor.network_id],
+  );
+  const destinations: Destination[] = [];
+  for (const r of demands) {
+    const p = findPlace(r.destination);
+    const xy = p && project(p.lonlat);
+    if (p && xy && !destinations.some((x) => x.name === p.name)) destinations.push({ name: p.name, x: xy[0], y: xy[1] });
+  }
+
+  const pinOf = (where: Suggestion["where"], own: boolean): BoardItem["pin"] => {
+    const xy = where && project(where.lonlat);
+    return where && xy ? { x: xy[0], y: xy[1], place: where.name, precision: where.kind, own, terms: where.terms } : null;
+  };
+  const fromSuggestion = (s: Suggestion, kind: BoardKind): BoardItem => {
+    const dxy = s.destination && project(s.destination.lonlat);
+    return {
+      key: s.key,
+      kind,
+      title: shortTitle(s.title),
+      sub: s.sub,
+      href: s.href,
+      lotRef: s.lotRef,
+      pin: pinOf(s.where, s.seller === "Your network"),
+      dest: s.destination && dxy ? { x: dxy[0], y: dxy[1], name: s.destination.name } : null,
+      action: { key: s.key, button: s.button, decline: kind === "risk" ? "Not now" : kind === "forward" ? "Dismiss" : null, facts: s.facts, draft: s.draft, priority: s.priority },
+    };
+  };
+  const fromItem = (i: DigestItem, kind: BoardKind): BoardItem => ({
+    key: i.key,
+    kind,
+    title: shortTitle(i.title),
+    sub: `${i.lotRef} · ${i.text}`,
+    href: i.href,
+    lotRef: i.lotRef,
+    pin: pinOf(i.where, false),
+    dest: null,
+    action: null,
+  });
+  const items = [
+    ...d.risks.map((s) => fromSuggestion(s, "risk")),
+    ...d.forward.map((s) => fromSuggestion(s, "forward")),
+    ...d.ask.map((s) => fromSuggestion(s, "ask")),
+    ...d.engineering.map((i) => fromItem(i, "parked")),
+    ...d.missing.map((i) => fromItem(i, "missing")),
+    ...d.ruledOut.map((i) => fromItem(i, "out")),
+  ];
+
+  // Open on today's decisions and delivery ports; fall back to the whole region.
+  const focus = [...items.filter((i) => i.action && i.pin).map((i) => [i.pin!.x, i.pin!.y]), ...destinations.map((x) => [x.x, x.y])];
+  const view = fit(focus.length ? focus : [[MAP_W * 0.25, MAP_H * 0.2], [MAP_W * 0.75, MAP_H * 0.75]]);
+  const day = `${now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${user.name.split(" · ")[0].replace(/\s*\(fictional\)/, "")}`;
 
   return (
-    <Page
-      title={network.alias}
-      subtitle={network.name.replace(/\s*\(fictional\)/, "")}
-      actions={
-        <>
-          <form action={rerunDiscovery}>
-            <Submit className={buttonCls} pending="Running…">
-              <RefreshIcon size={16} />
-              Re-run discovery
-            </Submit>
-          </form>
-          <form action={resetDemo}>
-            <Submit className={buttonCls} pending="Resetting…">
-              Reset demo
-            </Submit>
-          </form>
-        </>
-      }
-    >
-      <div className="grid gap-4 md:grid-cols-3">
-        <Tile label="Your stock" value={lots.filter((l) => l.status === "published").length} unit={toReview ? `live · ${toReview} to review` : "live"}>
-          <ButtonLink href="/inventory">Inventory</ButtonLink>
-          <ButtonLink href="/intake">Add stock</ButtonLink>
-        </Tile>
-        <Tile label="Your demands" value={demands.filter((d) => d.status === "active").length} unit="active">
-          <ButtonLink href="/demands">Demands</ButtonLink>
-          <ButtonLink href="/demands/new">New demand</ButtonLink>
-        </Tile>
-        <Tile label="Opportunities" value={live.length} unit={cross ? `${cross} from other networks` : undefined} strong>
-          {groups.length > 0 && (
-            <div className="w-full space-y-2">
-              <div role="img" aria-label={groups.map((g) => `${byGroup.get(g)} ${SHORT_STATUS[g]}`).join(", ")} className="flex h-2 gap-0.5 overflow-hidden rounded-full">
-                {groups.map((g) => (
-                  <span key={g} className={STATUS_DOT[g]} style={{ flex: byGroup.get(g) }} />
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                {groups.map((g) => (
-                  <span key={g} className="flex items-center gap-1.5">
-                    <StatusDot status={g} className="size-2" />
-                    {SHORT_STATUS[g]} {byGroup.get(g)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          <ButtonLink href="/opportunities" primary>
-            Review opportunities
-          </ButtonLink>
-        </Tile>
-      </div>
-
-      <section className="mt-10 space-y-5">
-        <Label>How it works</Label>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-          {STEPS.map(([Icon, title, line]) => (
-            <div key={title} className="space-y-2.5">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                <Icon />
-              </span>
-              <p className="text-[15px] font-semibold">{title}</p>
-              <p className="text-[13px] text-zinc-500 dark:text-zinc-400">{line}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <details className="mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900" open>
-        <summary className="flex min-h-7 cursor-pointer items-center text-[15px] font-semibold">Demo guide · 4 steps</summary>
-        <ol className="mt-4 mb-1 grid list-decimal gap-x-8 gap-y-3 pl-5 text-sm text-zinc-700 sm:grid-cols-2 lg:grid-cols-4 dark:text-zinc-300">
-          <li>As Network A, open lot B-018 in Opportunities</li>
-          <li>Shortlist it with a reason</li>
-          <li>As Network B, mark B-018 sold</li>
-          <li>Revoke sharing and watch it vanish</li>
-        </ol>
-        {!metaAvailable() && <p className="mt-3 text-xs text-zinc-500">Meta is not configured here; the regex baseline extracts instead.</p>}
-      </details>
-    </Page>
+    <main className="flex flex-1 flex-col lg:h-[calc(100dvh-61px)] lg:min-h-[600px]">
+      <TodayBoard land={landPath()} view={view} items={items} destinations={destinations} day={day} deals={d.stats.deals} />
+    </main>
   );
 }
 
-const STEPS = [
-  [UploadIcon, "Upload", "Text, sheet or PDF"],
-  [CiteIcon, "Extract & cite", "Meta quotes every value"],
-  [ShieldIcon, "Verify", "Code checks each quote"],
-  [ShareIcon, "Share", "Field by field, revocable"],
-  [SearchIcon, "Match", "Hard rules, no guessing"],
-] as const;
+/** A view box around the points, with room for labels, never narrower than a regional view. */
+function fit(points: number[][]) {
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const pad = 110;
+  let w = Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, 420);
+  let h = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, 320);
+  // Roughly the map panel's shape, so the points sit in the middle.
+  if (w / h < 1.25) w = h * 1.25;
+  else h = w / 1.25;
+  const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
+  const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+  return { x: Math.round(cx - w / 2), y: Math.round(cy - h / 2), w: Math.round(w), h: Math.round(h) };
+}
 
-function Tile({ label, value, unit, strong = false, children }: { label: string; value: number; unit?: string; strong?: boolean; children: ReactNode }) {
+function NoDemands({ digest, networkName }: { digest: Digest; networkName: string }) {
   return (
-    <section className={`flex flex-col gap-4 rounded-xl border bg-white p-6 dark:bg-zinc-900 ${strong ? "border-zinc-900 dark:border-zinc-400" : "border-zinc-200 dark:border-zinc-800"}`}>
-      <Label>{label}</Label>
-      <p className="flex items-baseline gap-3">
-        <span className="font-mono text-5xl leading-none font-medium tracking-tight">{value}</span>
-        {unit && <span className="text-sm text-zinc-500 dark:text-zinc-400">{unit}</span>}
-      </p>
-      <div className="mt-auto flex flex-wrap items-end gap-2">{children}</div>
-    </section>
+    <Page title="Today" subtitle={`${networkName} has no active demands.`}>
+      <Card>
+        <div className="space-y-4 text-sm">
+          {digest.staleOwnLots > 0 ? (
+            <p className="flex items-center gap-2 font-medium text-rose-800 dark:text-rose-300">
+              <span className="size-2 rounded-full bg-rose-600" aria-hidden />
+              {digest.staleOwnLots} of your lots {digest.staleOwnLots === 1 ? "needs" : "need"} reconfirming (older than 48 h)
+            </p>
+          ) : (
+            <p className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+              <span className="size-2 rounded-full bg-emerald-600" aria-hidden />
+              All your stock was confirmed in the last 48 h
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/inventory" primary>
+              Inventory
+            </ButtonLink>
+            <ButtonLink href="/demands/new">New demand</ButtonLink>
+          </div>
+        </div>
+      </Card>
+    </Page>
   );
 }

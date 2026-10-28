@@ -2,14 +2,14 @@
 
 import { switchActor } from "@/app/actions";
 
-export function ActorSwitcher({ users, current }: { users: { id: string; name: string; network: string }[]; current: string }) {
+export function ActorSwitcher({ users, current, id = "actor" }: { users: { id: string; name: string; network: string }[]; current: string; id?: string }) {
   return (
     <form action={switchActor} className="flex items-center gap-2">
-      <label htmlFor="actor" className="text-[13px] text-zinc-500 dark:text-zinc-400">
+      <label htmlFor={id} className="text-[13px] text-zinc-500 dark:text-zinc-400">
         Acting as
       </label>
       <select
-        id="actor"
+        id={id}
         name="user_id"
         defaultValue={current}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}

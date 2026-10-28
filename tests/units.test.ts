@@ -20,3 +20,12 @@ test("missing or unknown units stay unknown", () => {
 test("explicit inches convert to mm", () => {
   assert.deepEqual(normalizeLengthToMm(0.125, "inch"), { ok: true, value: 3.175, rule: "inch_to_mm" });
 });
+
+test("the port gazetteer matches English, Chinese and port-suffixed names", async () => {
+  const { findPlace } = await import("@/geo/places");
+  assert.equal(findPlace("Tianjin port 天津港")?.name, "Tianjin");
+  assert.equal(findPlace("天津港")?.name, "Tianjin");
+  assert.equal(findPlace("Kaohsiung port")?.name, "Kaohsiung");
+  assert.equal(findPlace("Antwerp"), null);
+  assert.equal(findPlace(null), null);
+});

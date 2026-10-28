@@ -13,6 +13,9 @@ HiddenLot uses the following open-source packages directly. None of them was wri
 | exceljs | 4.4.0 | MIT | Reading `.xlsx` cell values (no macro execution) |
 | pdfjs-dist | 6.3.289 | Apache-2.0 | Reading the text layer of PDFs |
 | server-only | 0.0.1 | MIT | Build-time guard that keeps server modules (and the API key) out of the browser |
+| d3-geo | 3.1.1 | ISC | Mercator projection of the Today map, computed on the server |
+| topojson-client | 3.1.0 | ISC | Reading the land outline |
+| world-atlas | 2.0.2 | ISC (data: Natural Earth, public domain) | Land outline of East and Southeast Asia (1:50m) |
 
 ## Development and build
 
@@ -23,7 +26,7 @@ HiddenLot uses the following open-source packages directly. None of them was wri
 | tailwindcss, @tailwindcss/turbopack | 4.3.3 | MIT | Styling |
 | eslint, eslint-config-next | 9.39.5, 16.4.3 | MIT | Linting |
 | pdf-lib | 1.17.1 | MIT | Rendering synthetic PDF fixtures |
-| @types/* | — | MIT | Type definitions |
+| @types/* (incl. d3-geo, geojson, topojson-client, topojson-specification) | — | MIT | Type definitions |
 
 ## Fonts and generated files
 

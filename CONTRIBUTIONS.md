@@ -14,6 +14,10 @@ Commit history is the primary record.
 | 2026-10-26/27 | RussCTGL | **P4 UI:** overview, intake & review, inventory, demands, opportunity feed and detail, sharing; server actions; ExplainCandidate with citation checks | `412e462` | — | Yes |
 | 2026-10-26/27 | RussCTGL | **P5 evaluation:** held-out set generator (two template families), extraction and discovery evals, result files, evaluation write-up | `83e540d` | — | Numbers only |
 | 2026-10-26/27 | RussCTGL | **P6 docs:** README, architecture, build log, demo script, third-party notices | `604b0d6` | — | — |
+| 2026-10-27 | RussCTGL | **UI redesign:** denser layout, status marks, requirements table, shorter copy | `be2e143` | IBM Plex Sans/Mono (OFL 1.1) | Yes |
+| 2026-10-27 | RussCTGL | **Volume test and discovery performance:** seeded multi-network generator, independent oracle, `eval:scale`; skip unchanged pairs, one discovery pass per new grant | uncommitted | — | Numbers only |
+| 2026-10-27 | RussCTGL | **Daily digest and deal tracking:** Today page, deals board and detail, deal risks and auto-close, drafted messages from shared fields, demo clock | uncommitted | — | Yes |
+| 2026-10-27 | RussCTGL | **Map-first Today:** server-projected SVG map with pins from shared fields only, port gazetteer, compact decision list, phone menu | uncommitted | d3-geo, topojson-client, world-atlas (ISC; Natural Earth data, public domain) | Yes |
 
 The phase commits group files by build phase in their final state; `docs/build-log.md` records the order of work, each phase's review gate and what it found.
 
