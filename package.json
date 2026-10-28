@@ -14,7 +14,8 @@
     "data:render": "tsx scripts/render-demo.ts",
     "eval:extraction": "tsx scripts/eval-extraction.ts",
     "data:eval": "tsx scripts/gen-eval.ts",
-    "eval:discovery": "tsx scripts/eval-discovery.ts"
+    "eval:discovery": "tsx scripts/eval-discovery.ts",
+    "eval:scale": "tsx scripts/eval-scale.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.11",

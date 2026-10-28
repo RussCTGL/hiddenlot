@@ -1,0 +1,171 @@
+{
+  "size": "s",
+  "config": {
+    "seed": 20261101,
+    "networks": 5,
+    "lotsPerNetwork": 100,
+    "demandsPerNetwork": 4
+  },
+  "world_hash": "acfe1f92daa80ce4",
+  "now": "2026-11-01T00:00:00.000Z",
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpus": "Apple M5 Ultra",
+    "node": "v24.22.0"
+  },
+  "world": {
+    "networks": 5,
+    "lots": 500,
+    "demands": 20,
+    "grants": 52,
+    "dead_grants_at_load": 9
+  },
+  "discovery": {
+    "first": {
+      "pairs": 4148,
+      "reviewable": 27,
+      "needs_evidence": 28,
+      "engineering_review": 9,
+      "rejected": 4084,
+      "new_opportunities": 64,
+      "invalidated": 0
+    },
+    "second": {
+      "pairs": 4148,
+      "reviewable": 27,
+      "needs_evidence": 28,
+      "engineering_review": 9,
+      "rejected": 4084,
+      "new_opportunities": 0,
+      "invalidated": 0
+    },
+    "idempotent": true,
+    "after_changes": {
+      "pairs": 3816,
+      "reviewable": 12,
+      "needs_evidence": 38,
+      "engineering_review": 8,
+      "rejected": 3758,
+      "new_opportunities": 17,
+      "invalidated": 0
+    }
+  },
+  "check_after_load": {
+    "expected_pairs": 4148,
+    "open_opportunities": 64,
+    "reviewable_open": 27,
+    "by_status": {
+      "incompatible": 4084,
+      "insufficient_evidence": 28,
+      "declared_match": 20,
+      "conditional_candidate": 3,
+      "evidence_supported": 4,
+      "engineering_review_required": 9
+    },
+    "failures": {
+      "missing_assessment": 0,
+      "unauthorized_assessment": 0,
+      "unauthorized_opportunity": 0,
+      "outdated_open_opportunity": 0,
+      "duplicate_open_opportunity": 0,
+      "incompatible_open_opportunity": 0,
+      "missing_opportunity": 0,
+      "hard_constraint_violation": 0,
+      "missed_clean_match": 0,
+      "unexpected_engineering_review": 0,
+      "withheld_field_used": 0,
+      "withheld_value_in_assessment": 0,
+      "leak_in_list": 0,
+      "leak_in_detail": 0,
+      "detail_after_access_ended": 0
+    },
+    "examples": {},
+    "views_checked": 10
+  },
+  "check_after_changes": {
+    "expected_pairs": 3816,
+    "open_opportunities": 58,
+    "reviewable_open": 12,
+    "by_status": {
+      "incompatible": 3758,
+      "insufficient_evidence": 38,
+      "conditional_candidate": 2,
+      "evidence_supported": 1,
+      "declared_match": 9,
+      "engineering_review_required": 8
+    },
+    "failures": {
+      "missing_assessment": 0,
+      "unauthorized_assessment": 0,
+      "unauthorized_opportunity": 0,
+      "outdated_open_opportunity": 0,
+      "duplicate_open_opportunity": 0,
+      "incompatible_open_opportunity": 0,
+      "missing_opportunity": 0,
+      "hard_constraint_violation": 0,
+      "missed_clean_match": 0,
+      "unexpected_engineering_review": 0,
+      "withheld_field_used": 0,
+      "withheld_value_in_assessment": 0,
+      "leak_in_list": 0,
+      "leak_in_detail": 0,
+      "detail_after_access_ended": 0
+    },
+    "examples": {},
+    "views_checked": 21
+  },
+  "timings_ms": {
+    "load (bulk insert)": 228,
+    "discoverAll, cold": 1160,
+    "discoverAll, warm (nothing changed)": 970,
+    "opportunity list (incl. refresh)": {
+      "n": 5,
+      "p50": 163,
+      "p95": 390,
+      "max": 390
+    },
+    "rejected list": {
+      "n": 5,
+      "p50": 25,
+      "p95": 55,
+      "max": 55
+    },
+    "opportunity detail (incl. refresh)": {
+      "n": 10,
+      "p50": 169,
+      "p95": 411,
+      "max": 411
+    },
+    "mark lot sold (15)": {
+      "n": 15,
+      "p50": 2,
+      "p95": 6,
+      "max": 6
+    },
+    "revoke grant (13)": {
+      "n": 13,
+      "p50": 1,
+      "p95": 2,
+      "max": 2
+    },
+    "edit demand quantity (2)": {
+      "n": 2,
+      "p50": 53,
+      "p95": 53,
+      "max": 53
+    },
+    "new network-wide grant net-s01 → net-s03": 14396,
+    "discoverAll after changes (+30 h)": 940
+  },
+  "rows": {
+    "lots": 500,
+    "lot_versions": 515,
+    "demands": 20,
+    "sharing_grants": 53,
+    "match_assessments": 6352,
+    "opportunities": 89,
+    "audit_events": 723
+  },
+  "pass": true
+}
