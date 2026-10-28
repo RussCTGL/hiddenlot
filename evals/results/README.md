@@ -21,4 +21,6 @@ Files backing the numbers in `docs/evaluation.md`:
 | Volume test, size m (2,000 lots), before the performance fix: 0 oracle failures, 532 s grant creation | `scale-m-2026-10-27T23-21-31-972Z.json` |
 | Volume test, size m, after the fix: 0 oracle failures, 0.77 s grant creation, 0.09 s per page | `scale-m-2026-10-27T23-40-19-810Z.json` |
 
+Commit hashes recorded in result files (`git_head`) predate a rewrite of the commit author email on 2026-10-28, which changed every hash; content is unchanged. Old → new: `89f02c3` → `6713000`, `c55d2f9` → `ecf6138`, `8c1f006` → `7284f43`.
+
 Files without `--meta` in their run contain only the B1 baseline. Volume-test files (`scale-*`) make no model calls.

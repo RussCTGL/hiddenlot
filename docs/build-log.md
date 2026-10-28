@@ -197,3 +197,4 @@ reason, so they can be revisited.
   - commit the work (nothing since 2026-10-26 22:48 is committed);
   - AI-tool disclosure;
   - a license for code and data.
+- Settled 2026-10-28: all rights reserved (no open-source license; `LICENSE` says so); a one-line note that the code was written with AI coding assistance; commit author email rewritten to the GitHub noreply address before the first push (every commit hash changed; `CONTRIBUTIONS.md` and `evals/results/README.md` list the new ones).

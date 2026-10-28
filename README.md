@@ -101,4 +101,5 @@ Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-
 - What was built during the hackathon: [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md) and [`docs/build-log.md`](docs/build-log.md) (phase-gated build with a separate review pass per phase).
 - Third-party packages: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 - Data: all synthetic, generated or hand-written for this project.
-- License: not yet chosen. It will be added before the repository is made public.
+- AI assistance: the code was written with AI coding assistance; design, review and decisions are the author's.
+- License: none. © 2026 RussCTGL, all rights reserved. The repository is public for hackathon judging; see [`LICENSE`](LICENSE). Third-party packages keep their own licenses ([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)).
