@@ -206,3 +206,16 @@ reason, so they can be revisited.
   - the port gazetteer covers the Americas, Europe, the Middle East, South Asia, Africa and Oceania. Common words (Mobile, San Antonio, Valencia) only match with a qualifier.
 - Demo data `demo-v3` adds Network D, a buyer in Houston, and Network E, a stockist with yards in New Orleans, Altamira, Antwerp and Rotterdam. E's offers are written in inches, pounds and "tons"; all 7 new pairs reproduce their hand labels through the real pipeline.
 - Drafts read sizes and weights back in the seller's units ("0.118 × 60 in, 39,683 lbs / 18 t"). An ambiguous "tons" asks the seller "metric tonnes or short tons?" without quoting their private text.
+
+### Hosted database for a public deployment (2026-10-29)
+- The embedded database cannot serve a serverless host: each instance would get its own copy, and it is lost when the instance stops. Rather than rewrite any SQL, the three-method database interface got a second implementation on Neon's serverless driver:
+  - a single query is one HTTPS request;
+  - a transaction is a WebSocket session opened and closed inside it.
+- The embedded database is now loaded only when `DATABASE_URL` is unset, so the Vercel build leaves it out.
+- Several instances can now start at once:
+  - migrations run in one transaction under an advisory lock;
+  - first-start seeding and the daily reload take a lease in `maintenance_leases`;
+  - the public cron route reloads at most once per 20 hours.
+- Meta calls are capped per visitor as well as per day. A visitor is a hash of the day and client address; addresses are not stored.
+- Uploads are limited to 4 MB on Vercel, which refuses larger request bodies.
+- The test suite can run unchanged against hosted Postgres (`npm run test:hosted`).

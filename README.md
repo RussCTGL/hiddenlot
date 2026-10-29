@@ -88,21 +88,34 @@ docker compose up --build        # http://localhost:3000
 - **Data** lives in the `hiddenlot-data` volume. The demo is seeded on first start.
 - **The Meta key** is read from `.env.local` at runtime and is never part of the image. Without a key, the regex baseline extracts.
 - **Paid Meta calls** are capped by `HIDDENLOT_META_DAILY_LIMIT` (50 a day in `compose.yaml`). Once the cap is used up, intake asks for the regex baseline.
-- **For a public deployment** use the same image. Set `HIDDENLOT_ALLOW_RESET=false`, so visitors get neither **Reset demo** nor the demo clock, and set `HIDDENLOT_RESEED_HOURS=24`, so the shared demo is reloaded daily and its stock never goes stale.
-- **One instance only:** the embedded database is single-process.
+- **To host the image publicly**, set `HIDDENLOT_ALLOW_RESET=false`, so visitors get neither **Reset demo** nor the demo clock, and set `HIDDENLOT_RESEED_HOURS=24`, so the shared demo is reloaded daily and its stock never goes stale.
+- **One instance only:** the embedded database is single-process. For several instances, set `DATABASE_URL` (below).
 
 | Variable | Default | Effect |
 |---|---|---|
 | `META_API_KEY` | unset | Enables Meta extraction and explanations |
+| `DATABASE_URL` | unset | Hosted Postgres on Neon instead of the embedded database |
 | `HIDDENLOT_META_DAILY_LIMIT` | no cap | Paid Meta calls per UTC day |
+| `HIDDENLOT_META_VISITOR_LIMIT` | no cap | Paid Meta calls per visitor per UTC day |
 | `HIDDENLOT_SEED_ON_START` | `false` | Load the demo when the database is empty |
 | `HIDDENLOT_RESEED_HOURS` | off | Reload the demo every N hours |
 | `HIDDENLOT_ALLOW_RESET` | `true` in dev, `false` in production | Show **Reset demo** and the demo clock |
 | `HIDDENLOT_DB_DIR` | `.data/pglite` (image: `/app/.data/pglite`) | Database directory |
 
+## Public deployment (Vercel)
+
+The public demo runs on Vercel with a hosted Postgres from Neon, so any number of serverless instances share one database.
+
+- **Database:** with `DATABASE_URL` set, every query is one HTTPS request to Neon, with no connection to keep open. A transaction opens a WebSocket session for its own duration. The SQL and migrations are the same as locally; the embedded database is not shipped.
+- **Startup:** each instance applies pending migrations, taking turns through a Postgres advisory lock. The first one to find the database empty loads the demo; a lease stops two instances from doing it at once.
+- **Daily reload:** a Vercel cron job calls `/api/cron/reseed` once a day. The route reloads at most once per 20 hours, however often it is called.
+- **Settings:** `.env.production` holds the non-secret defaults: seed when empty, no **Reset demo**, and Meta capped at 50 calls a day overall and 10 per visitor. `META_API_KEY` and `DATABASE_URL` are set in the Vercel project, never in the repository.
+- **Uploads** are limited to 4 MB there, because Vercel refuses larger request bodies.
+- **Testing on hosted Postgres:** `HIDDENLOT_TEST_DATABASE_URL=… npm run test:hosted` runs the full suite against a scratch Neon database, which it wipes.
+
 ## Architecture
 
-See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact locators → Meta extraction → deterministic evidence checks → owner review → authorized, projected universe → constraint engine → immutable, versioned assessments → buyer review. Storage is plain Postgres SQL (`db/migrations`), run locally on embedded PGlite.
+See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact locators → Meta extraction → deterministic evidence checks → owner review → authorized, projected universe → constraint engine → immutable, versioned assessments → buyer review. Storage is plain Postgres SQL (`db/migrations`), run locally on embedded PGlite and in the public deployment on Neon.
 
 ## Safety rules the code enforces
 
@@ -117,7 +130,7 @@ See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact
 
 ## Limitations
 
-Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-number linkage and offer validity are not modelled; they appear as Unknown or "not checked". Scanned PDFs, legacy `.xls` and macro workbooks are refused. The demo uses a cookie to pick a fictional user; there is no real authentication. The embedded database is single-process.
+Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-number linkage and offer validity are not modelled; they appear as Unknown or "not checked". Scanned PDFs, legacy `.xls` and macro workbooks are refused. The demo uses a cookie to pick a fictional user; there is no real authentication. The embedded database is single-process; the hosted one is not.
 
 ## Contributions, third-party code, data
 

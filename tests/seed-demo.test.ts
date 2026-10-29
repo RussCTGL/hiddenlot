@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { getOpportunityForActor, listOpportunitiesForActor, type Actor } from "@/auth/access";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { seedDemo } from "@/seed/demo";
 import { loadCanonical } from "@/seed/canonical";
 import { decideOpportunity, revokeGrant, setLotStatus } from "@/workflow/actions";
@@ -15,7 +16,7 @@ const ANA: Actor = { id: "u-ana", network_id: "net-a", role: "trader" };
 const BO: Actor = { id: "u-bo", network_id: "net-b", role: "trader" };
 
 before(async () => {
-  db = await openDb(null);
+  db = await freshDb();
 });
 after(async () => db.close());
 

@@ -14,7 +14,8 @@ import { fragmentText, type TextFragment } from "./text-fragments";
 // Lots created here are drafts. Nothing is visible to other networks until
 // the owner reviews and publishes, and only under the owner's grants.
 
-export const MAX_BYTES = 10 * 1024 * 1024;
+// Vercel refuses request bodies over 4.5 MB before they reach the app.
+export const MAX_BYTES = (process.env.VERCEL ? 4 : 10) * 1024 * 1024;
 export const TEXT_PARSER_VERSION = "text.v1";
 
 export type DocKind = "text" | "csv" | "xlsx" | "pdf";
@@ -112,7 +113,7 @@ export interface IntakeResult {
 
 export async function intakeDocument(db: Db, actor: Actor, input: IntakeInput, metaExtract: MetaExtract | null, now: Date): Promise<IntakeResult> {
   if (input.bytes.byteLength === 0) throw new IntakeError("Empty file");
-  if (input.bytes.byteLength > MAX_BYTES) throw new IntakeError(`File is ${(input.bytes.byteLength / 1e6).toFixed(1)} MB; the limit is 10 MB`);
+  if (input.bytes.byteLength > MAX_BYTES) throw new IntakeError(`File is ${(input.bytes.byteLength / 1e6).toFixed(1)} MB; the limit is ${MAX_BYTES / 1024 / 1024} MB`);
   const kind = detectKind(input.filename, input.mime, input.bytes);
   const sha = createHash("sha256").update(input.bytes).digest("hex");
   const pv = parserVersion(kind);

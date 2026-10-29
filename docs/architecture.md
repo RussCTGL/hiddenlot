@@ -50,7 +50,9 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
 ## Storage
 
 Postgres schema in `db/migrations/` (`0001_init.sql`; `0002_deals.sql` adds deals, deal events and the demo
-clock), run on embedded PGlite locally (`.data/pglite`). Raw documents
+clock; `0005_hosted.sql` adds per-visitor Meta usage and maintenance leases), run on embedded PGlite
+locally (`.data/pglite`) and on Neon Postgres over HTTPS when `DATABASE_URL` is set (`src/db/neon.ts`). Both
+sit behind the same three-method interface in `src/db/client.ts`. Raw documents
 stay with the owner network; other networks only ever receive the shared projection.
 
 ## Authorization

@@ -5,8 +5,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Loaded from disk at runtime, so file tracing cannot see them: database
   // WASM, the PDF text layer, migrations and the demo data the seed reads.
+  // On Vercel the database is hosted (DATABASE_URL), so the embedded one is left out.
   outputFileTracingIncludes: {
-    "/**": ["./node_modules/@electric-sql/pglite/dist/**", "./node_modules/pdfjs-dist/legacy/build/**", "./db/migrations/**", "./data/synthetic/demo/**"],
+    "/**": [...(process.env.VERCEL ? [] : ["./node_modules/@electric-sql/pglite/dist/**"]), "./node_modules/pdfjs-dist/legacy/build/**", "./db/migrations/**", "./data/synthetic/demo/**"],
   },
   cacheComponents: true,
   partialPrefetching: true,

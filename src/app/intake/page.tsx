@@ -4,6 +4,7 @@ import { intakeAction } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
 import { Card, inputCls, Loading, Page, primaryCls } from "@/components/ui";
 import { getDb } from "@/db/server";
+import { MAX_BYTES } from "@/ingestion/intake";
 import { metaAvailable } from "@/lib/meta";
 import { requireSession } from "@/lib/session";
 
@@ -46,7 +47,7 @@ async function Intake() {
             <div>
               <label className="mb-1 block text-sm font-medium">…or upload a file</label>
               <input type="file" name="file" accept=".txt,.csv,.xlsx,.pdf,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="text-sm" />
-              <p className="mt-1 text-xs text-zinc-500">.txt · .csv · .xlsx · text PDF · max 10 MB</p>
+              <p className="mt-1 text-xs text-zinc-500">.txt · .csv · .xlsx · text PDF · max {MAX_BYTES / 1024 / 1024} MB</p>
             </div>
             <fieldset className="text-sm">
               <legend className="mb-1 font-medium">Extractor</legend>

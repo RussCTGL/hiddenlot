@@ -42,6 +42,8 @@ next-env.d.ts
 
 # env template is safe to commit; real keys live in .env.local only
 !.env.example
+# non-secret defaults for the public deployment
+!.env.production
 
 # local embedded database
 /.data

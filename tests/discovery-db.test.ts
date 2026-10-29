@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 import { getDocumentContentForActor, getDocumentForActor, getOpportunityForActor, listOpportunitiesForActor, NotFoundError, type Actor } from "@/auth/access";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { insertDemand, insertLot } from "@/db/repo";
 import { discoverAll } from "@/discovery/engine";
 import { createGrant, decideOpportunity, reviewLot, revokeGrant, setLotStatus } from "@/workflow/actions";
@@ -17,7 +18,7 @@ const B: Actor = { id: "u-b", network_id: "net-b", role: "trader" };
 const C: Actor = { id: "u-c", network_id: "net-c", role: "trader" };
 
 before(async () => {
-  db = await openDb(null);
+  db = await freshDb();
 });
 after(async () => db.close());
 

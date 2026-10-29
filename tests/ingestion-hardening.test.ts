@@ -4,7 +4,8 @@ import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { postProcessSupply, type ExtractedLot } from "@/ai/tasks/extract-supply";
 import type { Actor } from "@/auth/access";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { insertLot } from "@/db/repo";
 import { intakeDocument, parseDocument, type MetaExtract } from "@/ingestion/intake";
 import { pdfToFragments, PdfError } from "@/ingestion/pdf";
@@ -128,7 +129,7 @@ let db: Db;
 const B: Actor = { id: "u-b", network_id: "net-b", role: "trader" };
 const A: Actor = { id: "u-a", network_id: "net-a", role: "trader" };
 before(async () => {
-  db = await openDb(null);
+  db = await freshDb();
 });
 after(async () => db.close());
 beforeEach(async () => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Actor } from "@/auth/access";
-import { openDb } from "@/db/client";
+import { freshDb } from "./db";
 import { discoverAll } from "@/discovery/engine";
 import { checkScale, failureCount, oracle } from "@/seed/scale-check";
 import { ALL_FIELDS, generateScale, loadScale, SCALE_PRESETS, worldHash } from "@/seed/scale";
@@ -29,7 +29,7 @@ test("discovery at volume: authorization, hard constraints, withheld fields and 
   const world = generateScale(SCALE_PRESETS.test);
   const now = new Date(world.now);
   const deadAtLoad = new Set(world.grants.filter((g) => g.revoked || !g.allow_discovery || (g.expires_at !== null && new Date(g.expires_at) <= now)).map((g) => g.id));
-  const db = await openDb(null);
+  const db = await freshDb();
   try {
     await loadScale(db, world);
     const first = await discoverAll(db, now);

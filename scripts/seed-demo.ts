@@ -1,14 +1,15 @@
 /**
- * Resets the local database and loads the synthetic five-network demo.
- * Stop `npm run dev` first: the embedded database allows one process at a time.
+ * Resets the database and loads the synthetic five-network demo: the hosted
+ * one when DATABASE_URL is set, else the local embedded one. For the embedded
+ * database, stop `npm run dev` first: it allows one process at a time.
  *
  *   npm run db:seed
  */
-import { DEFAULT_DATA_DIR, openDb } from "@/db/client";
+import { openConfiguredDb } from "@/db/client";
 import { seedDemo } from "@/seed/demo";
 
 async function main() {
-  const db = await openDb(process.env.HIDDENLOT_DB_DIR || DEFAULT_DATA_DIR);
+  const db = await openConfiguredDb();
   const report = await seedDemo(db, new Date());
   await db.close();
   console.log(`seeded ${report.dataset}: ${report.lots} lots, ${report.demands} demands, ${report.grants} grants, ${report.opportunities} open opportunities`);

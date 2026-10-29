@@ -4,7 +4,8 @@ import path from "node:path";
 import { after, before, beforeEach, test } from "node:test";
 import type { SupplyExtraction } from "@/ai/tasks/extract-supply";
 import { getDocumentForActor, type Actor } from "@/auth/access";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { intakeDocument, IntakeError, type MetaExtract } from "@/ingestion/intake";
 import { NOW } from "./helpers";
 
@@ -14,7 +15,7 @@ const enc = (s: string) => new TextEncoder().encode(s);
 const probe = readFileSync(path.join(__dirname, "../data/synthetic/probe/stock-network-b.txt"));
 
 before(async () => {
-  db = await openDb(null);
+  db = await freshDb();
 });
 after(async () => db.close());
 beforeEach(async () => {

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 import { NotFoundError, type Actor } from "@/auth/access";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { seedDemo } from "@/seed/demo";
 import { ALL_LOT_FIELDS, createGrant, reconfirmLot, revokeGrant, setLotStatus } from "@/workflow/actions";
 import { acceptSuggestions, allSuggestions, buildDigest, closeDeal, declineSuggestion, getDealViewForActor, listDealsForActor, moveDeal, recordQuote } from "@/workflow/deals";
@@ -17,7 +18,7 @@ const hours = (h: number) => new Date(NOW.getTime() + h * 3_600_000);
 const refs = (xs: { ref: string }[]) => xs.map((x) => x.ref.split(" · ")[0]).sort();
 
 before(async () => {
-  db = await openDb(null);
+  db = await freshDb();
 });
 after(async () => db.close());
 beforeEach(async () => {
