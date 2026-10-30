@@ -3,6 +3,8 @@
 **Evidence-backed discovery of surplus steel across trade networks that agreed to share.**
 Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for the *Build for Your World* track.
 
+**Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Pick a network under **Acting as**: Network A buys in Haiphong, Network D in Houston. The shared demo is reloaded once a day.
+
 > **Synthetic data only.** Every network, company, person, lot, price and certificate mention in this repository and its demo is fictional. HiddenLot is not trading, engineering or quality advice.
 
 ## The problem
