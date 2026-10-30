@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { resetDemo, rerunDiscovery } from "@/app/actions";
 import { listOpportunitiesForActor } from "@/auth/access";
@@ -8,7 +9,7 @@ import { listDemandsOfNetwork, listLotsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import type { CompatibilityStatus } from "@/discovery/constraints";
 import { GROUP_ORDER } from "@/discovery/engine";
-import { getSession, requestNow } from "@/lib/session";
+import { demoLoaded, getSession, requestNow } from "@/lib/session";
 import { demoControlsAllowed } from "@/lib/demo";
 import { metaAvailable } from "@/lib/meta";
 
@@ -23,10 +24,11 @@ export default function About() {
 async function Overview() {
   const session = await getSession();
   if (!session) {
+    if (await demoLoaded()) redirect("/login");
     return (
       <Page title="HiddenLot" subtitle="No demo data loaded yet.">
         <Card>
-          <p className="mb-3 text-sm">Load the synthetic five-network demo to start.</p>
+          <p className="mb-3 text-sm">Load the synthetic demo to start.</p>
           <form action={resetDemo}>
             <Submit className={primaryCls} pending="Loading demo…">
               Load demo data
@@ -122,14 +124,16 @@ async function Overview() {
       </section>
 
       <details className="mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900" open>
-        <summary className="flex min-h-7 cursor-pointer items-center text-[15px] font-semibold">Demo guide · 6 steps</summary>
+        <summary className="flex min-h-7 cursor-pointer items-center text-[15px] font-semibold">Demo guide · 8 steps</summary>
         <ol className="mt-4 mb-1 grid list-decimal gap-x-8 gap-y-3 pl-5 text-sm text-zinc-700 sm:grid-cols-2 lg:grid-cols-3 dark:text-zinc-300">
-          <li>As Network A, open Today and accept all</li>
+          <li>Sign in as Ana (Network A), open Today and accept all</li>
           <li>Open Deals: five lots are tracked</li>
           <li>Skip ahead 2 days (footer): Today flags stale stock</li>
-          <li>As Network B, reconfirm B-018 in Inventory</li>
-          <li>As Network B, mark B-018 sold: the deal closes</li>
-          <li>As Network D, open Today: a Houston buyer, stock in New Orleans, Altamira and Rotterdam</li>
+          <li>Switch to Bo (Network B), reconfirm B-018 in Inventory</li>
+          <li>As Bo, mark B-018 sold: Ana&rsquo;s deal closes</li>
+          <li>Sign in as Dana (Network D), open Today: a Houston buyer, stock in New Orleans, Altamira and Rotterdam</li>
+          <li>As Dana, accept all. Within the hour Sofia answers the &ldquo;tons&rdquo; question (locally: Simulate 1 market hour, footer)</li>
+          <li>Open Activity: what the simulated users did that Dana may see</li>
         </ol>
         {!metaAvailable() && <p className="mt-3 text-xs text-zinc-500">Meta is not configured here; the regex baseline extracts instead.</p>}
       </details>

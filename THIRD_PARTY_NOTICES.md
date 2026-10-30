@@ -9,13 +9,14 @@ HiddenLot uses the following open-source packages directly. None of them was wri
 | next | 16.4.3 | MIT | Web framework (App Router, server actions) |
 | react, react-dom | 19.3.0 | MIT | UI |
 | zod | 4.6.7 | MIT | Schema validation and JSON Schema generation |
-| @electric-sql/pglite | 0.5.11 | Apache-2.0 | Embedded Postgres (WASM) for local and demo storage |
+| @electric-sql/pglite | 0.5.11 | Apache-2.0 | Embedded Postgres (WASM) for local storage and tests |
+| @neondatabase/serverless | 1.2.0 | MIT | Hosted Postgres over HTTPS / WebSocket for the public deployment |
 | exceljs | 4.4.0 | MIT | Reading `.xlsx` cell values (no macro execution) |
 | pdfjs-dist | 6.3.289 | Apache-2.0 | Reading the text layer of PDFs |
 | server-only | 0.0.1 | MIT | Build-time guard that keeps server modules (and the API key) out of the browser |
 | d3-geo | 3.1.1 | ISC | Mercator projection of the Today map, computed on the server |
 | topojson-client | 3.1.0 | ISC | Reading the land outline |
-| world-atlas | 2.0.2 | ISC (data: Natural Earth, public domain) | Land outline of East and Southeast Asia (1:50m) |
+| world-atlas | 2.0.2 | ISC (data: Natural Earth, public domain) | World land outline (1:110m on the page, 1:50m when zoomed) |
 
 ## Development and build
 

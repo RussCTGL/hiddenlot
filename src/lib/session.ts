@@ -1,16 +1,29 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { connection } from "next/server";
+import { redirect } from "next/navigation";
+import { after, connection } from "next/server";
 import type { Actor } from "@/auth/access";
-import { getClockOffsetHours, getNetwork, getUser, listUsers, type NetworkRow, type UserRow } from "@/db/repo";
+import { sessionUserId, SESSION_DAYS } from "@/auth/accounts";
+import { getClockOffsetHours, getNetwork, getUser, type NetworkRow, type UserRow } from "@/db/repo";
 import { getDb } from "@/db/server";
+import { catchUpMarket } from "./market-clock";
 
-// Demo sign-in: a cookie selects one of the synthetic users. There is no
-// password because every user and network here is fictional; the server
-// still re-checks the user on every request and every action.
+// Sign-in: an HTTP-only cookie holds a random session token (src/auth/accounts.ts).
+// The server resolves it to a user on every request and every action; nothing
+// the browser sends says who it is.
 
-export const ACTOR_COOKIE = "hl_actor";
-const DEFAULT_USER = "u-ana";
+export const SESSION_COOKIE = "hl_session";
+
+export const sessionCookie = (token: string) =>
+  ({
+    name: SESSION_COOKIE,
+    value: token,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_DAYS * 86_400,
+  }) as const;
 
 export interface Session {
   actor: Actor;
@@ -18,27 +31,31 @@ export interface Session {
   network: NetworkRow;
 }
 
+/** The signed-in user, or null. */
 export async function getSession(): Promise<Session | null> {
   // Everything behind a session is per-request data; never prerender it.
   await connection();
   const db = await getDb();
-  const store = await cookies();
-  const id = store.get(ACTOR_COOKIE)?.value ?? DEFAULT_USER;
-  const user = (await getUser(db, id)) ?? (await getUser(db, DEFAULT_USER));
-  if (!user) return null; // database not seeded yet
+  const id = await sessionUserId(db, (await cookies()).get(SESSION_COOKIE)?.value, new Date());
+  const user = id ? await getUser(db, id) : null;
+  if (!user) return null;
   const network = (await getNetwork(db, user.network_id))!;
+  // The simulated market moves on while people use the demo (after the response, never in its way).
+  after(() => catchUpMarket().catch((err) => console.error("[hiddenlot] market tick failed", err)));
   return { actor: { id: user.id, network_id: user.network_id, role: user.role }, user, network };
 }
 
+/** The signed-in user; anyone else is sent to the sign-in page (or, before the demo is loaded, to its setup). */
 export async function requireSession(): Promise<Session> {
   const s = await getSession();
-  if (!s) throw new Error("No demo data loaded. Run `npm run db:seed` or use Reset demo.");
+  if (!s) redirect("/login");
   return s;
 }
 
-export async function listDemoUsers() {
+/** Whether the demo data (and so any account) exists yet. */
+export async function demoLoaded(): Promise<boolean> {
   await connection();
-  return listUsers(await getDb());
+  return (await (await getDb()).query(`SELECT 1 FROM users LIMIT 1`)).length > 0;
 }
 
 /**

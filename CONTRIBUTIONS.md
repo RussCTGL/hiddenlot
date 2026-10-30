@@ -18,6 +18,11 @@ Commit history is the primary record. The code was written with AI coding assist
 | 2026-10-27 | RussCTGL | **Volume test and discovery performance:** seeded multi-network generator, independent oracle, `eval:scale`; skip unchanged pairs, one discovery pass per new grant | `551f925`, `d837ec6` | — | Numbers only |
 | 2026-10-27 | RussCTGL | **Daily digest and deal tracking:** Today page, deals board and detail, deal risks and auto-close, drafted messages from shared fields, demo clock | `a4af6aa` | — | Yes |
 | 2026-10-27 | RussCTGL | **Map-first Today:** server-projected SVG map with pins from shared fields only, port gazetteer, compact decision list, phone menu | `4fe1eae` | d3-geo, topojson-client, world-atlas (ISC; Natural Earth data, public domain) | Yes |
+| 2026-10-28 | RussCTGL | **End-to-end QA fixes:** bugs found in a full pass through every page and action | `bdf43c7` | — | Yes |
+| 2026-10-28 | RussCTGL | **Docker:** one container for the whole app, Meta cap per day, hidden reset for public hosting | `427ce7f` | — | No |
+| 2026-10-28 | RussCTGL | **Global map and a second region:** world map, global port gazetteer, Networks D and E (Houston, New Orleans, Altamira, Antwerp, Rotterdam), seller's units in drafts | `6ae42ae` | — | Yes |
+| 2026-10-29 | RussCTGL | **Public deployment:** Neon Postgres over HTTPS behind the same data interface, multi-instance seeding with leases, daily reload, per-visitor Meta cap; live on Vercel | `e73f5bb`, `4a83aa5` | @neondatabase/serverless (MIT) | Live URL |
+| 2026-10-29 | RussCTGL | **Map zoom, sign-in and a simulated market:** wheel/pinch zoom, password accounts with hashed sessions, six simulated users and Network F acting through the real pipeline, Activity feed | see `git log` for 2026-10-29 | — | Yes |
 
 The phase commits group files by build phase in their final state; `docs/build-log.md` records the order of work, each phase's review gate and what it found.
 

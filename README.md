@@ -3,7 +3,7 @@
 **Evidence-backed discovery of surplus steel across trade networks that agreed to share.**
 Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for the *Build for Your World* track.
 
-**Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Pick a network under **Acting as**: Network A buys in Haiphong, Network D in Houston. The shared demo is reloaded once a day.
+**Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Sign in with any demo account on the sign-in page (one click; the shared demo password is shown there): **ana** buys in Haiphong, **dana** in Houston. Simulated users trade around you, about once an hour (**Activity**). The shared demo is reloaded once a day.
 
 > **Synthetic data only.** Every network, company, person, lot, price and certificate mention in this repository and its demo is fictional. HiddenLot is not trading, engineering or quality advice.
 
@@ -31,6 +31,13 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
    - changed lots.
 
    A deal closes as lost by itself when the lot is sold or sharing ends. After that its lot details are hidden. Messages are drafts built only from fields the owner shared; HiddenLot never sends anything.
+8. **Runs as a small market** of sign-in accounts. Besides the five walkthrough users, six simulated users act through the same pipeline: three stock desks (in Networks B, C and E) and three buyers (in A, D, and a new Network F in Jebel Ali).
+   - they post stock lists (bilingual text, inch/pound text, CSV), reviewed and published like anyone's;
+   - they post demands, often for something a partner listed;
+   - a stock desk answers a buyer's open question by correcting its own lot ("20 tons" → 20 metric tonnes), and the buyer's deal shows the change;
+   - they sell lots, and deals on them close.
+
+   Their documents carry their own truth, so extraction is scripted (no model calls) and still passes every evidence check. **Activity** shows each network only its own events and one-line summaries from networks that share stock with it.
 
 ## How Meta is used
 
@@ -61,11 +68,11 @@ Requires Node 24.
 ```bash
 npm install
 cp .env.example .env.local      # set META_API_KEY to use Meta; without it the regex baseline is used
-npm run db:seed                 # loads the synthetic five-network demo (stop the dev server first)
+npm run db:seed                 # loads the synthetic demo and its accounts (stop the dev server first)
 npm run dev                     # http://localhost:3000
 ```
 
-Use the **Acting as** menu to switch between the five fictional networks: Network A buys in Haiphong from Korean, Chinese and Taiwanese stock (B, C); Network D buys in Houston from US, Mexican and European stock (E), written in inches, pounds and short tons. **Today** is the start page; **How it works** (footer) has the walkthrough and **Reset demo**.
+Sign in on the sign-in page: every fictional account is listed there with one-click sign-in, and they share the demo password from [`data/synthetic/market/market.json`](data/synthetic/market/market.json). **ana** (Network A) buys in Haiphong from Korean, Chinese and Taiwanese stock (B, C); **dana** (Network D) buys in Houston from US, Mexican and European stock (E), written in inches, pounds and short tons. Click the account name in the header to switch. **Today** is the start page (scroll or pinch to zoom the map); **How it works** (footer) has the walkthrough and **Reset demo**. Locally the simulated market moves only when you press **Simulate 1 market hour** in the footer.
 Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before recording a demo. The footer's **Skip ahead 1 day** moves a demo clock, so freshness, follow-ups and expiry can be shown without waiting; **Reset demo** puts it back to real time.
 
 | Command | What it does |
@@ -76,6 +83,7 @@ Stock freshness is 48 hours: reseed (or press **Reset demo**) shortly before rec
 | `npm run eval:extraction -- --set eval4 --meta` | B1 regex vs B3 Meta extraction on the newest held-out set (paid API calls); without `--meta` only B1 runs |
 | `npm run eval:discovery -- --set eval4` | Discovery metrics (B1/B2/B3, A1 ablation, network lift) from the latest saved extraction outputs for that set; no model calls |
 | `npm run eval:scale -- --size m` | Volume test: 2,000 fictional lots across 8 networks, checked against an independent oracle, with timings; no model calls |
+| `npm run market:tick -- 5` | Run 5 steps of the simulated market and print what the simulated users did; no model calls |
 | `npm run probe:meta` | One-document Meta smoke test |
 | `npm run data:render` / `npm run data:eval` | Re-render demo PDF/XLSX; regenerate the held-out eval set (fixed seed) |
 
@@ -101,6 +109,7 @@ docker compose up --build        # http://localhost:3000
 | `HIDDENLOT_META_VISITOR_LIMIT` | no cap | Paid Meta calls per visitor per UTC day |
 | `HIDDENLOT_SEED_ON_START` | `false` | Load the demo when the database is empty |
 | `HIDDENLOT_RESEED_HOURS` | off | Reload the demo every N hours |
+| `HIDDENLOT_MARKET_MINUTES` | off | One step of the simulated market per N minutes of use |
 | `HIDDENLOT_ALLOW_RESET` | `true` in dev, `false` in production | Show **Reset demo** and the demo clock |
 | `HIDDENLOT_DB_DIR` | `.data/pglite` (image: `/app/.data/pglite`) | Database directory |
 
@@ -111,7 +120,7 @@ The public demo runs on Vercel with a hosted Postgres from Neon, so any number o
 - **Database:** with `DATABASE_URL` set, every query is one HTTPS request to Neon, with no connection to keep open. A transaction opens a WebSocket session for its own duration. The SQL and migrations are the same as locally; the embedded database is not shipped.
 - **Startup:** each instance applies pending migrations, taking turns through a Postgres advisory lock. The first one to find the database empty loads the demo; a lease stops two instances from doing it at once.
 - **Daily reload:** a Vercel cron job calls `/api/cron/reseed` once a day. The route reloads at most once per 20 hours, however often it is called.
-- **Settings:** `.env.production` holds the non-secret defaults: seed when empty, no **Reset demo**, and Meta capped at 50 calls a day overall and 10 per visitor. `META_API_KEY` and `DATABASE_URL` are set in the Vercel project, never in the repository.
+- **Settings:** `.env.production` holds the non-secret defaults: seed when empty, no **Reset demo**, Meta capped at 50 calls a day overall and 10 per visitor, and one simulated market step per hour. Steps run after a signed-in request has been answered (a quiet spell is caught up on the next visit, up to three steps), under a lease so instances do not step twice. `META_API_KEY` and `DATABASE_URL` are set in the Vercel project, never in the repository.
 - **Uploads** are limited to 4 MB there, because Vercel refuses larger request bodies.
 - **Testing on hosted Postgres:** `HIDDENLOT_TEST_DATABASE_URL=… npm run test:hosted` runs the full suite against a scratch Neon database, which it wipes.
 
@@ -132,7 +141,7 @@ See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact
 
 ## Limitations
 
-Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-number linkage and offer validity are not modelled; they appear as Unknown or "not checked". Scanned PDFs, legacy `.xls` and macro workbooks are refused. The demo uses a cookie to pick a fictional user; there is no real authentication. The embedded database is single-process; the hosted one is not.
+Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-number linkage and offer validity are not modelled; they appear as Unknown or "not checked". Scanned PDFs, legacy `.xls` and macro workbooks are refused. Sign-in is real (scrypt password hashes, hashed session tokens in HTTP-only cookies), but every account is a fictional demo account with a public password, and there is no sign-up. The embedded database is single-process; the hosted one is not.
 
 ## Contributions, third-party code, data
 

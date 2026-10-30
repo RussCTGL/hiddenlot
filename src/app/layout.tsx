@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ActorSwitcher } from "@/components/actor-switcher";
-import { shiftClockAction } from "@/app/actions";
+import { marketStepAction, shiftClockAction, signOutAction } from "@/app/actions";
 import { ClockIcon, LogoIcon } from "@/components/icons";
 import { Nav, NavLinks } from "@/components/nav";
 import { getDb } from "@/db/server";
-import { getClockOffsetHours, listNetworks } from "@/db/repo";
+import { getClockOffsetHours } from "@/db/repo";
 import { demoControlsAllowed } from "@/lib/demo";
-import { getSession, listDemoUsers, requestNow } from "@/lib/session";
+import { getSession, requestNow } from "@/lib/session";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({ variable: "--font-plex-sans", subsets: ["latin"], weight: ["400", "500", "600"] });
@@ -45,22 +44,42 @@ async function DemoClock() {
           </button>
         </form>
       )}
+      <form action={marketStepAction}>
+        <button className={btn} title="The simulated users post stock and demands, answer questions and sell, as they would in an hour">
+          Simulate 1 market hour
+        </button>
+      </form>
     </div>
   );
 }
 
 const SYNTHETIC = "Every network, company, lot, price and certificate here is fictional. Not trading or engineering advice.";
 
-async function Header({ id }: { id?: string }) {
+/** Who is signed in, with switching (back to the sign-in page) and sign-out. */
+async function Account() {
   const session = await getSession();
-  const users = await listDemoUsers().catch(() => []);
-  const networks = new Map((await listNetworks(await getDb()).catch(() => [])).map((n) => [n.id, n.alias]));
+  if (!session) {
+    return (
+      <Link href="/login" className="inline-flex min-h-10 items-center rounded-lg border border-zinc-300 px-3 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
+        Sign in
+      </Link>
+    );
+  }
+  const name = session.user.name.replace(/\s*\(fictional\)/, "").split(" · ")[0];
   return (
-    <ActorSwitcher
-      users={users.map((u) => ({ id: u.id, name: u.name.replace(/\s*\(fictional\)/, "").split(" · ")[0], network: networks.get(u.network_id) ?? u.network_id }))}
-      current={session?.user.id ?? ""}
-      id={id}
-    />
+    <div className="flex items-center gap-1">
+      <Link
+        href="/login"
+        title="Signed in. Switch account"
+        className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+      >
+        <span className="text-zinc-500 dark:text-zinc-400">{session.network.alias}</span>
+        <span className="font-medium">{name}</span>
+      </Link>
+      <form action={signOutAction}>
+        <button className="inline-flex min-h-10 items-center rounded-lg px-2.5 text-[13px] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">Sign out</button>
+      </form>
+    </div>
   );
 }
 
@@ -82,7 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Suspense fallback={<NavLinks path="" />}>
               <Nav>
                 <Suspense fallback={null}>
-                  <Header id="actor-menu" />
+                  <Account />
                 </Suspense>
               </Nav>
             </Suspense>
@@ -91,7 +110,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </span>
             <div className="hidden md:block">
               <Suspense fallback={<span className="text-xs text-zinc-400">…</span>}>
-                <Header />
+                <Account />
               </Suspense>
             </div>
           </div>

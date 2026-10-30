@@ -12,9 +12,10 @@ const NAV = [
   ["/demands", "Demands"],
   ["/intake", "Intake"],
   ["/sharing", "Sharing"],
+  ["/activity", "Activity"],
 ] as const;
 
-/** `children` (e.g. the demo identity switcher) go inside the phone menu. */
+/** `children` (e.g. the signed-in account) go inside the phone menu. */
 export function Nav({ children }: { children?: ReactNode }) {
   return <NavLinks path={usePathname()}>{children}</NavLinks>;
 }

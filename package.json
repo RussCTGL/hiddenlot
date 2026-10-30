@@ -13,6 +13,7 @@
     "test:hosted": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "probe:meta": "tsx scripts/meta-probe.ts",
     "db:seed": "tsx scripts/seed-demo.ts",
+    "market:tick": "tsx scripts/market-tick.ts",
     "data:render": "tsx scripts/render-demo.ts",
     "eval:extraction": "tsx scripts/eval-extraction.ts",
     "data:eval": "tsx scripts/gen-eval.ts",

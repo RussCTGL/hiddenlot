@@ -1,0 +1,100 @@
+{
+  "dataset": "hiddenlot-market",
+  "version": "market-v1",
+  "synthetic": true,
+  "notice": "All accounts, companies, people, lots, prices and certificates are fictional. The password is a public demo password for fictional accounts, not a secret.",
+  "demo_password": "hiddenlot-demo",
+  "accounts": {
+    "u-ana": "ana",
+    "u-bo": "bo",
+    "u-chen": "chen",
+    "u-dana": "dana",
+    "u-eli": "eli"
+  },
+  "networks": [
+    { "id": "net-f", "name": "Gulf Coil Buyers (fictional)", "alias": "Network F", "region": "AE" }
+  ],
+  "users": [
+    { "id": "u-linh", "network_id": "net-a", "username": "linh", "name": "Linh · buyer (simulated)", "role": "trader" },
+    { "id": "u-jun", "network_id": "net-b", "username": "jun", "name": "Jun · stock desk (simulated)", "role": "trader" },
+    { "id": "u-mei", "network_id": "net-c", "username": "mei", "name": "Mei · stock desk (simulated)", "role": "trader" },
+    { "id": "u-ray", "network_id": "net-d", "username": "ray", "name": "Ray · buyer (simulated)", "role": "trader" },
+    { "id": "u-sofia", "network_id": "net-e", "username": "sofia", "name": "Sofia · stock desk (simulated)", "role": "trader" },
+    { "id": "u-omar", "network_id": "net-f", "username": "omar", "name": "Omar · buyer (simulated)", "role": "trader" }
+  ],
+  "grants": [
+    { "id": "grant-b-to-f", "owner_network_id": "net-b", "recipient_network_id": "net-f", "created_by": "u-bo" },
+    { "id": "grant-c-to-f", "owner_network_id": "net-c", "recipient_network_id": "net-f", "created_by": "u-chen" },
+    { "id": "grant-e-to-f", "owner_network_id": "net-e", "recipient_network_id": "net-f", "created_by": "u-eli" }
+  ],
+  "sellers": [
+    {
+      "user": "u-jun",
+      "prefix": "JB",
+      "style": "text_bilingual",
+      "units": "metric",
+      "places": ["Busan port bonded warehouse", "Incheon", "Gwangyang"],
+      "grades": [["SS400", "JIS G3101"], ["SS275", "KS D3503"], ["Q235B", "GB/T 700"]],
+      "terms": [["CFR", "Haiphong"], ["CFR", "Jebel Ali"], ["FOB", "Busan"]],
+      "currency": "USD",
+      "price": [520, 575]
+    },
+    {
+      "user": "u-mei",
+      "prefix": "MC",
+      "style": "text_bilingual",
+      "units": "metric",
+      "places": ["Tianjin port", "Shanghai", "Kaohsiung"],
+      "grades": [["Q235B", "GB/T 700"], ["SS400", "JIS G3101"], ["Q355B", "GB/T 1591"]],
+      "terms": [["CFR", "Haiphong"], ["CFR", "Ho Chi Minh City"], ["CFR", "Jebel Ali"]],
+      "currency": "USD",
+      "price": [505, 560]
+    },
+    {
+      "user": "u-sofia",
+      "prefix": "SE",
+      "style": "text_imperial",
+      "units": "imperial",
+      "places": ["Port of New Orleans warehouse", "Altamira", "Port of Houston yard"],
+      "grades": [["CS Type B", "ASTM A1011"], ["SS Grade 36", "ASTM A1011"]],
+      "terms": [["FOB", "New Orleans"], ["CFR", "Houston"], ["CFR", "Jebel Ali"]],
+      "currency": "USD",
+      "price": [860, 920]
+    },
+    {
+      "user": "u-sofia",
+      "prefix": "SX",
+      "style": "csv",
+      "units": "metric",
+      "places": ["Antwerp", "Rotterdam"],
+      "grades": [["S235JR", "EN 10025-2"], ["CS Type B", "ASTM A1011"]],
+      "terms": [["CFR", "Houston"], ["CFR", "Jebel Ali"]],
+      "currency": "USD",
+      "price": [840, 900]
+    }
+  ],
+  "buyers": [
+    {
+      "user": "u-linh",
+      "destinations": ["Haiphong", "Ho Chi Minh City"],
+      "grades": [["SS400", "JIS G3101"], ["Q235B", "GB/T 700"], ["SS275", "KS D3503"]],
+      "currency": "USD",
+      "budget": [540, 590]
+    },
+    {
+      "user": "u-ray",
+      "destinations": ["Houston", "New Orleans"],
+      "grades": [["CS Type B", "ASTM A1011"], ["SS Grade 36", "ASTM A1011"]],
+      "currency": "USD",
+      "budget": [880, 940]
+    },
+    {
+      "user": "u-omar",
+      "destinations": ["Jebel Ali"],
+      "grades": [["SS400", "JIS G3101"], ["Q235B", "GB/T 700"], ["S235JR", "EN 10025-2"], ["CS Type B", "ASTM A1011"]],
+      "currency": "USD",
+      "budget": [560, 620]
+    }
+  ],
+  "sizes_mm": [[2.0, 1219], [2.5, 1250], [2.75, 1250], [3.0, 1500], [3.0, 1524], [4.0, 1500], [4.5, 1524], [6.0, 1500]]
+}

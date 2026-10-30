@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { ZodError } from "zod";
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
-import { getClockOffsetHours, getUser, setClockOffsetHours, VersionConflictError } from "@/db/repo";
+import { endSession, signIn } from "@/auth/accounts";
+import { getClockOffsetHours, setClockOffsetHours, VersionConflictError } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { discoverAll } from "@/discovery/engine";
 import { InventoryLotFields, LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
@@ -13,7 +14,8 @@ import { demoControlsAllowed } from "@/lib/demo";
 import { getExplainCall, getMetaExtract, metaCallsLeft } from "@/lib/meta";
 import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, recordQuote, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
-import { ACTOR_COOKIE, requestNow, requireSession } from "@/lib/session";
+import { stepMarket } from "@/lib/market-clock";
+import { requestNow, requireSession, SESSION_COOKIE, sessionCookie } from "@/lib/session";
 import { seedDemo } from "@/seed/demo";
 import {
   ALL_LOT_FIELDS,
@@ -31,7 +33,7 @@ import {
   type FieldEdit,
 } from "@/workflow/actions";
 
-// Server Actions. Each one re-reads the demo session on the server and passes
+// Server Actions. Each one re-reads the signed-in session on the server and passes
 // the actor to the workflow layer, which enforces ownership; nothing trusts
 // IDs or permissions sent from the browser.
 
@@ -70,13 +72,24 @@ async function run(fn: () => Promise<ActionState | void>): Promise<ActionState> 
 
 // --- session & demo ----------------------------------------------------------
 
-export async function switchActor(formData: FormData) {
-  const id = str(formData, "user_id");
-  const db = await getDb();
-  if (!(await getUser(db, id))) return;
-  (await cookies()).set(ACTOR_COOKIE, id, { httpOnly: true, sameSite: "lax", path: "/" });
-  // The page in view may belong to the previous network (a deal, a document): start at Today.
+export async function signInAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const token = await signIn(await getDb(), str(formData, "username"), String(formData.get("password") ?? ""), new Date());
+  if (!token) {
+    await new Promise((r) => setTimeout(r, 400)); // slows guessing a little; the accounts are public demo accounts anyway
+    return { error: "Wrong username or password" };
+  }
+  const store = await cookies();
+  // Switching accounts: end the previous session rather than leave it valid.
+  await endSession(await getDb(), store.get(SESSION_COOKIE)?.value);
+  store.set(sessionCookie(token));
   redirect("/");
+}
+
+export async function signOutAction() {
+  const store = await cookies();
+  await endSession(await getDb(), store.get(SESSION_COOKIE)?.value);
+  store.delete(SESSION_COOKIE);
+  redirect("/login");
 }
 
 const resetAllowed = demoControlsAllowed;
@@ -412,6 +425,14 @@ export async function shiftClockAction(formData: FormData) {
   const db = await getDb();
   const step = str(formData, "hours");
   await setClockOffsetHours(db, step === "reset" ? 0 : Math.min(24 * 30, (await getClockOffsetHours(db)) + Math.max(0, Math.min(72, Number(step) || 0))));
+  refresh();
+}
+
+/** Demo only: one step of the simulated market, so its users can be watched without waiting. */
+export async function marketStepAction() {
+  if (!resetAllowed()) return;
+  await requireSession();
+  await stepMarket();
   refresh();
 }
 

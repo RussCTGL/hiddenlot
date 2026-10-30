@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { reconfirmAction, resetDemo } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
@@ -8,7 +9,7 @@ import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import { landPath, MAP_H, MAP_W, project } from "@/geo/map";
 import { findPlace } from "@/geo/places";
-import { getSession, requestNow } from "@/lib/session";
+import { demoLoaded, getSession, requestNow } from "@/lib/session";
 import { buildDigest, type DigestItem, type Suggestion } from "@/workflow/deals";
 
 export default function Today() {
@@ -24,6 +25,7 @@ const shortTitle = (t: string) => t.replace(" mm", "");
 async function TodayPage() {
   const session = await getSession();
   if (!session) {
+    if (await demoLoaded()) redirect("/login");
     return (
       <Page title="HiddenLot" subtitle="No demo data loaded yet.">
         <Card>

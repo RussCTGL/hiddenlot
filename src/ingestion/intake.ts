@@ -20,7 +20,8 @@ export const TEXT_PARSER_VERSION = "text.v1";
 
 export type DocKind = "text" | "csv" | "xlsx" | "pdf";
 // canonical_seed: hand-written truth for the synthetic demo, run through the same post-checks.
-export type ExtractorName = "meta" | "regex_baseline" | "canonical_seed";
+// market_sim: documents the market simulator writes together with their truth (src/sim/market.ts).
+export type ExtractorName = "meta" | "regex_baseline" | "canonical_seed" | "market_sim";
 
 export interface ExtractorResult {
   output: SupplyExtraction | null;

@@ -78,6 +78,8 @@ export function TodayBoard({
   const [size, setSize] = useState({ w: 900, h: 700 });
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ px: number; py: number; view: View } | null>(null);
+  // Fingers on the map, for pinch zoom on touch screens.
+  const touches = useRef(new Map<number, { x: number; y: number }>());
 
   useEffect(() => {
     const el = box.current;
@@ -86,6 +88,20 @@ export function TodayBoard({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // Wheel and trackpad zoom around the cursor. A native listener, because React's is passive and could not stop the page scrolling.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+      // A trackpad pinch arrives as a wheel event with ctrlKey and small steps.
+      zoomAt(Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX, e.clientY);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  });
 
   // The page draws a light coastline; the detailed one follows (the browser keeps it).
   useEffect(() => {
@@ -127,22 +143,54 @@ export function TodayBoard({
     return { pins, chips };
   }, [visible, destinations, k]);
 
-  function zoom(f: number) {
+  /** Keeps the centre of the view on the map, so panning and zooming out never lose the world. */
+  const onMap = (v: View): View => ({
+    ...v,
+    x: Math.min(Math.max(v.x, -v.w / 2), extent.w - v.w / 2),
+    y: Math.min(Math.max(v.y, -v.h / 2), extent.h - v.h / 2),
+  });
+  /** Zooms by factor f (<1 = in), keeping the map point under (clientX, clientY), or the centre, in place. */
+  function zoomAt(f: number, clientX?: number, clientY?: number) {
+    const rect = box.current?.getBoundingClientRect();
     setView((v) => {
       const w = Math.min(Math.max(v.w * f, extent.w / 40), extent.w);
-      const h = (v.h / v.w) * w;
-      return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h };
+      const r = w / v.w;
+      let px = v.x + v.w / 2;
+      let py = v.y + v.h / 2;
+      if (rect && clientX !== undefined && clientY !== undefined) {
+        // The SVG letterboxes the view (xMidYMid meet): undo that to find the map point.
+        const kk = Math.max(v.w / rect.width, v.h / rect.height);
+        px = v.x - (rect.width * kk - v.w) / 2 + (clientX - rect.left) * kk;
+        py = v.y - (rect.height * kk - v.h) / 2 + (clientY - rect.top) * kk;
+      }
+      return onMap({ x: px + (v.x - px) * r, y: py + (v.y - py) * r, w, h: v.h * r });
     });
   }
   function onDown(e: ReactPointerEvent<SVGSVGElement>) {
     if ((e.target as Element).closest("[data-pin]")) return;
-    drag.current = { px: e.clientX, py: e.clientY, view };
+    touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    drag.current = touches.current.size === 1 ? { px: e.clientX, py: e.clientY, view } : null;
     e.currentTarget.setPointerCapture(e.pointerId);
   }
   function onMove(e: ReactPointerEvent<SVGSVGElement>) {
+    const prev = touches.current.get(e.pointerId);
+    if (prev && touches.current.size === 2) {
+      // Pinch: zoom by the change in finger distance, around the midpoint.
+      const other = [...touches.current.entries()].find(([id]) => id !== e.pointerId)![1];
+      const before = Math.hypot(prev.x - other.x, prev.y - other.y);
+      const after = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+      touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (before > 0 && after > 0) zoomAt(before / after, (e.clientX + other.x) / 2, (e.clientY + other.y) / 2);
+      return;
+    }
+    if (prev) touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const d = drag.current;
     if (!d) return;
-    setView({ ...d.view, x: d.view.x - (e.clientX - d.px) * k, y: d.view.y - (e.clientY - d.py) * k });
+    setView(onMap({ ...d.view, x: d.view.x - (e.clientX - d.px) * k, y: d.view.y - (e.clientY - d.py) * k }));
+  }
+  function onUp(e: ReactPointerEvent<SVGSVGElement>) {
+    touches.current.delete(e.pointerId);
+    drag.current = null; // lifting one finger of a pinch does not start a drag
   }
   function select(key: string) {
     setSelected((s) => (s === key ? null : key));
@@ -165,8 +213,11 @@ export function TodayBoard({
           className="absolute inset-0 h-full w-full touch-none select-none"
           onPointerDown={onDown}
           onPointerMove={onMove}
-          onPointerUp={() => (drag.current = null)}
-          onPointerCancel={() => (drag.current = null)}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+          onDoubleClick={(e) => {
+            if (!(e.target as Element).closest("[data-pin]")) zoomAt(0.5, e.clientX, e.clientY);
+          }}
         >
           <path d={land} className="fill-white stroke-[#C9D1DC] dark:fill-zinc-800 dark:stroke-zinc-600" strokeWidth={0.8 * k} />
 
@@ -287,10 +338,10 @@ export function TodayBoard({
 
         {/* zoom */}
         <div className="absolute right-4 bottom-4 flex flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-          <button type="button" aria-label="Zoom in" onClick={() => zoom(0.7)} className="size-9 border-b border-zinc-300 text-lg hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
+          <button type="button" aria-label="Zoom in" onClick={() => zoomAt(0.7)} className="size-9 border-b border-zinc-300 text-lg hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
             +
           </button>
-          <button type="button" aria-label="Zoom out" onClick={() => zoom(1 / 0.7)} className="size-9 text-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">
+          <button type="button" aria-label="Zoom out" onClick={() => zoomAt(1 / 0.7)} className="size-9 text-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">
             −
           </button>
         </div>

@@ -219,3 +219,16 @@ reason, so they can be revisited.
 - Meta calls are capped per visitor as well as per day. A visitor is a hash of the day and client address; addresses are not stored.
 - Uploads are limited to 4 MB on Vercel, which refuses larger request bodies.
 - The test suite can run unchanged against hosted Postgres (`npm run test:hosted`).
+
+### Map zoom, sign-in accounts and a simulated market (2026-10-29)
+- The Today map zooms with the mouse wheel and trackpad pinch around the cursor, with a double-click, and with a two-finger pinch on touch screens. The view's centre stays on the world.
+- Sign-in replaces the open "Acting as" switcher:
+  - each demo user has a username and a scrypt password hash;
+  - a session is a random token in an HTTP-only cookie, stored only as its SHA-256 and valid for 7 days;
+  - sessions survive the daily demo reload, because users keep their ids.
+- Six simulated users in the existing networks and a new Network F (Jebel Ali), with grants from B, C and E:
+  - a seeded, deterministic simulator has them post stock (bilingual text, inch/pound text, CSV) through the real intake, post demands, answer buyers' questions by correcting their own lots, and sell;
+  - every simulated document passes the evidence checks: its truth is written with it, so extraction is scripted and makes no model calls;
+  - live stock and demands from the simulator are capped per network.
+- **Activity** shows a network its own events in full and a one-line summary from networks that share stock with it; demands are never shared.
+- Tests: accounts and sessions, the answer flow (E-305 "20 tons" → 20 t, Dana's deal sees it), 48 steps through the pipeline within the caps, feed visibility, and determinism.

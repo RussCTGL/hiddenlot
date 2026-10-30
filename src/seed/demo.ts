@@ -5,13 +5,15 @@ import { discoverAll } from "@/discovery/engine";
 import { HRC_SCHEMA_VERSION } from "@/domain/hrc";
 import { intakeDocument } from "@/ingestion/intake";
 import { ALL_LOT_FIELDS, createDemand, createGrant, publishLot, reviewLot, type DemandInput } from "@/workflow/actions";
+import { seedMarket } from "@/sim/market";
 import { canonicalExtractor, documentBytes, loadCanonical } from "./canonical";
 
-// Loads the synthetic five-network demo (plan §7.1) through the real
+// Loads the synthetic demo (plan §7.1) through the real
 // pipeline: intake with evidence checks → owner review → publish → grants →
 // demands → discovery. Nothing is inserted around the rules.
 
 const TABLES = [
+  "market_events",
   "deal_events",
   "deals",
   "audit_events",
@@ -112,6 +114,8 @@ export async function seedDemo(db: Db, now: Date): Promise<SeedReport> {
   }
 
   await discoverAll(db, now);
+  // Sign-in accounts, and the simulated users with their network and grants (no activity yet).
+  await seedMarket(db, now);
   const opps = await db.query<{ n: string }>(`SELECT count(*) AS n FROM opportunities WHERE status <> 'invalidated'`);
   return { dataset: `${c.dataset}@${c.version} (schema ${HRC_SCHEMA_VERSION})`, lots, demands: c.demands.length, grants: c.grants.length, opportunities: Number(opps[0].n) };
 }

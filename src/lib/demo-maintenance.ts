@@ -4,7 +4,7 @@ import { listNetworks } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { seedDemo } from "@/seed/demo";
 
-// HIDDENLOT_SEED_ON_START=true  loads the synthetic demo when the database is empty.
+// HIDDENLOT_SEED_ON_START=true  loads the synthetic demo when the database is empty (or has no accounts yet).
 // HIDDENLOT_RESEED_HOURS=24     reloads it every N hours (clears everything visitors did).
 // On a serverless host the reload is a daily cron request instead (src/app/api/cron/reseed).
 //
@@ -13,8 +13,10 @@ import { seedDemo } from "@/seed/demo";
 
 export async function startDemoMaintenance() {
   const db = await getDb();
-  if (process.env.HIDDENLOT_SEED_ON_START === "true" && (await listNetworks(db)).length === 0) {
-    await seedUnderLease(db, async () => (await listNetworks(db)).length === 0, "seeded");
+  // Empty, or loaded by a release from before sign-in accounts existed (nobody could sign in).
+  const needed = async () => (await listNetworks(db)).length === 0 || (await db.query(`SELECT 1 FROM users WHERE username IS NOT NULL LIMIT 1`)).length === 0;
+  if (process.env.HIDDENLOT_SEED_ON_START === "true" && (await needed())) {
+    await seedUnderLease(db, needed, "seeded");
   }
   const hours = Number(process.env.HIDDENLOT_RESEED_HOURS ?? 0);
   if (hours > 0) {
