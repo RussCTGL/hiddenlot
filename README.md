@@ -24,6 +24,8 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
    - **Deals need attention:** something changed on a deal already in progress.
 
    A buyer can accept the whole digest at once. Each suggestion is checked against the rules again when it is accepted.
+
+   A network with no demands of its own (a stock desk) gets its stock on the same map instead: each published lot is a pin, red when it needs reconfirming, with a one-click **Still available** next to it in the list.
 7. **Tracks deals after the decision** (**Deals** board): waiting for an answer → quote requested → quote in hand → negotiating → won or lost. Every day it watches for:
    - stock older than 48 h;
    - silence past the follow-up date;

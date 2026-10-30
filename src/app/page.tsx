@@ -3,14 +3,15 @@ import { Suspense } from "react";
 import { reconfirmAction, resetDemo } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
 import { TodayBoard, type BoardItem, type BoardKind, type Destination } from "@/components/today-board";
+import { StockMap, type StockPin } from "@/components/stock-map";
 import { ButtonLink, buttonCls, Card, Loading, Page, primaryCls } from "@/components/ui";
 import { listGrantsByOwner, listLotsOfNetwork, listNetworks } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
-import { landPath, MAP_H, MAP_W, project } from "@/geo/map";
+import { fitView as fit, landPath, MAP_H, MAP_W, project } from "@/geo/map";
 import { findPlace } from "@/geo/places";
 import { demoLoaded, getSession, requestNow } from "@/lib/session";
-import { buildDigest, type DigestItem, type Suggestion } from "@/workflow/deals";
+import { buildDigest, lotRef, lotTitle, whereOf, type DigestItem, type Suggestion } from "@/workflow/deals";
 
 export default function Today() {
   return (
@@ -42,7 +43,8 @@ async function TodayPage() {
   const db = await getDb();
   const now = await requestNow();
   const d = await buildDigest(db, actor, now);
-  if (!d.hasDemands) return <NoDemands actor={actor} networkName={network.alias} now={now} />;
+  const day = `${now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${user.name.split(" · ")[0].replace(/\s*\(.*?\)/, "")}`;
+  if (!d.hasDemands) return <NoDemands actor={actor} networkName={network.alias} day={day} now={now} />;
 
   // Delivery ports of this network's active demands.
   const demands = await db.query<{ destination: string | null }>(
@@ -97,8 +99,7 @@ async function TodayPage() {
   // Open on today's decisions and delivery ports, wherever they are; with none, on every pin; else the world.
   const focus = [...items.filter((i) => i.action && i.pin).map((i) => [i.pin!.x, i.pin!.y]), ...destinations.map((x) => [x.x, x.y])];
   const all = items.filter((i) => i.pin).map((i) => [i.pin!.x, i.pin!.y]);
-  const view = focus.length ? fit(focus) : all.length ? fit(all) : { x: 0, y: 0, w: MAP_W, h: MAP_H };
-  const day = `${now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${user.name.split(" · ")[0].replace(/\s*\(fictional\)/, "")}`;
+  const view = fit(focus.length ? focus : all);
 
   return (
     <main className="flex flex-1 flex-col lg:h-[calc(100dvh-61px)] lg:min-h-[600px]">
@@ -107,94 +108,111 @@ async function TodayPage() {
   );
 }
 
-/** A view box around the points, with room for labels, never narrower than a regional view (about 30° across). */
-function fit(points: number[][]) {
-  const xs = points.map((p) => p[0]);
-  const ys = points.map((p) => p[1]);
-  const pad = MAP_W * 0.022;
-  let w = Math.min(Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, MAP_W * 0.082), MAP_W);
-  let h = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, MAP_W * 0.064);
-  // Roughly the map panel's shape, so the points sit in the middle.
-  if (w / h < 1.25) w = h * 1.25;
-  else h = w / 1.25;
-  const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
-  const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-  return { x: Math.round(cx - w / 2), y: Math.round(cy - h / 2), w: Math.round(w), h: Math.round(h) };
-}
-
-async function NoDemands({ actor, networkName, now }: { actor: { network_id: string }; networkName: string; now: Date }) {
+async function NoDemands({ actor, networkName, day, now }: { actor: { network_id: string }; networkName: string; day: string; now: Date }) {
   const db = await getDb();
   const [lots, grants, networks] = await Promise.all([listLotsOfNetwork(db, actor.network_id), listGrantsByOwner(db, actor.network_id), listNetworks(db)]);
   const alias = new Map(networks.map((n) => [n.id, n.alias]));
-  const published = lots.filter((l) => l.status === "published");
-  const toReview = lots.filter((l) => l.status === "needs_review").length;
   const age = (l: (typeof lots)[number]) => (now.getTime() - new Date(l.data.last_verified_at ?? l.data.observed_at).getTime()) / 3_600_000;
-  const stale = published.filter((l) => age(l) > FRESHNESS_WINDOW_HOURS);
+  // Oldest confirmation first, so the lots to reconfirm lead.
+  const published = lots.filter((l) => l.status === "published").sort((a, b) => age(b) - age(a));
+  const toReview = lots.filter((l) => l.status === "needs_review").length;
+  const isStale = (l: (typeof lots)[number]) => age(l) > FRESHNESS_WINDOW_HOURS;
+  const stale = published.filter(isStale);
+  const fresh = published.filter((l) => !isStale(l));
   const live = grants.filter((g) => !g.revoked_at && (!g.expires_at || new Date(g.expires_at) > now));
-  const ref = (l: (typeof lots)[number]) => String(l.data.fields.seller_lot_ref.normalized_value ?? l.id);
+
+  const pins: StockPin[] = [];
+  for (const l of published) {
+    const w = whereOf(l.data);
+    const xy = w && project(w.lonlat);
+    if (w && xy) pins.push({ id: l.id, lotRef: lotRef(l.data, l.id), title: lotTitle(l.data), place: w.name, precision: w.kind, x: xy[0], y: xy[1], stale: isStale(l) });
+  }
+  const view = fit(pins.map((p) => [p.x, p.y]));
+
+  const head = "flex items-center justify-between px-4 pt-4 pb-1.5 text-[11px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400";
+  const row = (l: (typeof lots)[number], action: React.ReactNode) => (
+    <li key={l.id} id={`lot-${l.id}`} className="flex scroll-mt-4 items-center gap-3 border-b border-zinc-100 px-4 py-3 target:bg-accent-soft target:shadow-[inset_3px_0_0_var(--accent)] dark:border-zinc-800">
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{shortTitle(lotTitle(l.data))}</span>
+        <span className="mt-0.5 block truncate text-xs text-zinc-500 dark:text-zinc-400">
+          {lotRef(l.data, l.id)} · {whereOf(l.data)?.name ?? "no location"} · confirmed {Math.ceil(age(l))} h ago
+        </span>
+      </span>
+      {action}
+    </li>
+  );
 
   return (
-    <Page title="Today" subtitle={`${networkName} · your stock`} actions={<ButtonLink href="/demands/new">New demand</ButtonLink>}>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card title={stale.length ? `Reconfirm ${stale.length} lot${stale.length === 1 ? "" : "s"}` : "Stock is fresh"}>
-          {stale.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300">
-              <span className="size-2 rounded-full bg-emerald-600" aria-hidden />
-              Every published lot was confirmed in the last {FRESHNESS_WINDOW_HOURS} h. Buyers can act on all of them.
-            </p>
-          ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {stale.map((l) => (
-                <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-sm">
-                  <span>
-                    <b className="font-semibold">{ref(l)}</b> <span className="text-zinc-500">· confirmed {Math.ceil(age(l))} h ago; buyers see it as unconfirmed</span>
-                  </span>
-                  <ActionForm action={reconfirmAction}>
-                    <input type="hidden" name="lot_id" value={l.id} />
-                    <input type="hidden" name="version" value={l.current_version} />
-                    <Submit className={buttonCls} pending="…">
-                      Still available
-                    </Submit>
-                  </ActionForm>
-                </li>
-              ))}
-            </ul>
+    <main className="flex flex-1 flex-col lg:h-[calc(100dvh-61px)] lg:min-h-[600px]">
+      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
+        <StockMap land={landPath()} extent={{ w: MAP_W, h: MAP_H }} view={view} pins={pins} day={day} stale={stale.length} published={published.length} />
+        <aside className="flex flex-col border-zinc-200 bg-white lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:border-l dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+            <span className="text-sm font-semibold">{networkName} · your stock</span>
+            <ButtonLink href="/demands/new">New demand</ButtonLink>
+          </div>
+          {stale.length > 0 && (
+            <>
+              <div className={head}>
+                <span className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-[#C2412D]" aria-hidden />
+                  Reconfirm · buyers see these as unconfirmed
+                </span>
+                <span className="font-mono">{stale.length}</span>
+              </div>
+              <ul>
+                {stale.map((l) =>
+                  row(
+                    l,
+                    <ActionForm action={reconfirmAction}>
+                      <input type="hidden" name="lot_id" value={l.id} />
+                      <input type="hidden" name="version" value={l.current_version} />
+                      <Submit className={buttonCls} pending="…">
+                        Still available
+                      </Submit>
+                    </ActionForm>,
+                  ),
+                )}
+              </ul>
+            </>
           )}
-        </Card>
-        <div className="space-y-5">
-          <Card title="Your stock">
-            <p className="flex items-baseline gap-2">
-              <b className="font-mono text-3xl leading-none font-medium">{published.length}</b>
-              <span className="text-sm text-zinc-500">published{toReview ? ` · ${toReview} to review` : ""}</span>
+          <div className={head}>
+            <span className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-[#12804C]" aria-hidden />
+              Confirmed in the last {FRESHNESS_WINDOW_HOURS} h
+            </span>
+            <span className="font-mono">{fresh.length}</span>
+          </div>
+          {fresh.length === 0 ? <p className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">None.</p> : <ul>{fresh.map((l) => row(l, null))}</ul>}
+
+          <div className="mt-auto space-y-3 border-t border-zinc-100 px-4 py-3.5 text-sm dark:border-zinc-800">
+            <p className="text-zinc-600 dark:text-zinc-400">
+              {live.length === 0 ? (
+                "Not shared with anyone yet. Buyers in other networks cannot see your stock."
+              ) : (
+                <>
+                  Shared with{" "}
+                  {live.map((g, n) => (
+                    <span key={g.id}>
+                      {n > 0 && ", "}
+                      <b className="font-semibold text-zinc-900 dark:text-zinc-100">{alias.get(g.recipient_network_id) ?? g.recipient_network_id}</b> ({g.lot_id ? "one lot" : "all lots"}, {g.field_scope.length} fields)
+                    </span>
+                  ))}
+                  .
+                </>
+              )}
+              {toReview > 0 && ` ${toReview} new lot${toReview === 1 ? "" : "s"} to review.`}
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               <ButtonLink href="/inventory" primary>
                 Inventory
               </ButtonLink>
               <ButtonLink href="/intake">Add stock</ButtonLink>
-            </div>
-          </Card>
-          <Card title="Shared with">
-            {live.length === 0 ? (
-              <p className="text-sm text-zinc-500">No one yet. Buyers in other networks cannot see your stock.</p>
-            ) : (
-              <ul className="space-y-1.5 text-sm">
-                {live.map((g) => (
-                  <li key={g.id}>
-                    <b className="font-semibold">{alias.get(g.recipient_network_id) ?? g.recipient_network_id}</b>{" "}
-                    <span className="text-zinc-500">
-                      · {g.lot_id ? "one lot" : "all lots"} · {g.field_scope.length} fields
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="mt-4">
               <ButtonLink href="/sharing">Sharing</ButtonLink>
             </div>
-          </Card>
-        </div>
+          </div>
+        </aside>
       </div>
-    </Page>
+    </main>
   );
 }

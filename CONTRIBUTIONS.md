@@ -23,6 +23,7 @@ Commit history is the primary record. The code was written with AI coding assist
 | 2026-10-28 | RussCTGL | **Global map and a second region:** world map, global port gazetteer, Networks D and E (Houston, New Orleans, Altamira, Antwerp, Rotterdam), seller's units in drafts | `6ae42ae` | — | Yes |
 | 2026-10-29 | RussCTGL | **Public deployment:** Neon Postgres over HTTPS behind the same data interface, multi-instance seeding with leases, daily reload, per-visitor Meta cap; live on Vercel | `e73f5bb`, `4a83aa5` | @neondatabase/serverless (MIT) | Live URL |
 | 2026-10-29 | RussCTGL | **Map zoom, sign-in and a simulated market:** wheel/pinch zoom, password accounts with hashed sessions, six simulated users and Network F acting through the real pipeline, Activity feed | see `git log` for 2026-10-29 | — | Yes |
+| 2026-10-30 | RussCTGL | **Stock map for sellers:** stock desks' Today shows their own lots on the shared pan/zoom map, red when they need reconfirming | see `git log` for 2026-10-30 | — | Yes |
 
 The phase commits group files by build phase in their final state; `docs/build-log.md` records the order of work, each phase's review gate and what it found.
 

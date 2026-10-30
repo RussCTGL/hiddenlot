@@ -54,3 +54,19 @@ export function project(lonlat: [number, number]): [number, number] | null {
   const p = projection(lonlat);
   return p ? [Math.round(p[0]), Math.round(p[1])] : null;
 }
+
+/** A view box around the points, with room for labels, never narrower than a regional view (about 30° across). */
+export function fitView(points: number[][]): { x: number; y: number; w: number; h: number } {
+  if (points.length === 0) return { x: 0, y: 0, w: MAP_W, h: MAP_H };
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const pad = MAP_W * 0.022;
+  let w = Math.min(Math.max(Math.max(...xs) - Math.min(...xs) + pad * 2, MAP_W * 0.082), MAP_W);
+  let h = Math.max(Math.max(...ys) - Math.min(...ys) + pad * 2, MAP_W * 0.064);
+  // Roughly the map panel's shape, so the points sit in the middle.
+  if (w / h < 1.25) w = h * 1.25;
+  else h = w / 1.25;
+  const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
+  const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+  return { x: Math.round(cx - w / 2), y: Math.round(cy - h / 2), w: Math.round(w), h: Math.round(h) };
+}
