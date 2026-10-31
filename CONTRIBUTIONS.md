@@ -25,6 +25,7 @@ Commit history is the primary record. The code was written with AI coding assist
 | 2026-10-29 | RussCTGL | **Map zoom, sign-in and a simulated market:** wheel/pinch zoom, password accounts with hashed sessions, six simulated users and Network F acting through the real pipeline, Activity feed | `8b892d4` | — | Yes |
 | 2026-10-30 | RussCTGL | **Stock map for sellers:** stock desks' Today shows their own lots on the shared pan/zoom map, red when they need reconfirming | `7b1e2fd` | — | Yes |
 | 2026-10-31 | RussCTGL | **Review fixes:** one name per status across pages, seller units on Inventory, confirmation before Mark sold / Withdraw / Revoke, labelled form fields, stock-desk empty states, per-page titles and a not-found page; per-lot budgets no longer read as per MT, empty Meta env settings fall back to defaults, the simulator respects grant expiry; docs brought in line with the UI | `2dacf5a` | — | Yes |
+| 2026-10-31 | RussCTGL | **Review fixes:** one name per status across pages, seller units on Inventory, confirmation before Mark sold / Withdraw / Revoke, labelled form fields, stock-desk empty states, per-page titles and a not-found page; per-lot budgets no longer read as per MT, empty Meta env settings fall back to defaults, the simulator respects grant expiry; docs brought in line with the UI | `2dacf5a` | — | Yes |
 
 The phase commits group files by build phase in their final state; `docs/build-log.md` records the order of work, each phase's review gate and what it found.
 
