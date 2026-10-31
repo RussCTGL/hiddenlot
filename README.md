@@ -5,6 +5,8 @@ Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for 
 
 **Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Sign in with any demo account on the sign-in page (one click; the shared demo password is shown there): **ana** buys in Haiphong, **dana** in Houston. Simulated users trade around you, about once an hour (**Activity**). The shared demo is reloaded once a day.
 
+**Demo video:** link to follow (3 minutes, recorded on the synthetic demo).
+
 > **Synthetic data only.** Every network, company, person, lot, price and certificate mention in this repository and its demo is fictional. HiddenLot is not trading, engineering or quality advice.
 
 ## The problem
@@ -18,10 +20,12 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
 3. **Lets the owner review and choose what to share** with which network, field by field, with revocation that takes effect immediately.
 4. **Discovers candidates automatically** when stock or demands change, across networks, using a deterministic constraint engine with no grade-equivalence table. A known failure is never outweighed by a score.
 5. **Explains each candidate** with evidence, what is still unknown, and who must confirm what next. Meta can rephrase the rule results, but every sentence must cite fact IDs; unsupported sentences are removed.
-6. **Prepares a daily digest on a map** (the **Today** page) so a buyer decides in a few clicks instead of reading every candidate. Each decision is a row in a short list and, when the owner shares a location, a pin on a world map that opens on today's lots, wherever they are. The pin is placed at the stock location, the loading port (FOB) or the delivery port (CFR), with a route to the buyer's delivery port. A location the owner withheld is never drawn. The digest has three groups:
+6. **Prepares a daily digest on a map** (the **Today** page) so a buyer decides in a few clicks instead of reading every candidate. Each decision is a row in a short list and, when the owner shares a location, a pin on a world map that opens on today's lots, wherever they are. The pin is placed at the stock location, the loading port (FOB) or the delivery port (CFR), with a route to the buyer's delivery port. A location the owner withheld is never drawn. The digest leads with three groups:
+   - **Needs attention:** something changed on a deal already in progress.
    - **Move forward:** every hard requirement passes. HiddenLot shortlists the lot and drafts a quote request.
    - **Needs an answer:** one or two facts are open. HiddenLot drafts the questions for the seller.
-   - **Deals need attention:** something changed on a deal already in progress.
+
+   Three more are folded away: **Engineering review** (a different grade, never offered automatically), **Missing info** (several facts open) and **Ruled out**.
 
    A buyer can accept the whole digest at once. Each suggestion is checked against the rules again when it is accepted.
 
@@ -151,4 +155,4 @@ Transit time, freight, duty, FX, certificate authenticity, certificate ↔ heat-
 - Third-party packages: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 - Data: all synthetic, generated or hand-written for this project.
 - AI assistance: the code was written with AI coding assistance; design, review and decisions are the author's.
-- License: none. © 2026 RussCTGL, all rights reserved. The repository is public for hackathon judging; see [`LICENSE`](LICENSE). Third-party packages keep their own licenses ([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)).
+- License: all rights reserved (no open-source license). © 2026 RussCTGL. The repository is public for hackathon judging; see [`LICENSE`](LICENSE). Third-party packages keep their own licenses ([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)).

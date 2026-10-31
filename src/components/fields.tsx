@@ -74,7 +74,7 @@ export function FieldRow({ field, obs, children }: { field: InventoryLotField; o
       <td className="py-1.5 pr-3 text-xs text-zinc-500">{FIELD_LABEL[field]}</td>
       <td className="py-1.5 pr-3 text-sm">
         {empty ? <Unknown reason={withheld ? "not shared" : obs.status === "unresolved" ? obs.issues.join(", ") : undefined} /> : <span className="font-medium">{formatValue(field, value)}</span>}
-        {obs.normalization && !empty && <div className="text-[11px] text-zinc-500">rule {obs.normalization.rule} v{obs.normalization.version}{obs.raw_value ? ` from "${obs.raw_value}"` : ""}</div>}
+        {obs.normalization && !empty && <div className="text-[11px] text-zinc-500">rule {obs.normalization.rule} {/^\d/.test(obs.normalization.version) ? `v${obs.normalization.version}` : obs.normalization.version}{obs.raw_value ? ` from "${obs.raw_value}"` : ""}</div>}
         {!empty && obs.issues.length > 0 && <div className="text-[11px] text-rose-700 dark:text-rose-400">{obs.issues.join(", ")}</div>}
       </td>
       <td className="py-1.5 pr-3">{!withheld && <Badge tone={tone}>{label}</Badge>}</td>

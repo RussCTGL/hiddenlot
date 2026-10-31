@@ -9,6 +9,9 @@ closed when the gate passes; review findings are fixed and re-checked first.
 Decisions taken without waiting for input are marked **Decision** with the
 reason, so they can be revisited.
 
+"The plan" is the author's private design document (not in this repository);
+§ numbers here and in the other docs refer to it.
+
 ## Phases
 
 | Phase | Scope | Gate |
@@ -147,7 +150,7 @@ reason, so they can be revisited.
   - the seeded B→A grant withholds the warehouse location and heat numbers.
 - Production build clean, 120/120 tests.
 
-### P5 — evaluation (in review)
+### P5 — passed (2026-10-27, 3 review rounds)
 - Held-out sets generated from fixed seeds. Each prompt change made after seeing test errors was scored only on a newly generated set:
   - v3 → eval;
   - v4 (a trailing unit applies to the whole dimension expression) → eval2;
@@ -161,16 +164,6 @@ reason, so they can be revisited.
   - "3." number formatting;
   - CJK units in PDFs;
   - demands contradicting their own base lot. Documents stayed byte-identical; noted in the evaluation doc.
-
-### P6 — docs and clean run (in review)
-- README, architecture, evaluation, demo script, third-party notices, contributions.
-- Clean copy (no node_modules, build output, database or key):
-  - `npm ci`, 120/120 tests, `next build` and `db:seed` all passed;
-  - `npm run typecheck` failed on fresh route types and was fixed (`next typegen && tsc`).
-- **Bug found during P5:** a Meta call that timed out while its response body was being read threw out of the client instead of being recorded as a `timeout` run, and it crashed the eval run. Body reads are now guarded: a timeout is retried within the retry bound, and a non-JSON body is recorded as `invalid_output`. Regression test added. Evaluation runs use a 120 s per-call timeout; the app default stays 60 s.
-- **Post-check gap found during P5, on eval4:** lot sections did not start at "Ref D-100" / "编号 D-100" lines, so the cross-lot check missed values taken from neighbouring lots. Fixed for both extractors. On the earlier sets, B1's numbers are unchanged after the fix.
-
-### P5 — passed (2026-10-27, 3 review rounds)
 - Round 1:
   - Blocker: prompts v4 and v5 quoted the generator's own phrases, so eval2 and eval3 were not independent of those changes.
   - Majors:
@@ -191,13 +184,19 @@ reason, so they can be revisited.
   - recall: B3 9/9, B1 0/9; 0 violations;
   - A1 without hard constraints: 48/60 violate a known requirement.
 
-### P6 — content passed; publishing is blocked on the user's decisions
+### P6 — passed; published 2026-10-29
+- README, architecture, evaluation, demo script, third-party notices, contributions.
+- Clean copy (no node_modules, build output, database or key):
+  - `npm ci`, 120/120 tests, `next build` and `db:seed` all passed;
+  - `npm run typecheck` failed on fresh route types and was fixed (`next typegen && tsc`).
+- **Bug found during P5:** a Meta call that timed out while its response body was being read threw out of the client instead of being recorded as a `timeout` run, and it crashed the eval run. Body reads are now guarded: a timeout is retried within the retry bound, and a non-JSON body is recorded as `invalid_output`. Regression test added. Evaluation runs use a 120 s per-call timeout; the app default stays 60 s.
+- **Post-check gap found during P5, on eval4:** lot sections did not start at "Ref D-100" / "编号 D-100" lines, so the cross-lot check missed values taken from neighbouring lots. Fixed for both extractors. On the earlier sets, B1's numbers are unchanged after the fix.
 - Docs verified against code and result files. README commands work offline on a clean copy.
-- Not done, because each is the user's call, and each must be settled before the repo is made public:
-  - commit the work (nothing since 2026-10-26 22:48 is committed);
-  - AI-tool disclosure;
-  - a license for code and data.
 - Settled 2026-10-28: all rights reserved (no open-source license; `LICENSE` says so); a one-line note that the code was written with AI coding assistance; commit author email rewritten to the GitHub noreply address before the first push (every commit hash changed; `CONTRIBUTIONS.md` and `evals/results/README.md` list the new ones).
+
+### End-to-end QA and Docker (2026-10-27/28)
+- A full pass through every page and action as each demo user; the bugs it found are fixed in `bdf43c7`.
+- One container for the whole app (`427ce7f`): a daily cap on Meta calls, and the demo reset hidden when the app is publicly hosted.
 
 ### Global map and a second region (2026-10-28)
 - The Today map was framed on East and Southeast Asia, and any port outside it was dropped. Now:
@@ -232,3 +231,7 @@ reason, so they can be revisited.
   - live stock and demands from the simulator are capped per network.
 - **Activity** shows a network its own events in full and a one-line summary from networks that share stock with it; demands are never shared.
 - Tests: accounts and sessions, the answer flow (E-305 "20 tons" → 20 t, Dana's deal sees it), 48 steps through the pipeline within the caps, feed visibility, and determinism.
+
+### Stock map for sellers (2026-10-30)
+- A network with no demands of its own (a stock desk) gets its own published lots on the same pan/zoom map on Today, instead of an empty digest.
+- A lot is drawn red when it needs reconfirming; the list beside the map has a one-click **Still available** for it (`7b1e2fd`).

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { createGrantAction, revokeGrantAction } from "@/app/actions";
 import { FIELD_LABEL, FIELD_ORDER } from "@/components/fields";
@@ -6,6 +7,8 @@ import { Badge, Card, dangerCls, Empty, inputCls, Loading, Page, primaryCls } fr
 import { listGrantsByOwner, listLotsOfNetwork, listNetworks } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { requestNow, requireSession } from "@/lib/session";
+
+export const metadata: Metadata = { title: "Sharing" };
 
 export default function SharingPage() {
   return (
@@ -49,7 +52,9 @@ async function Sharing() {
                       {active && (
                         <ActionForm action={revokeGrantAction} className="ml-auto">
                           <input type="hidden" name="grant_id" value={g.id} />
-                          <Submit className={dangerCls}>Revoke</Submit>
+                          <Submit className={dangerCls} confirm="Revoke this grant? The network loses access now, and deals on these lots close.">
+                            Revoke
+                          </Submit>
                         </ActionForm>
                       )}
                     </div>
@@ -65,8 +70,8 @@ async function Sharing() {
         </Card>
         <Card title="Share with a network" className="lg:col-span-2">
           <ActionForm action={createGrantAction} className="space-y-3 text-sm">
-            <div>
-              <label className="mb-1 block text-xs font-medium">Recipient</label>
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium">Recipient</span>
               <select name="recipient" className={inputCls}>
                 {networks
                   .filter((n) => n.id !== actor.network_id)
@@ -76,9 +81,9 @@ async function Sharing() {
                     </option>
                   ))}
               </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium">Lots</label>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium">Lots</span>
               <select name="lot_id" className={inputCls}>
                 <option value="">All published lots</option>
                 {lots.map((l) => (
@@ -87,7 +92,7 @@ async function Sharing() {
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
             <fieldset>
               <legend className="mb-1 text-xs font-medium">Fields the recipient may use</legend>
               <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
@@ -104,10 +109,10 @@ async function Sharing() {
             <label className="flex items-start gap-2 text-xs">
               <input type="checkbox" name="model_processing" className="mt-0.5" /> Allow Meta explanations on shared fields (files are never sent)
             </label>
-            <div>
-              <label className="mb-1 block text-xs font-medium">Expires after (days, empty = no expiry)</label>
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium">Expires after (days, empty = no expiry)</span>
               <input name="expires_days" className={inputCls} placeholder="e.g. 30" />
-            </div>
+            </label>
             <Submit className={primaryCls}>Share</Submit>
           </ActionForm>
         </Card>

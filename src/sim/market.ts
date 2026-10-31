@@ -146,7 +146,7 @@ const MAX_LIVE_DEMANDS = 4; // per buyer network, from the simulator
 async function postStock(db: Db, m: Market, seller: Seller, tick: number, rnd: () => number, now: Date, log: Log) {
   const actor = await actorOf(db, seller.user);
   // Often the seller has heard what a partner's buyers want.
-  const wanted = await partnerDemands(db, actor.network_id);
+  const wanted = await partnerDemands(db, actor.network_id, now);
   const n = 1 + Math.floor(rnd() * 3);
   const specs: LotSpec[] = [];
   for (let i = 0; i < n; i++) {
@@ -348,9 +348,10 @@ async function postDemand(db: Db, m: Market, buyer: Buyer, tick: number, rnd: ()
   const seen = await db.query<{ data: InventoryLot }>(
     `SELECT v.data FROM lots l JOIN lot_versions v ON v.lot_id = l.id AND v.version = l.current_version
       WHERE l.status = 'published' AND l.owner_network_id IN
-            (SELECT owner_network_id FROM sharing_grants WHERE recipient_network_id = $1 AND revoked_at IS NULL AND allow_discovery)
+            (SELECT owner_network_id FROM sharing_grants WHERE recipient_network_id = $1 AND revoked_at IS NULL AND allow_discovery
+               AND (expires_at IS NULL OR expires_at > $2))
       ORDER BY l.id`,
-    [actor.network_id],
+    [actor.network_id, now.toISOString()],
   );
   const like = seen.length && rnd() < 0.5 ? pick(rnd, seen).data : null;
   const thickness = (like && val<number>(like, "thickness_mm")) ?? pick(rnd, m.sizes_mm)[0];
@@ -538,13 +539,14 @@ export async function listMarketEvents(sql: Sql, networkId: string, now: Date, l
 
 // --- queries and helpers -------------------------------------------------------------
 
-async function partnerDemands(sql: Sql, sellerNetworkId: string): Promise<Demand[]> {
+async function partnerDemands(sql: Sql, sellerNetworkId: string, now: Date): Promise<Demand[]> {
   const rows = await sql.query<{ data: Demand }>(
     `SELECT v.data FROM demands d JOIN demand_versions v ON v.demand_id = d.id AND v.version = d.current_version
       WHERE d.status = 'active' AND d.buyer_network_id IN
-            (SELECT recipient_network_id FROM sharing_grants WHERE owner_network_id = $1 AND revoked_at IS NULL AND allow_discovery)
+            (SELECT recipient_network_id FROM sharing_grants WHERE owner_network_id = $1 AND revoked_at IS NULL AND allow_discovery
+               AND (expires_at IS NULL OR expires_at > $2))
       ORDER BY d.id`,
-    [sellerNetworkId],
+    [sellerNetworkId, now.toISOString()],
   );
   return rows.map((r) => r.data);
 }

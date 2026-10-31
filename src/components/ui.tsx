@@ -43,7 +43,7 @@ export const SHORT_STATUS: Record<CompatibilityStatus, string> = {
   evidence_supported: "Evidence-backed",
   declared_match: "Declared match",
   conditional_candidate: "Conditional",
-  engineering_review_required: "Eng. review",
+  engineering_review_required: "Engineering review",
   insufficient_evidence: "Missing info",
   incompatible: "Fails",
 };
@@ -111,10 +111,6 @@ export function markLabel(kind: MarkKind) {
   return MARK[kind][1];
 }
 
-export function CheckIcon({ status }: { status: CheckStatus }) {
-  return <Mark kind={status} small />;
-}
-
 export function Hint({ text }: { text: string }) {
   return (
     <span title={text} className="inline-flex text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
@@ -167,9 +163,13 @@ export function Bar({ value, className = "bg-zinc-900 dark:bg-zinc-100" }: { val
 }
 
 export function Loading({ label = "Loading…" }: { label?: string }) {
-  return <div className="mx-auto w-full max-w-6xl px-6 py-10 text-sm text-zinc-500">{label}</div>;
+  return (
+    <div role="status" className="mx-auto w-full max-w-6xl px-4 py-10 text-sm text-zinc-500 sm:px-6 dark:text-zinc-400">
+      {label}
+    </div>
+  );
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">{children}</p>;
+  return <p className="rounded-xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">{children}</p>;
 }

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { publishAction, reconfirmAction, setLotStatusAction } from "@/app/actions";
@@ -9,6 +10,9 @@ import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import type { InventoryLotField } from "@/domain/hrc";
 import { requestNow, requireSession } from "@/lib/session";
+import { lotRef, lotSize, lotWeight } from "@/workflow/deals";
+
+export const metadata: Metadata = { title: "Inventory" };
 
 export default function InventoryPage() {
   return (
@@ -65,23 +69,23 @@ async function Inventory() {
                       <td className="py-2 pr-3">
                         {l.source_document_id ? (
                           <Link href={`/documents/${l.source_document_id}`} className="font-medium text-accent hover:underline">
-                            {String(l.data.fields.seller_lot_ref.normalized_value ?? l.id)}
+                            {lotRef(l.data, l.id)}
                           </Link>
                         ) : (
-                          String(l.data.fields.seller_lot_ref.normalized_value ?? l.id)
+                          lotRef(l.data, l.id)
                         )}
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
                           <V lot={l} f="product_form" />
                         </div>
                       </td>
                       <td className="py-2 pr-3">
-                        <V lot={l} f="grade_raw" /> <span className="text-zinc-500">·</span> <V lot={l} f="standard_id" />
+                        <V lot={l} f="grade_raw" /> <span className="text-zinc-500 dark:text-zinc-400">·</span> <V lot={l} f="standard_id" />
                       </td>
                       <td className="py-2 pr-3">
-                        <V lot={l} f="thickness_mm" /> × <V lot={l} f="width_mm" />
+                        {lotSize(l.data) ?? <Unknown />}
                       </td>
                       <td className="py-2 pr-3">
-                        <V lot={l} f="total_kg" />
+                        {lotWeight(l.data) ?? <Unknown />}
                       </td>
                       <td className="py-2 pr-3">
                         <Badge tone={l.status === "published" ? "emerald" : l.status === "needs_review" ? "amber" : "zinc"}>{l.status.replaceAll("_", " ")}</Badge>
@@ -108,7 +112,9 @@ async function Inventory() {
                               <ActionForm action={setLotStatusAction}>
                                 <Hidden lot={l}>
                                   <input type="hidden" name="status" value="sold" />
-                                  <Submit className={dangerCls}>Mark sold</Submit>
+                                  <Submit className={dangerCls} confirm="Mark this lot sold? Buyers stop seeing it, and deals on it close.">
+                                    Mark sold
+                                  </Submit>
                                 </Hidden>
                               </ActionForm>
                             </>

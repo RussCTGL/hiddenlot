@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { listOpportunitiesForActor, listRejectedForActor } from "@/auth/access";
@@ -6,6 +7,8 @@ import { listDemandsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import type { Check, CheckStatus, CompatibilityStatus } from "@/discovery/constraints";
 import { requestNow, requireSession } from "@/lib/session";
+
+export const metadata: Metadata = { title: "Opportunities" };
 
 export default function OpportunitiesPage(props: PageProps<"/opportunities">) {
   return (
@@ -89,7 +92,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
         ))}
       </div>
 
-      {demands.length === 0 && <Empty>No demands yet. Create one to start discovery.</Empty>}
+      {demands.length === 0 && <Empty>Your network has no demands. Opportunities are matches for a demand; create one on Demands, or see your own stock on Today.</Empty>}
 
       <div className="space-y-8">
         {GROUPS.map((g) => {
@@ -100,7 +103,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
               <div className="flex items-center gap-2.5">
                 <StatusDot status={g.dot} />
                 <h2 className="text-[17px] font-semibold">{g.title}</h2>
-                <span className="font-mono text-[13px] text-zinc-500">{items.length}</span>
+                <span className="font-mono text-[13px] text-zinc-500 dark:text-zinc-400">{items.length}</span>
                 <Hint text={g.hint} />
               </div>
               <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -131,7 +134,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
                                 {o.status !== "discovered" && <Badge tone="violet">{o.status.replaceAll("_", " ")}</Badge>}
                               </span>
                               <span className="font-mono text-[13px] text-zinc-600 dark:text-zinc-400">{spec}</span>
-                              {!demandFilter && demands.length > 1 && <span className="block text-xs text-zinc-500">for {o.demand_title}</span>}
+                              {!demandFilter && demands.length > 1 && <span className="block text-xs text-zinc-500 dark:text-zinc-400">for {o.demand_title}</span>}
                             </Link>
                           </td>
                           <td className="px-3 py-3">{o.novelty === "cross_network" ? <Badge tone="sky">{o.seller_alias}</Badge> : <Badge>Your network</Badge>}</td>
@@ -167,7 +170,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
           <details className="rounded-xl border border-zinc-200 bg-white px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900">
             <summary className="flex min-h-7 cursor-pointer items-center gap-2.5 text-[15px] font-semibold">
               <StatusDot status="incompatible" />
-              Not recommended <span className="font-mono text-[13px] font-medium text-zinc-500">{rej.length}</span>
+              Ruled out <span className="font-mono text-[13px] font-medium text-zinc-500 dark:text-zinc-400">{rej.length}</span>
               <Hint text="A hard requirement fails. Shown for transparency, never as a candidate." />
             </summary>
             <ul className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -175,7 +178,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
                 <li key={r.id} className="py-2.5 text-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone={r.seller_network_id === actor.network_id ? "zinc" : "sky"}>{r.seller_network_id === actor.network_id ? "Your network" : r.seller_alias}</Badge>
-                    <span className="text-xs text-zinc-500">{r.demand_title}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{r.demand_title}</span>
                   </div>
                   <ul className="mt-1.5 space-y-1">
                     {r.checks
@@ -197,7 +200,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/opportunities"
           <details className="rounded-xl border border-zinc-200 bg-white px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-900">
             <summary className="flex min-h-7 cursor-pointer items-center gap-2.5 text-[15px] font-semibold">
               <span className="size-2.5 rounded-full bg-zinc-400" aria-hidden />
-              Invalidated <span className="font-mono text-[13px] font-medium text-zinc-500">{invalidated.length}</span>
+              Invalidated <span className="font-mono text-[13px] font-medium text-zinc-500 dark:text-zinc-400">{invalidated.length}</span>
               <Hint text="Lot sold or changed, demand changed, or sharing ended. Earlier decisions do not carry over." />
             </summary>
             <ul className="mt-3 space-y-1.5 text-sm">

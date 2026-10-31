@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { EyeIcon } from "@/components/icons";
 import { Empty, Loading, Page } from "@/components/ui";
+import { listDemandsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
+import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import { requestNow, requireSession } from "@/lib/session";
 import { fmtDay, isoDay, listDealsForActor, OPEN_STAGES, STAGE_LABEL, type DealCard, type DealStage } from "@/workflow/deals";
+
+export const metadata: Metadata = { title: "Deals" };
 
 export default function DealsPage() {
   return (
@@ -18,12 +23,12 @@ const COLUMNS: { title: string; stages: DealStage[]; empty: string }[] = [
   { title: STAGE_LABEL.waiting, stages: ["waiting"], empty: "Questions you asked show up here." },
   { title: STAGE_LABEL.quote_requested, stages: ["quote_requested"], empty: "Shortlisted lots wait here for an offer." },
   { title: STAGE_LABEL.quote_in_hand, stages: ["quote_in_hand"], empty: "Record a seller's offer and it moves here." },
-  { title: STAGE_LABEL.negotiating, stages: ["negotiating"], empty: "Nothing here yet." },
+  { title: STAGE_LABEL.negotiating, stages: ["negotiating"], empty: "Counter-offers you record land here." },
   { title: "Closed", stages: ["won", "lost"], empty: "Won or lost, with the reason." },
 ];
 
 const WATCHED: [string, boolean][] = [
-  ["Stock older than 48 h", true],
+  [`Stock older than ${FRESHNESS_WINDOW_HOURS} h`, true],
   ["No reply by the follow-up date", true],
   ["Offer past its validity", true],
   ["Lot or demand changed", true],
@@ -34,7 +39,8 @@ const WATCHED: [string, boolean][] = [
 async function Board() {
   const { actor } = await requireSession();
   const now = await requestNow();
-  const cards = await listDealsForActor(await getDb(), actor, now);
+  const db = await getDb();
+  const [cards, demands] = await Promise.all([listDealsForActor(db, actor, now), listDemandsOfNetwork(db, actor.network_id)]);
   const open = cards.filter((c) => OPEN_STAGES.includes(c.deal.stage));
   const flagged = open.filter((c) => c.risk).length;
   const today = isoDay(now);
@@ -44,13 +50,23 @@ async function Board() {
     <Page title="Deals" subtitle={`${open.length} open · ${flagged} need${flagged === 1 ? "s" : ""} attention · ${due} due today`}>
       {cards.length === 0 && (
         <div className="mb-6">
-          <Empty>
-            No deals yet. Accept a suggestion on{" "}
-            <Link href="/" className="text-accent hover:underline">
-              Today
-            </Link>{" "}
-            or shortlist an opportunity to start tracking it.
-          </Empty>
+          {demands.length === 0 ? (
+            <Empty>
+              Deals are tracked by buyers. Your network has no demands; buyers acting on your stock show up in{" "}
+              <Link href="/activity" className="text-accent hover:underline">
+                Activity
+              </Link>
+              .
+            </Empty>
+          ) : (
+            <Empty>
+              No deals yet. Accept a suggestion on{" "}
+              <Link href="/" className="text-accent hover:underline">
+                Today
+              </Link>{" "}
+              or shortlist an opportunity to start tracking it.
+            </Empty>
+          )}
         </div>
       )}
       <div className="overflow-x-auto pb-1">
@@ -61,7 +77,7 @@ async function Board() {
               <section key={col.title} className="flex flex-col gap-2.5">
                 <div className={`flex items-center justify-between border-b-2 px-1 pb-1.5 ${i === 1 ? "border-zinc-900 dark:border-zinc-200" : "border-zinc-300 dark:border-zinc-700"}`}>
                   <h2 className="text-sm font-semibold">{col.title}</h2>
-                  <span className="font-mono text-[13px] text-zinc-500">{items.length}</span>
+                  <span className="font-mono text-[13px] text-zinc-500 dark:text-zinc-400">{items.length}</span>
                 </div>
                 {items.map((c) => (
                   <Card key={c.deal.id} c={c} />

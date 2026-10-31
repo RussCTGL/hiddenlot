@@ -4,7 +4,7 @@ import { audit, newId, type DemandWithData } from "@/db/repo";
 import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, stockAgeHours, type Check, type CompatibilityStatus } from "@/discovery/constraints";
 import { projectLot, visibleLots, type VisibleLot } from "@/discovery/engine";
 import { compareDecimal } from "@/discovery/score";
-import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
+import { budgetText, type Demand, type InventoryLot, type InventoryLotField } from "@/domain/hrc";
 import { findPlace, type Place } from "@/geo/places";
 import { decideOpportunity } from "./actions";
 
@@ -86,6 +86,17 @@ function size(lot: InventoryLot, t: number | null, w: number | null) {
 
 function weight(lot: InventoryLot, kg: number) {
   return convertedBy(lot, "total_kg", "lb_to_kg") ? `${Math.round(kg / 0.45359237).toLocaleString("en-US")} lbs / ${num(kg / 1000)} t` : `${num(kg / 1000)} t`;
+}
+
+/** Size and weight in the seller's units; null when nothing is known. */
+export function lotSize(lot: InventoryLot) {
+  const t = val<number>(lot, "thickness_mm");
+  const w = val<number>(lot, "width_mm");
+  return t === null && w === null ? null : size(lot, t, w);
+}
+export function lotWeight(lot: InventoryLot) {
+  const kg = val<number>(lot, "total_kg");
+  return kg === null ? null : weight(lot, kg);
 }
 
 /** "SS400 · 3 × 1500 mm · 18 t", from what this network may see. */
@@ -414,7 +425,7 @@ function dealRisk(deal: DealRow, pair: PairState, ctx: Context): Risk | null {
       action: "reconfirm",
       badge: `Stock not reconfirmed · ${age} h`,
       reason: `${seller} last confirmed this stock ${age} hours ago. The window is ${FRESHNESS_WINDOW_HOURS} hours. Ask them to reconfirm before you ${deal.stage === "waiting" ? "go further" : "accept a quote"}.`,
-      label: `ask ${pair.own ? "the lot owner" : pair.sellerLabel} to reconfirm stock`,
+      label: `I've asked ${pair.own ? "the lot owner" : pair.sellerLabel} to reconfirm`,
       draft: reconfirmDraft(lot, deal.lot_id, pair.own),
     };
   }
@@ -824,13 +835,14 @@ export async function getDealViewForActor(db: Db, actor: Actor, id: string, now:
   let budgetNote: string | null = null;
   const b = demand.budget;
   if (b && deal.quote) {
-    const same = b.currency === deal.quote.currency && b.incoterm.toUpperCase() === deal.quote.incoterm.split(" ")[0].toUpperCase();
+    // Quotes are recorded per MT, so only a per-MT budget on the same terms is comparable.
+    const same = b.basis === "per_mt" && b.currency === deal.quote.currency && b.incoterm.toUpperCase() === deal.quote.incoterm.split(" ")[0].toUpperCase();
     budgetNote = same
       ? compareDecimal(deal.quote.price, b.amount) <= 0
-        ? `Within your budget of ${b.currency} ${b.amount}/MT ${b.incoterm} ${b.place} (goods only).`
-        : `Over your budget of ${b.currency} ${b.amount}/MT ${b.incoterm} ${b.place}.`
-      : `Budget ${b.currency} ${b.amount}/MT ${b.incoterm} ${b.place}; different terms, so not compared.`;
-  } else if (b) budgetNote = `Your budget: ${b.currency} ${b.amount}/MT ${b.incoterm} ${b.place} (goods only).`;
+        ? `Within your budget of ${budgetText(b)} (goods only).`
+        : `Over your budget of ${budgetText(b)}.`
+      : `Budget ${budgetText(b)}; different terms, so not compared.`;
+  } else if (b) budgetNote = `Your budget: ${budgetText(b)} (goods only).`;
 
   return {
     deal,

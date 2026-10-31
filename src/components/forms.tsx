@@ -40,6 +40,7 @@ export function Submit({
   value,
   disabled = false,
   title,
+  confirm,
 }: {
   children: ReactNode;
   className: string;
@@ -48,10 +49,20 @@ export function Submit({
   value?: string;
   disabled?: boolean;
   title?: string;
+  /** Ask before an action that cannot be undone. */
+  confirm?: string;
 }) {
   const status = useFormStatus();
   return (
-    <button type="submit" name={name} value={value} title={title} className={className} disabled={disabled || status.pending}>
+    <button
+      type="submit"
+      name={name}
+      value={value}
+      title={title}
+      className={className}
+      disabled={disabled || status.pending}
+      onClick={confirm ? (e) => window.confirm(confirm) || e.preventDefault() : undefined}
+    >
       {status.pending ? (pending ?? "Working…") : children}
     </button>
   );

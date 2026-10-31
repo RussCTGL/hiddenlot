@@ -36,8 +36,9 @@ export function readMetaConfig(env: Env): MetaClientConfig {
     throw new MetaConfigError(`Refusing contributor-tier model "${model}"; use a Standard model`);
   }
 
-  const timeoutMs = Number(env.META_TIMEOUT_MS ?? 60_000);
-  const maxRetries = Number(env.META_MAX_RETRIES ?? 2);
+  // `||`, not `??`: an empty META_TIMEOUT_MS= left from .env.example means "default", not 0.
+  const timeoutMs = Number(env.META_TIMEOUT_MS || 60_000);
+  const maxRetries = Number(env.META_MAX_RETRIES || 2);
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new MetaConfigError("META_TIMEOUT_MS must be > 0");
   if (!Number.isInteger(maxRetries) || maxRetries < 0 || maxRetries > 2) {
     throw new MetaConfigError("META_MAX_RETRIES must be 0, 1 or 2");

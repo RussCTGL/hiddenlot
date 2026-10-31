@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { resetDemo, rerunDiscovery } from "@/app/actions";
@@ -12,6 +13,8 @@ import { GROUP_ORDER } from "@/discovery/engine";
 import { demoLoaded, getSession, requestNow } from "@/lib/session";
 import { demoControlsAllowed } from "@/lib/demo";
 import { metaAvailable } from "@/lib/meta";
+
+export const metadata: Metadata = { title: "How it works" };
 
 export default function About() {
   return (
@@ -60,9 +63,9 @@ async function Overview() {
       actions={
         <>
           <form action={rerunDiscovery}>
-            <Submit className={buttonCls} pending="Running…">
+            <Submit className={buttonCls} pending="Checking…">
               <RefreshIcon size={16} />
-              Re-run discovery
+              Re-check matches
             </Submit>
           </form>
           {demoControlsAllowed() && (
@@ -128,7 +131,7 @@ async function Overview() {
         <ol className="mt-4 mb-1 grid list-decimal gap-x-8 gap-y-3 pl-5 text-sm text-zinc-700 sm:grid-cols-2 lg:grid-cols-3 dark:text-zinc-300">
           <li>Sign in as Ana (Network A), open Today and accept all</li>
           <li>Open Deals: five lots are tracked</li>
-          <li>Skip ahead 2 days (footer): Today flags stale stock</li>
+          <li>Skip ahead 1 day (footer): Today flags stale stock</li>
           <li>Switch to Bo (Network B), reconfirm B-018 in Inventory</li>
           <li>As Bo, mark B-018 sold: Ana&rsquo;s deal closes</li>
           <li>Sign in as Dana (Network D), open Today: a Houston buyer, stock in New Orleans, Altamira and Rotterdam</li>

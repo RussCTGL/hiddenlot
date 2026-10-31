@@ -194,6 +194,9 @@ export const Demand = z.object({
 });
 export type Demand = z.infer<typeof Demand>;
 
+/** "USD 560/MT CFR Haiphong", or "… per lot …" for a whole-lot budget. */
+export const budgetText = (b: NonNullable<Demand["budget"]>) => `${b.currency} ${b.amount}${b.basis === "per_lot" ? " per lot" : "/MT"} ${b.incoterm} ${b.place}`;
+
 // ---------------------------------------------------------------------------
 // Sanity bounds. These are review triggers for extraction slips such as
 // "3.0" read as "30" — they are NOT product-standard limits and never make a

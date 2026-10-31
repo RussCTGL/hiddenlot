@@ -1,11 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Card, Loading, Page } from "@/components/ui";
+import { listDemandsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { demoControlsAllowed } from "@/lib/demo";
 import { marketMinutes } from "@/lib/market-clock";
 import { requestNow, requireSession } from "@/lib/session";
 import { listMarketEvents } from "@/sim/market";
+
+export const metadata: Metadata = { title: "Activity" };
 
 export default function ActivityPage() {
   return (
@@ -27,7 +31,8 @@ const KIND: Record<string, string> = {
 async function Activity() {
   const { actor, network } = await requireSession();
   const now = await requestNow();
-  const events = await listMarketEvents(await getDb(), actor.network_id, now);
+  const db = await getDb();
+  const [events, demands] = await Promise.all([listMarketEvents(db, actor.network_id, now), listDemandsOfNetwork(db, actor.network_id)]);
   const minutes = marketMinutes();
   return (
     <Page
@@ -41,8 +46,16 @@ async function Activity() {
             : demoControlsAllowed()
               ? "The simulated market moves when you press Simulate 1 market hour in the footer. "
               : "The simulated market is paused here. "}
-          New matches show up on <Link href="/" className="text-accent hover:underline">Today</Link>; answers to your questions show up as changed lots on{" "}
-          <Link href="/deals" className="text-accent hover:underline">Deals</Link>.
+          {demands.length === 0 ? (
+            <>
+              Your stock, and which lots need reconfirming, is on <Link href="/" className="text-accent hover:underline">Today</Link>.
+            </>
+          ) : (
+            <>
+              New matches show up on <Link href="/" className="text-accent hover:underline">Today</Link>; answers to your questions show up as changed lots on{" "}
+              <Link href="/deals" className="text-accent hover:underline">Deals</Link>.
+            </>
+          )}
         </p>
       </Card>
       {events.length === 0 ? (

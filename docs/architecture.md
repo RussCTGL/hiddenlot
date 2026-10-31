@@ -49,11 +49,17 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
 
 ## Storage
 
-Postgres schema in `db/migrations/` (`0001_init.sql`; `0002_deals.sql` adds deals, deal events and the demo
-clock; `0005_hosted.sql` adds per-visitor Meta usage and maintenance leases), run on embedded PGlite
+Postgres schema in `db/migrations/0001…0006` (deals and the demo clock, Meta usage, maintenance leases, and
+accounts and the simulated market are added after `0001_init.sql`), run on embedded PGlite
 locally (`.data/pglite`) and on Neon Postgres over HTTPS when `DATABASE_URL` is set (`src/db/neon.ts`). Both
 sit behind the same three-method interface in `src/db/client.ts`. Raw documents
 stay with the owner network; other networks only ever receive the shared projection.
+
+## Accounts and the simulated market
+
+- **Sign-in** (`src/auth/accounts.ts`, `src/lib/session.ts`): each demo user has a username and a scrypt password hash. A session is a random token in an HTTP-only cookie, stored only as its SHA-256.
+- **Simulated users** (`src/sim/market.ts`): a seeded, deterministic simulator posts stock and demands, answers buyers' questions and sells, through the same intake, review and discovery code as everyone else. Its documents carry their own truth, so extraction is scripted and makes no model calls. It takes a step after responses while people use the demo (`src/lib/market-clock.ts`); **Activity** shows each network what it may see.
+- **Daily reload** (`src/lib/demo-maintenance.ts`, `vercel.json` cron): the shared demo is reloaded once a day under a lease, so several instances never reload at once.
 
 ## Authorization
 

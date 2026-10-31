@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { reconfirmAction, resetDemo } from "@/app/actions";
@@ -13,6 +14,9 @@ import { findPlace } from "@/geo/places";
 import { demoLoaded, getSession, requestNow } from "@/lib/session";
 import { buildDigest, lotRef, lotTitle, whereOf, type DigestItem, type Suggestion } from "@/workflow/deals";
 
+// The root layout's title template only applies below this segment.
+export const metadata: Metadata = { title: { absolute: "Today · HiddenLot" } };
+
 export default function Today() {
   return (
     <Suspense fallback={<Loading label="Preparing today's digest…" />}>
@@ -20,8 +24,6 @@ export default function Today() {
     </Suspense>
   );
 }
-
-const shortTitle = (t: string) => t.replace(" mm", "");
 
 async function TodayPage() {
   const session = await getSession();
@@ -67,7 +69,7 @@ async function TodayPage() {
     return {
       key: s.key,
       kind,
-      title: shortTitle(s.title),
+      title: s.title,
       sub: s.sub,
       href: s.href,
       lotRef: s.lotRef,
@@ -79,7 +81,7 @@ async function TodayPage() {
   const fromItem = (i: DigestItem, kind: BoardKind): BoardItem => ({
     key: i.key,
     kind,
-    title: shortTitle(i.title),
+    title: i.title,
     sub: `${i.lotRef} · ${i.text}`,
     href: i.href,
     lotRef: i.lotRef,
@@ -133,7 +135,7 @@ async function NoDemands({ actor, networkName, day, now }: { actor: { network_id
   const row = (l: (typeof lots)[number], action: React.ReactNode) => (
     <li key={l.id} id={`lot-${l.id}`} className="flex scroll-mt-4 items-center gap-3 border-b border-zinc-100 px-4 py-3 target:bg-accent-soft target:shadow-[inset_3px_0_0_var(--accent)] dark:border-zinc-800">
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold">{shortTitle(lotTitle(l.data))}</span>
+        <span className="block truncate text-sm font-semibold">{lotTitle(l.data)}</span>
         <span className="mt-0.5 block truncate text-xs text-zinc-500 dark:text-zinc-400">
           {lotRef(l.data, l.id)} · {whereOf(l.data)?.name ?? "no location"} · confirmed {Math.ceil(age(l))} h ago
         </span>
@@ -149,7 +151,7 @@ async function NoDemands({ actor, networkName, day, now }: { actor: { network_id
         <aside className="flex flex-col border-zinc-200 bg-white lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:border-l dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
             <span className="text-sm font-semibold">{networkName} · your stock</span>
-            <ButtonLink href="/demands/new">New demand</ButtonLink>
+            <ButtonLink href="/intake">Add stock</ButtonLink>
           </div>
           {stale.length > 0 && (
             <>
@@ -207,7 +209,7 @@ async function NoDemands({ actor, networkName, day, now }: { actor: { network_id
               <ButtonLink href="/inventory" primary>
                 Inventory
               </ButtonLink>
-              <ButtonLink href="/intake">Add stock</ButtonLink>
+              <ButtonLink href="/demands/new">New demand</ButtonLink>
               <ButtonLink href="/sharing">Sharing</ButtonLink>
             </div>
           </div>

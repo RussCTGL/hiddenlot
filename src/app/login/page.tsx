@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { signInAction } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
@@ -5,6 +6,8 @@ import { buttonCls, Card, inputCls, Label, Loading, Page, primaryCls } from "@/c
 import { getDb } from "@/db/server";
 import { demoLoaded, getSession } from "@/lib/session";
 import { loadMarket } from "@/sim/market";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
@@ -65,11 +68,11 @@ async function Login() {
           </p>
         </Card>
 
-        <div className="space-y-6">
+        <div className="order-first space-y-6 lg:order-none">
           <AccountList title="Walkthrough accounts" note="You act as these people. Their stock and demands are the demo story." accounts={story} password={password} />
           <AccountList
             title="Simulated users"
-            note="Pseudo users of the same networks. A simulator has them post stock and demands, answer buyers' questions and sell, through the same pipeline and rules. Sign in to see the market from their side."
+            note="Simulated users in the same networks. A simulator has them post stock and demands, answer buyers' questions and sell, through the same pipeline and rules. Sign in to see the market from their side."
             accounts={simulated}
             password={password}
           />
@@ -99,7 +102,7 @@ function AccountList({ title, note, accounts, password }: { title: string; note:
               <input type="hidden" name="username" value={a.username} />
               <input type="hidden" name="password" value={password} />
               <Submit className={buttonCls} pending="…">
-                Sign in
+                Sign in<span className="sr-only"> as {short(a.name)}</span>
               </Submit>
             </ActionForm>
           </li>

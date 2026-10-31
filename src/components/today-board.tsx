@@ -45,8 +45,8 @@ const SECTION: Record<BoardKind, string> = {
   risk: "Needs attention",
   forward: "Move forward",
   ask: "Needs an answer",
-  parked: "Parked for engineering",
-  missing: "Several facts open",
+  parked: "Engineering review",
+  missing: "Missing info",
   out: "Ruled out",
 };
 const ORDER: BoardKind[] = ["risk", "forward", "ask", "parked", "missing", "out"];
@@ -104,8 +104,6 @@ export function TodayBoard({
     document.getElementById(`row-${key}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
-  const halo = haloCls;
-
   return (
     <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
       <MapCanvas
@@ -144,8 +142,8 @@ export function TodayBoard({
               </span>
               <span className="flex items-center gap-1.5">
                 <svg aria-hidden width="12" height="12">
-                  <circle cx="6" cy="6" r="5" fill="none" stroke="#2453C7" strokeWidth="1.5" />
-                  <circle cx="6" cy="6" r="2" fill="#2453C7" />
+                  <circle cx="6" cy="6" r="5" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
+                  <circle cx="6" cy="6" r="2" fill="var(--accent)" />
                 </svg>
                 your delivery point
               </span>
@@ -184,13 +182,13 @@ export function TodayBoard({
                 const here = chips.get(d.name) ?? [];
                 return (
                   <g key={d.name}>
-                    <circle cx={d.x} cy={d.y} r={22 * k} fill="#2453C7" opacity={0.1} />
-                    <circle cx={d.x} cy={d.y} r={13 * k} fill="none" stroke="#2453C7" strokeWidth={2 * k} />
-                    <circle cx={d.x} cy={d.y} r={5 * k} fill="#2453C7" />
-                    <text x={d.x - 28 * k} y={d.y - 6 * k} textAnchor="end" fontSize={12 * k} fontWeight={600} className={halo} style={label}>
+                    <circle cx={d.x} cy={d.y} r={22 * k} fill="var(--accent)" opacity={0.1} />
+                    <circle cx={d.x} cy={d.y} r={13 * k} fill="none" stroke="var(--accent)" strokeWidth={2 * k} />
+                    <circle cx={d.x} cy={d.y} r={5 * k} fill="var(--accent)" />
+                    <text x={d.x - 28 * k} y={d.y - 6 * k} textAnchor="end" fontSize={12 * k} fontWeight={600} className={haloCls} style={label}>
                       {d.name}
                     </text>
-                    <text x={d.x - 28 * k} y={d.y + 9 * k} textAnchor="end" fontSize={11 * k} className={halo} style={label} opacity={0.75}>
+                    <text x={d.x - 28 * k} y={d.y + 9 * k} textAnchor="end" fontSize={11 * k} className={haloCls} style={label} opacity={0.75}>
                       your delivery point
                     </text>
                     {here.map((i, n) => {
@@ -198,7 +196,7 @@ export function TodayBoard({
                       const w = 92 * k;
                       const on = selected === i.key;
                       return (
-                        <g key={i.key} data-pin onClick={() => select(i.key)} className="cursor-pointer" role="button" aria-label={`${i.lotRef}: ${i.title}`}>
+                        <g key={i.key} data-pin onClick={() => select(i.key)} className="cursor-pointer" aria-hidden>
                           <rect x={d.x - w - 16 * k} y={y} width={w} height={22 * k} rx={11 * k} className="fill-white dark:fill-zinc-900" stroke={COLOR[i.kind]} strokeWidth={(on ? 2.5 : 1.25) * k} />
                           <circle cx={d.x - w - 4 * k} cy={y + 11 * k} r={4 * k} fill={COLOR[i.kind]} />
                           <text x={d.x - w + 5 * k} y={y + 15 * k} fontSize={11 * k} fontWeight={500} className="fill-zinc-900 dark:fill-zinc-100">
@@ -218,7 +216,7 @@ export function TodayBoard({
                 const tx = side === "left" ? x - 14 * k : x + 13 * k;
                 const anchor = side === "left" ? "end" : "start";
                 return (
-                  <g key={i.key} data-pin onClick={() => select(i.key)} className="cursor-pointer" role="button" aria-label={`${i.lotRef}: ${i.title}`}>
+                  <g key={i.key} data-pin onClick={() => select(i.key)} className="cursor-pointer" aria-hidden>
                     {on && <circle cx={x} cy={y} r={16 * k} fill={c} opacity={0.18} />}
                     {i.pin!.precision === "stock" ? (
                       <circle cx={x} cy={y} r={7 * k} fill={c} className="stroke-white dark:stroke-zinc-900" strokeWidth={2 * k} />
@@ -226,10 +224,10 @@ export function TodayBoard({
                       <circle cx={x} cy={y} r={8 * k} className="fill-white dark:fill-zinc-900" stroke={c} strokeWidth={2.5 * k} strokeDasharray={`${3 * k} ${2.5 * k}`} />
                     )}
                     {on && <circle cx={x} cy={y} r={11.5 * k} fill="none" className="stroke-zinc-900 dark:stroke-white" strokeWidth={1.5 * k} />}
-                    <text x={tx} y={y - 3 * k} textAnchor={anchor} fontSize={12 * k} fontWeight={600} className={halo} style={label}>
+                    <text x={tx} y={y - 3 * k} textAnchor={anchor} fontSize={12 * k} fontWeight={600} className={haloCls} style={label}>
                       {i.lotRef}
                     </text>
-                    <text x={tx} y={y + 11 * k} textAnchor={anchor} fontSize={11 * k} className={halo} style={label} opacity={0.75}>
+                    <text x={tx} y={y + 11 * k} textAnchor={anchor} fontSize={11 * k} className={haloCls} style={label} opacity={0.75}>
                       {i.pin!.precision === "ships_from" ? `ships from ${i.pin!.place}` : i.pin!.precision === "delivered" ? `delivered ${i.pin!.place}` : i.pin!.place}
                     </text>
                   </g>
@@ -277,13 +275,13 @@ export function TodayBoard({
           {(["parked", "missing", "out"] as BoardKind[])
             .filter((kind) => count(kind) > 0)
             .map((kind) => (
-              <Chip key={kind} kind={kind} n={count(kind)} on={shown[kind]} toggle={() => setShown((s) => ({ ...s, [kind]: !s[kind] }))} short />
+              <Chip key={kind} kind={kind} n={count(kind)} on={shown[kind]} toggle={() => setShown((s) => ({ ...s, [kind]: !s[kind] }))} />
             ))}
           <span className="md:hidden">
             {(["forward", "ask", "risk"] as BoardKind[])
               .filter((kind) => count(kind) > 0 && !shown[kind])
               .map((kind) => (
-                <Chip key={kind} kind={kind} n={count(kind)} on={false} toggle={() => setShown((s) => ({ ...s, [kind]: true }))} short />
+                <Chip key={kind} kind={kind} n={count(kind)} on={false} toggle={() => setShown((s) => ({ ...s, [kind]: true }))} />
               ))}
           </span>
         </div>
@@ -295,7 +293,7 @@ export function TodayBoard({
 function Summary({ count, deals, keys, inline = false }: { count: number; deals: number; keys: string[]; inline?: boolean }) {
   return (
     <>
-      <span className={`flex items-baseline gap-2 ${inline ? "" : ""}`}>
+      <span className="flex items-baseline gap-2">
         <b className={`font-mono leading-none font-medium ${inline ? "text-2xl" : "text-[32px]"}`}>{count}</b>
         <span className="text-sm text-zinc-600 dark:text-zinc-400">{count === 1 ? "decision" : "decisions"}</span>
       </span>
@@ -324,7 +322,7 @@ function Summary({ count, deals, keys, inline = false }: { count: number; deals:
   );
 }
 
-function Chip({ kind, n, on, toggle, short = false }: { kind: BoardKind; n: number; on: boolean; toggle: () => void; short?: boolean }) {
+function Chip({ kind, n, on, toggle }: { kind: BoardKind; n: number; on: boolean; toggle: () => void }) {
   return (
     <button
       type="button"
@@ -333,7 +331,7 @@ function Chip({ kind, n, on, toggle, short = false }: { kind: BoardKind; n: numb
       className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium ${on ? "border-zinc-300 bg-white text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100" : "border-zinc-200 bg-zinc-100 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400"}`}
     >
       <span className="size-2 rounded-full" style={{ background: COLOR[kind] }} aria-hidden />
-      {short ? SECTION[kind].replace(" for engineering", "") : SECTION[kind]} {n}
+      {SECTION[kind]} {n}
     </button>
   );
 }
@@ -358,7 +356,7 @@ function Row({ item: i, selected, onSelect, draftOpen, toggleDraft }: { item: Bo
           <ActionForm action={acceptSuggestionsAction}>
             <input type="hidden" name="key" value={a.key} />
             <Submit className={btn} pending="…">
-              Accept
+              {a.button}
             </Submit>
           </ActionForm>
         )}

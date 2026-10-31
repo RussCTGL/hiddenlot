@@ -126,7 +126,7 @@ The last bug does not change the outcome; only the stated invalidation reason di
 
 **Results.** One run per row, in-memory PGlite, Apple M5 Ultra, Node 24. The first m run exposed the performance problems below; the fix then went in and m was run again on the same seed.
 
-| | s (after fix) | m, before fix | m, after fix |
+| | s, before fix | m, before fix | m, after fix |
 |---|---:|---:|---:|
 | Networks · lots · demands · grants | 5 · 500 · 20 · 52 | 8 · 2,000 · 64 · 201 | same |
 | Visible pairs after load · after changes | 4,148 · 3,816 | 65,665 · 52,372 | same |

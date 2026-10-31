@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -15,6 +16,8 @@ import { requestNow, requireSession } from "@/lib/session";
 import { STAGE_LABEL, type DealStage } from "@/workflow/deals";
 import { metaAvailable } from "@/lib/meta";
 import type { StoredExplanation } from "@/workflow/explain";
+
+export const metadata: Metadata = { title: "Opportunity" };
 
 export default function OpportunityPage(props: PageProps<"/opportunities/[id]">) {
   return (
@@ -52,7 +55,7 @@ function needHas(c: Check, d: Demand, lot: InventoryLot | null): [string, string
     const o = lot.fields[f];
     if (o.issues.includes("withheld_by_owner")) return "not shared";
     const x = o.normalized_value;
-    if (x === null || (Array.isArray(x) && x.length === 0)) return "?";
+    if (x === null || (Array.isArray(x) && x.length === 0)) return "not stated";
     return f === "total_kg" ? `${(x as number) / 1000} t` : formatValue(f, x);
   };
   switch (c.id) {
@@ -62,7 +65,7 @@ function needHas(c: Check, d: Demand, lot: InventoryLot | null): [string, string
       const want = d.accepted_grades.map((g) => [g.standard_id, g.edition].filter(Boolean).join(":")).filter(Boolean);
       const ed = lot?.fields.standard_edition.normalized_value;
       const has = v("standard_id");
-      return [want.length ? want.join(" / ") : "any", ed && has !== "?" && has !== "not shared" ? `${has}:${String(ed)}` : has];
+      return [want.length ? want.join(" / ") : "any", ed && has !== "not stated" && has !== "not shared" ? `${has}:${String(ed)}` : has];
     }
     case "thickness":
       return [range(d.thickness_mm, "mm"), v("thickness_mm")];
@@ -117,7 +120,7 @@ function Requirements({ checks, demand, lot }: { checks: Check[]; demand: Demand
                 <tr key={c.id} title={tip} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
                   <td className="py-3 pr-3 font-medium">{SHORT_LABEL[c.id] ?? c.label}</td>
                   <td className="py-3 pr-3 text-zinc-600 tabular-nums dark:text-zinc-400">{need}</td>
-                  <td className={`py-3 pr-3 font-medium tabular-nums ${has === "?" || has === "not shared" ? "text-amber-700 dark:text-amber-400" : ""}`}>{has}</td>
+                  <td className={`py-3 pr-3 font-medium tabular-nums ${has === "not stated" || has === "not shared" ? "text-amber-700 dark:text-amber-400" : ""}`}>{has}</td>
                   <td className="py-3 text-right">
                     <Mark kind={markOf(c)} title={tip} />
                   </td>

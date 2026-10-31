@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -10,6 +11,8 @@ import { listLotsOfDocument } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
 import { requireSession } from "@/lib/session";
+
+export const metadata: Metadata = { title: "Document" };
 
 export default function DocumentPage(props: PageProps<"/documents/[id]">) {
   return (
@@ -85,11 +88,12 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
   )[0];
   const cited = new Set(lots.flatMap((l) => Object.values(l.data.fields).flatMap((o) => o.evidence.map((e) => e.fragment_id))));
   const usage = run?.model_run?.usage as { total_tokens?: number } | undefined;
+  const status = doc.status === "needs_review" && lots.length > 0 && !lots.some((l) => l.status === "needs_review") ? "reviewed" : doc.status.replaceAll("_", " ");
 
   return (
     <Page
       title={doc.filename ?? doc.id}
-      subtitle={`${doc.kind.toUpperCase()} · ${doc.status.replaceAll("_", " ")} · private to your network${doc.synthetic ? " · synthetic" : ""}`}
+      subtitle={`${doc.kind.toUpperCase()} · ${status} · private to your network${doc.synthetic ? " · synthetic" : ""}`}
       actions={<Link href="/intake" className="text-sm text-accent hover:underline">← Intake</Link>}
     >
       {doc.error && <div className="mb-4 rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200">{doc.error}</div>}
@@ -176,7 +180,9 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
                       <input type="hidden" name="lot_id" value={l.id} />
                       <input type="hidden" name="version" value={l.current_version} />
                       <input type="hidden" name="status" value="withdrawn" />
-                      <Submit className={dangerCls}>Withdraw</Submit>
+                      <Submit className={dangerCls} confirm="Withdraw this lot? Buyers stop seeing it, and deals on it close.">
+                        Withdraw
+                      </Submit>
                     </ActionForm>
                   </div>
                 )}

@@ -46,7 +46,9 @@ export function NavLinks({ path, children }: { path: string; children?: ReactNod
           <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
-          {current?.[1] ?? "Menu"}
+          {/* The page name only where it fits next to the logo; "Opportunities" wraps the header on phones. */}
+          <span className="sm:hidden">Menu</span>
+          <span className="hidden sm:inline">{current?.[1] ?? "Menu"}</span>
         </summary>
         <div className="absolute top-12 right-0 z-20 flex w-64 flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
           <nav className="flex flex-col">{links}</nav>

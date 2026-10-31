@@ -57,8 +57,11 @@ export function MapCanvas({
     return () => el.removeEventListener("wheel", onWheel);
   });
 
-  // The page draws a light coastline; the detailed one follows (the browser keeps it).
+  // The page draws a light coastline; the detailed one (~450 KB) follows once the view is
+  // zoomed in far enough to show the difference (the browser keeps it).
+  const wantFine = view.w < extent.w / 3;
   useEffect(() => {
+    if (!wantFine || land !== coarse) return;
     let live = true;
     fetch("/map/land")
       .then((r) => (r.ok ? r.text() : null))
@@ -67,7 +70,7 @@ export function MapCanvas({
     return () => {
       live = false;
     };
-  }, []);
+  }, [wantFine, land, coarse]);
 
   // Map units per screen pixel.
   const k = Math.max(view.w / size.w, view.h / size.h);

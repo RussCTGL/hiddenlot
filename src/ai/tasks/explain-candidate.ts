@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { ChatMessage } from "@/ai/meta/client";
 import type { Check } from "@/discovery/constraints";
-import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
+import { budgetText, type Demand, type InventoryLot, type InventoryLotField } from "@/domain/hrc";
 import { numbersIn } from "./extract-supply";
 
 // Task B (plan §10.2-B): ExplainCandidate. The model only rephrases facts that
@@ -34,7 +34,7 @@ const DEMAND_FACTS = (d: Demand): Fact[] => [
   { id: "D2", text: `Buyer needs thickness ${d.thickness_mm.min ?? "?"}–${d.thickness_mm.max ?? "?"} mm and width ${d.width_mm.min ?? "?"}–${d.width_mm.max ?? "?"} mm` },
   { id: "D3", text: `Buyer needs ${d.quantity_kg.min / 1000}–${d.quantity_kg.max / 1000} t${d.allow_partial_delivery ? ", partial delivery acceptable" : ", no partial delivery"}` },
   { id: "D4", text: `Buyer requires certificates: ${d.must_have_certificates.join(", ") || "none"}; condition: ${d.acceptable_conditions.join(", ")}` },
-  { id: "D5", text: `Need-by date: ${d.need_by ?? "none"}; budget: ${d.budget ? `${d.budget.currency} ${d.budget.amount} per MT ${d.budget.incoterm} ${d.budget.place}` : "none"}` },
+  { id: "D5", text: `Need-by date: ${d.need_by ?? "none"}; budget: ${d.budget ? budgetText(d.budget) : "none"}` },
 ];
 
 const LOT_FIELDS: InventoryLotField[] = ["product_form", "grade_raw", "standard_id", "standard_edition", "thickness_mm", "width_mm", "total_kg", "piece_count", "condition", "certificate_claims", "available_from", "price_amount", "price_currency", "price_basis", "incoterm", "incoterm_place", "surplus_reason"];

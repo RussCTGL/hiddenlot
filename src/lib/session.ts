@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { after, connection } from "next/server";
+import { cache } from "react";
 import type { Actor } from "@/auth/access";
 import { sessionUserId, SESSION_DAYS } from "@/auth/accounts";
 import { getClockOffsetHours, getNetwork, getUser, type NetworkRow, type UserRow } from "@/db/repo";
@@ -31,8 +32,8 @@ export interface Session {
   network: NetworkRow;
 }
 
-/** The signed-in user, or null. */
-export async function getSession(): Promise<Session | null> {
+/** The signed-in user, or null. Memoised per request: the layout and the page both ask. */
+export const getSession = cache(async (): Promise<Session | null> => {
   // Everything behind a session is per-request data; never prerender it.
   await connection();
   const db = await getDb();
@@ -43,7 +44,7 @@ export async function getSession(): Promise<Session | null> {
   // The simulated market moves on while people use the demo (after the response, never in its way).
   after(() => catchUpMarket().catch((err) => console.error("[hiddenlot] market tick failed", err)));
   return { actor: { id: user.id, network_id: user.network_id, role: user.role }, user, network };
-}
+});
 
 /** The signed-in user; anyone else is sent to the sign-in page (or, before the demo is loaded, to its setup). */
 export async function requireSession(): Promise<Session> {
@@ -63,7 +64,7 @@ export async function demoLoaded(): Promise<boolean> {
  * demo clock can be moved forward so time-based rules show without waiting;
  * pages here are request-time, never prerendered.
  */
-export async function requestNow(): Promise<Date> {
+export const requestNow = cache(async (): Promise<Date> => {
   await connection();
   return new Date(Date.now() + (await getClockOffsetHours(await getDb())) * 3_600_000);
-}
+});

@@ -15,7 +15,7 @@ const plexSans = IBM_Plex_Sans({ variable: "--font-plex-sans", subsets: ["latin"
 const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["500"] });
 
 export const metadata: Metadata = {
-  title: "HiddenLot",
+  title: { template: "%s · HiddenLot", default: "HiddenLot" },
   description: "Evidence-backed discovery of surplus steel supply across authorized trade networks.",
 };
 

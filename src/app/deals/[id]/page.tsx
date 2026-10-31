@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -12,6 +13,8 @@ import { REVIEWABLE } from "@/discovery/constraints";
 import type { InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { requestNow, requireSession } from "@/lib/session";
 import { dealDraft, fmtDay, getDealViewForActor, OPEN_STAGES, STAGE_LABEL, type DealStage, type DealView } from "@/workflow/deals";
+
+export const metadata: Metadata = { title: "Deal" };
 
 export default function DealPage(props: PageProps<"/deals/[id]">) {
   return (
