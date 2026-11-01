@@ -15,6 +15,7 @@ export function Draft({ text }: { text: string }) {
         <CopyButton text={text} className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-accent hover:bg-white dark:hover:bg-zinc-900" />
       </div>
       <p>{text}</p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">HiddenLot sends nothing to the seller. Copy this and send it by email or chat.</p>
     </div>
   );
 }

@@ -358,7 +358,9 @@ export async function decideAction(_prev: ActionState, formData: FormData): Prom
       await startDeal(db, actor, oppId, "waiting", ask, `Requested information: ${reason}`, now);
     }
     refresh();
-    return { ok: decision === "shortlisted" || decision === "information_requested" ? "Saved and tracked in Deals" : "Decision saved with the versions it was based on" };
+    if (decision === "shortlisted") return { ok: "Tracked in Deals under Quote requested. Nothing was sent: copy the drafted message there to the seller." };
+    if (decision === "information_requested") return { ok: "Tracked in Deals under Waiting for an answer. Nothing was sent: copy the drafted message there to the seller." };
+    return { ok: "Decision saved with the versions it was based on" };
   });
 }
 

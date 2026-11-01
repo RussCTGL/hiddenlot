@@ -135,6 +135,9 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
 
           {open && d.stage !== "waiting" && (
             <Card title={d.quote ? "Update the seller's offer" : "Record the seller's offer"}>
+              {d.stage === "quote_requested" && !d.quote && (
+                <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">Quote requested. When the seller replies, enter their offer here and the deal moves to Quote in hand.</p>
+              )}
               {d.stage === "quote_requested" && draft && !v.risk?.draft && (
                 <div className="mb-4">
                   <Draft text={draft} />
