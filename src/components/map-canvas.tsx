@@ -148,7 +148,7 @@ export function MapCanvas({
       {overlay}
 
       {/* zoom */}
-      <div className="absolute right-4 bottom-4 flex flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="absolute right-4 bottom-4 flex flex-col overflow-hidden rounded-lg border border-zinc-300 bg-white/80 backdrop-blur-md dark:border-zinc-700 dark:bg-zinc-900/75">
         <button type="button" aria-label="Zoom in" onClick={() => zoomAt(0.7)} className="size-9 border-b border-zinc-300 text-lg hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
           +
         </button>

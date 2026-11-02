@@ -28,7 +28,7 @@ export function StockMap({ land, extent, view, pins, day, stale, published }: { 
       label={`Map of your published stock: ${published} lots, ${stale} to reconfirm`}
       overlay={
         <>
-          <div className="absolute top-4 left-4 hidden flex-col gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-3.5 shadow-lg shadow-zinc-900/5 sm:flex dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="absolute top-4 left-4 hidden flex-col gap-1.5 rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3.5 shadow-lg shadow-zinc-900/5 backdrop-blur-md sm:flex dark:border-zinc-800/80 dark:bg-zinc-900/75">
             <span className="text-xs text-zinc-500 dark:text-zinc-400">{day}</span>
             <span className="flex items-baseline gap-2">
               <b className="font-mono text-[32px] leading-none font-medium">{stale}</b>
@@ -36,7 +36,7 @@ export function StockMap({ land, extent, view, pins, day, stale, published }: { 
             </span>
             <span className="text-sm text-zinc-600 dark:text-zinc-400">{published} published</span>
           </div>
-          <div className="absolute bottom-4 left-4 hidden flex-wrap gap-x-3.5 gap-y-1 rounded-lg bg-white/90 px-3 py-2 text-xs text-zinc-700 md:flex dark:bg-zinc-900/90 dark:text-zinc-300">
+          <div className="absolute bottom-4 left-4 hidden flex-wrap gap-x-3.5 gap-y-1 rounded-lg bg-white/80 px-3 py-2 text-xs text-zinc-700 backdrop-blur-md md:flex dark:bg-zinc-900/75 dark:text-zinc-300">
             <Key color={STALE}>needs reconfirming</Key>
             <Key color={FRESH}>confirmed recently</Key>
             <span className="flex items-center gap-1.5">
@@ -63,6 +63,7 @@ export function StockMap({ land, extent, view, pins, day, stale, published }: { 
             const c = p.stale ? STALE : FRESH;
             return (
               <a key={p.id} href={`#lot-${p.id}`} data-pin aria-label={`${p.lotRef}: ${p.title}${p.stale ? ", needs reconfirming" : ""}`}>
+                {p.stale && <circle cx={x} cy={y} r={8 * k} fill="none" stroke={c} strokeWidth={2 * k} className="map-pulse" />}
                 {p.precision === "stock" ? (
                   <circle cx={x} cy={y} r={7 * k} fill={c} className="stroke-white dark:stroke-zinc-900" strokeWidth={2 * k} />
                 ) : (

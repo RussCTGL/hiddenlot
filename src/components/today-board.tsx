@@ -114,7 +114,7 @@ export function TodayBoard({
         overlay={
           <>
             {/* summary card */}
-            <div className="absolute top-4 left-4 hidden flex-col gap-2.5 rounded-xl border border-zinc-200 bg-white px-4 py-3.5 shadow-lg shadow-zinc-900/5 sm:flex dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="absolute top-4 left-4 hidden flex-col gap-2.5 rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3.5 shadow-lg shadow-zinc-900/5 backdrop-blur-md sm:flex dark:border-zinc-800/80 dark:bg-zinc-900/75">
               <span className="text-xs text-zinc-500 dark:text-zinc-400">{day}</span>
               <Summary count={actions.length} deals={deals} keys={actions.map((i) => i.action!.key)} />
             </div>
@@ -127,7 +127,7 @@ export function TodayBoard({
             </div>
 
             {/* legend */}
-            <div className="absolute bottom-4 left-4 hidden flex-wrap gap-x-3.5 gap-y-1 rounded-lg bg-white/90 px-3 py-2 text-xs text-zinc-700 md:flex dark:bg-zinc-900/90 dark:text-zinc-300">
+            <div className="absolute bottom-4 left-4 hidden flex-wrap gap-x-3.5 gap-y-1 rounded-lg bg-white/80 px-3 py-2 text-xs text-zinc-700 backdrop-blur-md md:flex dark:bg-zinc-900/75 dark:text-zinc-300">
               <span className="flex items-center gap-1.5">
                 <svg aria-hidden width="12" height="12">
                   <circle cx="6" cy="6" r="5" className="fill-zinc-600 dark:fill-zinc-400" />
@@ -166,7 +166,10 @@ export function TodayBoard({
                 const on = selected === i.key;
                 return (
                   <path
-                    key={`r-${i.key}`}
+                    // A new key on select remounts the path, so the selected route draws in once.
+                    key={`r-${i.key}${on ? "-on" : ""}`}
+                    pathLength={on ? 1 : undefined}
+                    className={on ? "map-route-draw" : undefined}
                     d={`M${p.x} ${p.y} Q ${mx} ${my} ${i.dest.x} ${i.dest.y}`}
                     fill="none"
                     stroke={COLOR[i.kind]}
@@ -218,6 +221,7 @@ export function TodayBoard({
                 return (
                   <g key={i.key} data-pin onClick={() => select(i.key)} className="cursor-pointer" aria-hidden>
                     {on && <circle cx={x} cy={y} r={16 * k} fill={c} opacity={0.18} />}
+                    {i.kind === "risk" && <circle cx={x} cy={y} r={8 * k} fill="none" stroke={c} strokeWidth={2 * k} className="map-pulse" />}
                     {i.pin!.precision === "stock" ? (
                       <circle cx={x} cy={y} r={7 * k} fill={c} className="stroke-white dark:stroke-zinc-900" strokeWidth={2 * k} />
                     ) : (
@@ -328,7 +332,7 @@ function Chip({ kind, n, on, toggle }: { kind: BoardKind; n: number; on: boolean
       type="button"
       aria-pressed={on}
       onClick={toggle}
-      className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium ${on ? "border-zinc-300 bg-white text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100" : "border-zinc-200 bg-zinc-100 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400"}`}
+      className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium ${on ? "border-zinc-300 bg-white/85 text-zinc-900 backdrop-blur-md dark:border-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-100" : "border-zinc-200 bg-zinc-100/85 text-zinc-500 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-800/80 dark:text-zinc-400"}`}
     >
       <span className="size-2 rounded-full" style={{ background: COLOR[kind] }} aria-hidden />
       {SECTION[kind]} {n}

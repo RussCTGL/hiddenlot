@@ -33,3 +33,51 @@
   --font-sans: var(--font-plex-sans);
   --font-mono: var(--font-plex-mono);
 }
+
+/* Numbers in tables line up by digit. */
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Document page: an evidence link jumps to its source line and marks it. */
+.source-line {
+  scroll-margin-block: 6rem;
+}
+.source-line:target {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Map motion that explains a state change; none when the reader prefers less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .map-route-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: route-draw 0.6s ease-out forwards;
+  }
+  .map-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pin-pulse 2.4s ease-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse {
+    display: none;
+  }
+}
+@keyframes route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pin-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}

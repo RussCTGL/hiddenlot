@@ -64,7 +64,8 @@ export function locatorText(e: EvidenceRef): string {
   }
 }
 
-export function FieldRow({ field, obs, children }: { field: InventoryLotField; obs: Obs; children?: React.ReactNode }) {
+/** `linkSources`: the page lists the source lines (`#frag-…`), so each locator jumps to its line. */
+export function FieldRow({ field, obs, linkSources = false, children }: { field: InventoryLotField; obs: Obs; linkSources?: boolean; children?: React.ReactNode }) {
   const value = obs.normalized_value;
   const empty = value === null || (Array.isArray(value) && value.length === 0);
   const withheld = obs.issues.includes("withheld_by_owner");
@@ -81,7 +82,14 @@ export function FieldRow({ field, obs, children }: { field: InventoryLotField; o
       <td className="py-1.5 text-xs text-zinc-600 dark:text-zinc-400">
         {obs.evidence.map((e, i) => (
           <div key={i}>
-            {e.quote && <q className="font-mono text-[11px] text-zinc-800 dark:text-zinc-200">{e.quote}</q>} <span className="text-zinc-500">{locatorText(e)}</span>
+            {e.quote && <q className="font-mono text-[11px] text-zinc-800 dark:text-zinc-200">{e.quote}</q>}{" "}
+            {linkSources && e.locator.kind !== "owner_private" ? (
+              <a href={`#frag-${encodeURIComponent(e.fragment_id)}`} className="text-accent hover:underline">
+                {locatorText(e)}
+              </a>
+            ) : (
+              <span className="text-zinc-500">{locatorText(e)}</span>
+            )}
           </div>
         ))}
         {children}
@@ -90,7 +98,7 @@ export function FieldRow({ field, obs, children }: { field: InventoryLotField; o
   );
 }
 
-export function FieldTable({ lot, fields = FIELD_ORDER, render }: { lot: InventoryLot; fields?: InventoryLotField[]; render?: (f: InventoryLotField) => React.ReactNode }) {
+export function FieldTable({ lot, fields = FIELD_ORDER, linkSources, render }: { lot: InventoryLot; fields?: InventoryLotField[]; linkSources?: boolean; render?: (f: InventoryLotField) => React.ReactNode }) {
   return (
     <table className="w-full">
       <thead>
@@ -103,7 +111,7 @@ export function FieldTable({ lot, fields = FIELD_ORDER, render }: { lot: Invento
       </thead>
       <tbody>
         {fields.map((f) => (
-          <FieldRow key={f} field={f} obs={lot.fields[f]}>
+          <FieldRow key={f} field={f} obs={lot.fields[f]} linkSources={linkSources}>
             {render?.(f)}
           </FieldRow>
         ))}

@@ -87,6 +87,16 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
     )
   )[0];
   const cited = new Set(lots.flatMap((l) => Object.values(l.data.fields).flatMap((o) => o.evidence.map((e) => e.fragment_id))));
+  // Counted from the stored lots and run, never estimated: the one-line receipt above the fields.
+  const values = lots.flatMap((l) => Object.values(l.data.fields));
+  const filled = values.filter((o) => o.normalized_value !== null && !(Array.isArray(o.normalized_value) && o.normalized_value.length === 0));
+  const receipt = [
+    [filled.filter((o) => o.evidence.some((e) => e.quote)).length, "values quoted from the source, each quote checked in code"],
+    [filled.filter((o) => o.normalization).length, "converted by a unit rule"],
+    [values.length - filled.length, "left Unknown"],
+    [run?.issues.length ?? 0, "flagged by the checks"],
+    [run?.ignored_instructions.length ?? 0, "instructions in the file ignored"],
+  ] as const;
   const usage = run?.model_run?.usage as { total_tokens?: number } | undefined;
   const status = doc.status === "needs_review" && lots.length > 0 && !lots.some((l) => l.status === "needs_review") ? "reviewed" : doc.status.replaceAll("_", " ");
 
@@ -107,6 +117,15 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
           {usage?.total_tokens && <Badge>{usage.total_tokens} tokens</Badge>}
           {typeof run.model_run?.prompt_version === "string" && <Badge>{run.model_run.prompt_version}</Badge>}
         </div>
+      )}
+      {lots.length > 0 && (
+        <p className="mb-4 flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-[13px] text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+          {receipt.map(([n, what]) => (
+            <span key={what}>
+              <b className="font-mono font-medium text-zinc-900 tabular-nums dark:text-zinc-100">{n}</b> {what}
+            </span>
+          ))}
+        </p>
       )}
       {run?.issues.some((x) => x.code === "lot_not_extracted") && (
         <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
@@ -135,7 +154,7 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
         <Card title="Source" className="xl:col-span-2">
           <ol className="max-h-[75vh] space-y-0.5 overflow-auto font-mono text-xs">
             {fragments.map((f) => (
-              <li key={f.fragment_id} id={`frag-${f.fragment_id}`} className={`flex gap-2 rounded px-1 ${cited.has(f.fragment_id) ? "bg-accent-soft" : ""}`}>
+              <li key={f.fragment_id} id={`frag-${f.fragment_id}`} className={`source-line flex gap-2 rounded px-1 ${cited.has(f.fragment_id) ? "bg-accent-soft" : ""}`}>
                 <span className="w-16 shrink-0 text-right text-zinc-400">{f.fragment_id}</span>
                 <span className="whitespace-pre-wrap break-words">{f.text}</span>
               </li>
@@ -154,7 +173,7 @@ async function DocumentReview({ params }: { params: PageProps<"/documents/[id]">
                 title={`Lot ${String(l.data.fields.seller_lot_ref.normalized_value ?? i + 1)} · v${l.current_version}`}
                 aside={<Badge tone={l.status === "published" ? "emerald" : l.status === "needs_review" ? "amber" : "zinc"}>{l.status.replaceAll("_", " ")}</Badge>}
               >
-                <FieldTable lot={l.data} render={(f) => (l.status === "sold" || l.status === "withdrawn" ? null : <CorrectField lotId={l.id} version={l.current_version} field={f} />)} />
+                <FieldTable lot={l.data} linkSources render={(f) => (l.status === "sold" || l.status === "withdrawn" ? null : <CorrectField lotId={l.id} version={l.current_version} field={f} />)} />
                 {issues.length > 0 && (
                   <p className="mt-2 text-xs text-rose-700 dark:text-rose-400">
                     Checks flagged: {issues.map((x) => `${x.field ?? ""} ${x.code}`).join("; ")}
