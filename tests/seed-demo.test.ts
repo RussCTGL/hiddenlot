@@ -21,7 +21,7 @@ before(async () => {
 after(async () => db.close());
 
 test("seed loads through intake, review and publish", async () => {
-  const r = await seedDemo(db, NOW);
+  const r = await seedDemo(db, NOW, { sampleOrder: false });
   assert.equal(r.lots, 18);
   assert.equal(r.demands, 3);
   assert.ok(r.opportunities > 0);

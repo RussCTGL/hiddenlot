@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { reconfirmAction, resetDemo } from "@/app/actions";
+import type { Actor } from "@/auth/access";
 import { ActionForm, Submit } from "@/components/forms";
 import { TodayBoard, type BoardItem, type BoardKind, type Destination } from "@/components/today-board";
 import { StockMap, type StockPin } from "@/components/stock-map";
@@ -12,7 +13,8 @@ import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import { fitView as fit, landPath, MAP_H, MAP_W, project } from "@/geo/map";
 import { findPlace } from "@/geo/places";
 import { demoLoaded, getSession, requestNow } from "@/lib/session";
-import { buildDigest, lotRef, lotTitle, whereOf, type DigestItem, type Suggestion } from "@/workflow/deals";
+import Link from "next/link";
+import { buildDigest, listRequestsForSeller, lotRef, lotTitle, whereOf, type DigestItem, type Suggestion } from "@/workflow/deals";
 
 // The root layout's title template only applies below this segment.
 export const metadata: Metadata = { title: { absolute: "Today · HiddenLot" } };
@@ -110,9 +112,15 @@ async function TodayPage() {
   );
 }
 
-async function NoDemands({ actor, networkName, day, now }: { actor: { network_id: string }; networkName: string; day: string; now: Date }) {
+async function NoDemands({ actor, networkName, day, now }: { actor: Actor; networkName: string; day: string; now: Date }) {
   const db = await getDb();
-  const [lots, grants, networks] = await Promise.all([listLotsOfNetwork(db, actor.network_id), listGrantsByOwner(db, actor.network_id), listNetworks(db)]);
+  const [lots, grants, networks, requests] = await Promise.all([
+    listLotsOfNetwork(db, actor.network_id),
+    listGrantsByOwner(db, actor.network_id),
+    listNetworks(db),
+    listRequestsForSeller(db, actor),
+  ]);
+  const asks = requests.filter((r) => r.needsReply);
   const alias = new Map(networks.map((n) => [n.id, n.alias]));
   const age = (l: (typeof lots)[number]) => (now.getTime() - new Date(l.data.last_verified_at ?? l.data.observed_at).getTime()) / 3_600_000;
   // Oldest confirmation first, so the lots to reconfirm lead.
@@ -153,6 +161,32 @@ async function NoDemands({ actor, networkName, day, now }: { actor: { network_id
             <span className="text-sm font-semibold">{networkName} · your stock</span>
             <ButtonLink href="/intake">Add stock</ButtonLink>
           </div>
+          {asks.length > 0 && (
+            <>
+              <div className={head}>
+                <span className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-amber-500" aria-hidden />
+                  Buyers waiting for your answer
+                </span>
+                <span className="font-mono">{asks.length}</span>
+              </div>
+              <ul>
+                {asks.map((r) => (
+                  <li key={r.dealId} className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">
+                        {r.buyer} · {r.lotRef}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-zinc-500 dark:text-zinc-400">{r.request}</span>
+                    </span>
+                    <Link href={`/requests#req-${r.dealId}`} className={buttonCls}>
+                      Answer
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           {stale.length > 0 && (
             <>
               <div className={head}>

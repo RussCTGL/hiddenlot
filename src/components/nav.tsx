@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 const NAV = [
   ["/", "Today"],
   ["/deals", "Deals"],
+  ["/requests", "Requests"],
   ["/opportunities", "Opportunities"],
   ["/inventory", "Inventory"],
   ["/demands", "Demands"],
@@ -15,13 +16,17 @@ const NAV = [
   ["/activity", "Activity"],
 ] as const;
 
-/** `children` (e.g. the signed-in account) go inside the phone menu. */
-export function Nav({ children }: { children?: ReactNode }) {
-  return <NavLinks path={usePathname()}>{children}</NavLinks>;
+/** `children` (e.g. the signed-in account) go inside the phone menu; `requests` is the count shown on Requests. */
+export function Nav({ children, requests }: { children?: ReactNode; requests?: ReactNode }) {
+  return (
+    <NavLinks path={usePathname()} requests={requests}>
+      {children}
+    </NavLinks>
+  );
 }
 
 /** Without a path nothing is highlighted; used as the Suspense fallback while the path streams in. */
-export function NavLinks({ path, children }: { path: string; children?: ReactNode }) {
+export function NavLinks({ path, children, requests }: { path: string; children?: ReactNode; requests?: ReactNode }) {
   const isOn = (href: string) => (href === "/" ? path === "/" : path.startsWith(href) || (href === "/intake" && path.startsWith("/documents")));
   const current = NAV.find(([href]) => isOn(href));
   const links = NAV.map(([href, label]) => {
@@ -34,6 +39,7 @@ export function NavLinks({ path, children }: { path: string; children?: ReactNod
         className={`rounded-md px-2.5 py-2 ${on ? "bg-zinc-100 font-semibold text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"}`}
       >
         {label}
+        {href === "/requests" && requests}
       </Link>
     );
   });

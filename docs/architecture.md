@@ -31,7 +31,7 @@ status: evidence_supported · declared_match · conditional_candidate · enginee
 opportunity (immutable assessment keyed by lot/demand/permission/rules versions + freshness)
   │  invalidated on sale, withdrawal, new version, revoke, expiry or stale stock
   ▼
-buyer review (shortlist / request info / dismiss, with reason and versions) — nothing is sent or reserved
+buyer review (shortlist / request info / dismiss, with reason and versions) — nothing is reserved; the question reaches the seller as a request
   │
   ├─ daily digest (src/workflow/deals.ts · buildDigest): computed on request from assessments, deals and the clock;
   │    drawn on a server-projected SVG map (src/geo: Natural Earth land, built-in port list — no map service);
@@ -39,8 +39,14 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
   │    move forward (all hard checks pass) · needs an answer (≤ 2 seller questions) · deal risks;
   │    drafts built from the shared projection only; accepting re-computes the digest and runs only suggestions that still exist
   ├─ deals (table `deals`, one open deal per demand × lot pair, survives re-assessment):
-  │    waiting → quote requested → quote in hand → negotiating → won / lost; history in `deal_events`;
+  │    waiting → quote requested → quote in hand → negotiating → ordered → won / lost; history in `deal_events`;
   │    auto-closed as lost when the lot is sold or withdrawn, sharing ends, or the demand ends
+  │    seller side (listRequestsForSeller · replyToBuyer · sendOffer · reconfirmForBuyer): the lot owner sees
+  │    open deals on its own lots (buyer alias, lot, question; never the demand) and answers into `deal_events`;
+  │    the buyer's digest shows the newest seller answer first; signed-in pages re-render every 8 s (LiveRefresh)
+  │    orders (src/workflow/orders.ts): accepting an offer keeps the lot as seen on the deal (`order_lot`); steps in
+  │    `deal_milestones` (confirm → contract → payment → MTC → shipped → received), each owned by one side and done in
+  │    order; confirming marks the lot sold; files in `deal_files` (bytea, type and size checked), served only to the two sides
   │
   └─ optional Meta · ExplainCandidate (src/ai/tasks/explain-candidate.ts): rephrases rule results;
      every sentence must cite fact IDs; unsupported numbers / equivalence / certification language removed;

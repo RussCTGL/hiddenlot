@@ -7,6 +7,7 @@ import { intakeDocument } from "@/ingestion/intake";
 import { ALL_LOT_FIELDS, createDemand, createGrant, publishLot, reviewLot, type DemandInput } from "@/workflow/actions";
 import { seedMarket } from "@/sim/market";
 import { canonicalExtractor, documentBytes, loadCanonical } from "./canonical";
+import { seedSampleOrder } from "./sample-order";
 
 // Loads the synthetic demo (plan §7.1) through the real
 // pipeline: intake with evidence checks → owner review → publish → grants →
@@ -14,6 +15,8 @@ import { canonicalExtractor, documentBytes, loadCanonical } from "./canonical";
 
 const TABLES = [
   "market_events",
+  "deal_files",
+  "deal_milestones",
   "deal_events",
   "deals",
   "audit_events",
@@ -54,7 +57,8 @@ export interface SeedReport {
  */
 const CONFIRMED_HOURS_BEFORE: Record<string, number> = { "lot-b-018": 30 };
 
-export async function seedDemo(db: Db, now: Date): Promise<SeedReport> {
+/** `sampleOrder`: also start the Ana–Bo order on B-044 (on by default; tests of the plain digest turn it off). */
+export async function seedDemo(db: Db, now: Date, { sampleOrder = true }: { sampleOrder?: boolean } = {}): Promise<SeedReport> {
   const c = loadCanonical();
   await resetDatabase(db);
   for (const n of c.networks) await db.query(`INSERT INTO networks (id, name, alias, region, synthetic) VALUES ($1,$2,$3,$4,true)`, [n.id, n.name, n.alias, n.region]);
@@ -116,6 +120,7 @@ export async function seedDemo(db: Db, now: Date): Promise<SeedReport> {
   await discoverAll(db, now);
   // Sign-in accounts, and the simulated users with their network and grants (no activity yet).
   await seedMarket(db, now);
+  if (sampleOrder) await seedSampleOrder(db, now);
   const opps = await db.query<{ n: string }>(`SELECT count(*) AS n FROM opportunities WHERE status <> 'invalidated'`);
   return { dataset: `${c.dataset}@${c.version} (schema ${HRC_SCHEMA_VERSION})`, lots, demands: c.demands.length, grants: c.grants.length, opportunities: Number(opps[0].n) };
 }

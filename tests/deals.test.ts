@@ -5,7 +5,7 @@ import type { Db } from "@/db/client";
 import { freshDb } from "./db";
 import { seedDemo } from "@/seed/demo";
 import { ALL_LOT_FIELDS, createGrant, reconfirmLot, revokeGrant, setLotStatus } from "@/workflow/actions";
-import { acceptSuggestions, allSuggestions, buildDigest, closeDeal, declineSuggestion, getDealViewForActor, listDealsForActor, moveDeal, recordQuote } from "@/workflow/deals";
+import { acceptSuggestions, allSuggestions, buildDigest, closeDeal, declineSuggestion, getDealViewForActor, listDealsForActor, listRequestsForSeller, moveDeal, reconfirmForBuyer, recordQuote, replyToBuyer, sendOffer } from "@/workflow/deals";
 
 // Daily digest and deal tracking on the synthetic demo (plan §7.1 story).
 
@@ -22,7 +22,7 @@ before(async () => {
 });
 after(async () => db.close());
 beforeEach(async () => {
-  await seedDemo(db, NOW);
+  await seedDemo(db, NOW, { sampleOrder: false });
 });
 
 test("the digest sorts the demo into move forward, needs an answer, engineering review and ruled out", async () => {
@@ -43,7 +43,7 @@ test("the digest sorts the demo into move forward, needs an answer, engineering 
   assert.match(b018.draft!, /copy of the MTC/); // the MTC is only the seller's claim
 });
 
-test("accept all turns suggestions into tracked deals; nothing is sent", async () => {
+test("accept all turns suggestions into tracked deals", async () => {
   const d = await buildDigest(db, A, NOW);
   const r = await acceptSuggestions(db, A, allSuggestions(d).map((s) => s.key), NOW);
   assert.equal(r.done, 5);
@@ -180,4 +180,53 @@ test("a Houston buyer gets the same digest from US, Mexican and European stock, 
 
   // Network A sees none of it.
   assert.ok(!JSON.stringify(await buildDigest(db, A, NOW)).match(/E-3|E-4|D-20|Houston/));
+});
+
+test("the seller sees the buyer's request under Requests and answers it; the buyer's deal shows the answer", async () => {
+  await acceptSuggestions(db, A, allSuggestions(await buildDigest(db, A, NOW)).map((s) => s.key), NOW);
+  const asks = await listRequestsForSeller(db, B);
+  assert.deepEqual(asks.map((r) => r.lotRef).sort(), ["B-018", "B-044"]);
+  assert.ok(asks.every((r) => r.buyer === "Network A" && r.needsReply));
+  // Only the owner's lots: C sees its own requests, not B's; A's own lot is no request.
+  assert.ok((await listRequestsForSeller(db, C)).every((r) => r.lotRef.startsWith("C-")));
+  assert.equal((await listRequestsForSeller(db, A)).length, 0);
+
+  const quote = asks.find((r) => r.stage === "quote_requested")!;
+  await sendOffer(db, B, quote.dealId, { price: "540", currency: "USD", incoterm: "CFR Haiphong", valid_until: "2026-11-05", quantity_t: 18 }, hours(1));
+  const v = await getDealViewForActor(db, A, quote.dealId, hours(1));
+  assert.equal(v.deal.stage, "quote_in_hand");
+  assert.equal(v.deal.quote?.price, "540");
+  assert.equal(v.risk?.action, "seen");
+  assert.match(v.risk!.reason, /Network B sent an offer: USD 540\/MT CFR Haiphong/);
+  assert.ok((await buildDigest(db, A, hours(1))).risks.some((s) => s.dealId === quote.dealId && s.action === "seen"));
+  // Read: the news is gone, and B no longer owes an answer.
+  await acceptSuggestions(db, A, [`deal:${quote.dealId}:seen`], hours(1.5));
+  assert.notEqual((await getDealViewForActor(db, A, quote.dealId, hours(1.5))).risk?.action, "seen");
+  assert.equal((await listRequestsForSeller(db, B)).find((r) => r.dealId === quote.dealId)?.needsReply, false);
+
+  const other = asks.find((r) => r.dealId !== quote.dealId)!;
+  await replyToBuyer(db, B, other.dealId, "Yes, still here.", hours(2));
+  assert.match((await getDealViewForActor(db, A, other.dealId, hours(2))).risk!.reason, /Network B replied: "Yes, still here."/);
+});
+
+test("only the lot owner can answer a request, and only while the deal is open", async () => {
+  await acceptSuggestions(db, A, allSuggestions(await buildDigest(db, A, NOW)).map((s) => s.key), NOW);
+  const r = (await listRequestsForSeller(db, B))[0];
+  await assert.rejects(replyToBuyer(db, C, r.dealId, "hi", NOW), NotFoundError);
+  await assert.rejects(replyToBuyer(db, A, r.dealId, "hi", NOW), NotFoundError);
+  await assert.rejects(sendOffer(db, C, r.dealId, { price: "1", currency: "USD", incoterm: "FOB", valid_until: null, quantity_t: null }, NOW), NotFoundError);
+  await assert.rejects(reconfirmForBuyer(db, C, r.dealId, NOW), NotFoundError);
+  await closeDeal(db, A, r.dealId, "lost", "bought elsewhere", NOW);
+  await assert.rejects(replyToBuyer(db, B, r.dealId, "hi", NOW), /closed/);
+  assert.ok(!(await listRequestsForSeller(db, B)).some((x) => x.dealId === r.dealId));
+});
+
+test("still available reconfirms the lot for every buyer and tells this one", async () => {
+  await acceptSuggestions(db, A, allSuggestions(await buildDigest(db, A, NOW)).map((s) => s.key), NOW);
+  const later = hours(60);
+  const r = (await listRequestsForSeller(db, B))[0];
+  await reconfirmForBuyer(db, B, r.dealId, later);
+  const v = await getDealViewForActor(db, A, r.dealId, later);
+  assert.equal(v.risk?.badge, "Stock reconfirmed");
+  assert.equal(v.watch.find((w) => w.label === "Stock confirmation")?.tone, "ok");
 });

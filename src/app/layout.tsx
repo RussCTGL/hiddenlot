@@ -4,11 +4,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { marketStepAction, shiftClockAction, signOutAction } from "@/app/actions";
 import { ClockIcon, LogoIcon } from "@/components/icons";
+import { LiveRefresh } from "@/components/live-refresh";
 import { Nav, NavLinks } from "@/components/nav";
 import { getDb } from "@/db/server";
 import { getClockOffsetHours } from "@/db/repo";
 import { demoControlsAllowed } from "@/lib/demo";
 import { getSession, requestNow } from "@/lib/session";
+import { listRequestsForSeller } from "@/workflow/deals";
+import { listOrdersForSeller } from "@/workflow/orders";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({ variable: "--font-plex-sans", subsets: ["latin"], weight: ["400", "500", "600"] });
@@ -51,6 +54,25 @@ async function DemoClock() {
       </form>
     </div>
   );
+}
+
+/** Buyer requests and order steps waiting on this network, on the Requests link. */
+async function RequestCount() {
+  const session = await getSession();
+  if (!session) return null;
+  const db = await getDb();
+  const [requests, orders] = await Promise.all([listRequestsForSeller(db, session.actor), listOrdersForSeller(db, session.actor)]);
+  const n = requests.filter((r) => r.needsReply).length + orders.filter((o) => o.yourTurn).length;
+  return n > 0 ? (
+    <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-white" aria-label={`${n} waiting`}>
+      {n}
+    </span>
+  ) : null;
+}
+
+/** Signed-in pages keep up with other accounts without a reload. */
+async function Live() {
+  return (await getSession()) ? <LiveRefresh /> : null;
 }
 
 const SYNTHETIC = "Every network, company, lot, price and certificate here is fictional. Not trading or engineering advice.";
@@ -99,7 +121,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               Synthetic
             </span>
             <Suspense fallback={<NavLinks path="" />}>
-              <Nav>
+              <Nav
+                requests={
+                  <Suspense fallback={null}>
+                    <RequestCount />
+                  </Suspense>
+                }
+              >
                 <Suspense fallback={null}>
                   <Account />
                 </Suspense>
@@ -116,6 +144,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         {children}
+        <Suspense fallback={null}>
+          <Live />
+        </Suspense>
         <footer className="space-y-3 border-t border-zinc-200 px-4 py-5 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
           <Suspense fallback={null}>
             <DemoClock />

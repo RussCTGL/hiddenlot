@@ -1,12 +1,12 @@
 import { ForbiddenError, getOpportunityForActor, listOpportunitiesForActor, listRejectedForActor, NotFoundError, type Actor, type OpportunityView } from "@/auth/access";
 import type { Db, Sql } from "@/db/client";
-import { audit, newId, type DemandWithData } from "@/db/repo";
+import { audit, getLot, listLotsOfNetwork, newId, type DemandWithData } from "@/db/repo";
 import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, stockAgeHours, type Check, type CompatibilityStatus } from "@/discovery/constraints";
 import { projectLot, visibleLots, type VisibleLot } from "@/discovery/engine";
 import { compareDecimal } from "@/discovery/score";
 import { budgetText, type Demand, type InventoryLot, type InventoryLotField } from "@/domain/hrc";
 import { findPlace, type Place } from "@/geo/places";
-import { decideOpportunity } from "./actions";
+import { decideOpportunity, reconfirmLot } from "./actions";
 
 // Daily digest and deal tracking.
 //
@@ -15,11 +15,12 @@ import { decideOpportunity } from "./actions";
 // the digest on the server and runs only suggestions that still exist, so a
 // stale page can never trigger something the rules no longer support.
 //
-// Messages are drafts built from the fields the owner shared with this
-// network. Nothing is sent: the buyer copies a draft and sends it themselves,
-// and HiddenLot records that they did and when to follow up.
+// A buyer's question, quote request or reconfirm ask on another network's lot
+// shows up under that network's Requests, where the seller replies, sends an
+// offer or reconfirms the stock; the buyer's deal then shows what came back.
+// Drafts built from the shared fields are there for email or chat as well.
 
-export const DEAL_STAGES = ["waiting", "quote_requested", "quote_in_hand", "negotiating", "won", "lost"] as const;
+export const DEAL_STAGES = ["waiting", "quote_requested", "quote_in_hand", "negotiating", "ordered", "won", "lost"] as const;
 export type DealStage = (typeof DEAL_STAGES)[number];
 export const OPEN_STAGES: DealStage[] = ["waiting", "quote_requested", "quote_in_hand", "negotiating"];
 export const STAGE_LABEL: Record<DealStage, string> = {
@@ -27,6 +28,7 @@ export const STAGE_LABEL: Record<DealStage, string> = {
   quote_requested: "Quote requested",
   quote_in_hand: "Quote in hand",
   negotiating: "Negotiating",
+  ordered: "Order in progress",
   won: "Won",
   lost: "Lost",
 };
@@ -53,6 +55,8 @@ export interface DealRow {
   snoozed_until: string | null;
   quote: Quote | null;
   closed_reason: string | null;
+  /** The lot as the buyer saw it when they accepted the offer; it stays readable after the lot is sold. */
+  order_lot: InventoryLot | null;
   lot_version_at_start: number;
   created_by: string;
   created_at: Date;
@@ -60,7 +64,7 @@ export interface DealRow {
 }
 
 const DEAL_COLS = `id, buyer_network_id, demand_id, lot_id, stage, ask, follow_up_on::text AS follow_up_on, snoozed_until::text AS snoozed_until,
-  quote, closed_reason, lot_version_at_start, created_by, created_at, updated_at`;
+  quote, closed_reason, order_lot, lot_version_at_start, created_by, created_at, updated_at`;
 
 export const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 export const addDays = (day: string, n: number) => isoDay(new Date(new Date(`${day}T00:00:00Z`).getTime() + n * 86_400_000));
@@ -258,15 +262,15 @@ export async function getDealForBuyer(sql: Sql, actor: Actor, id: string): Promi
 const openDealsOf = (sql: Sql, networkId: string) =>
   sql.query<DealRow>(`SELECT ${DEAL_COLS} FROM deals WHERE buyer_network_id = $1 AND stage IN ('waiting','quote_requested','quote_in_hand','negotiating') ORDER BY created_at`, [networkId]);
 
-async function event(sql: Sql, dealId: string, actorId: string | null, kind: string, note: string, now: Date) {
+export async function event(sql: Sql, dealId: string, actorId: string | null, kind: string, note: string, now: Date) {
   await sql.query(`INSERT INTO deal_events (id, deal_id, actor_id, kind, note, created_at) VALUES ($1,$2,$3,$4,$5,$6)`, [newId("dev"), dealId, actorId, kind, note, now]);
 }
 
-async function update(sql: Sql, deal: DealRow, patch: Partial<Pick<DealRow, "stage" | "ask" | "follow_up_on" | "snoozed_until" | "quote" | "closed_reason">>, now: Date) {
+export async function update(sql: Sql, deal: DealRow, patch: Partial<Pick<DealRow, "stage" | "ask" | "follow_up_on" | "snoozed_until" | "quote" | "closed_reason" | "order_lot">>, now: Date) {
   const next = { ...deal, ...patch };
   await sql.query(
-    `UPDATE deals SET stage = $2, ask = $3, follow_up_on = $4, snoozed_until = $5, quote = $6, closed_reason = $7, updated_at = $8 WHERE id = $1`,
-    [deal.id, next.stage, next.ask, next.follow_up_on, next.snoozed_until, next.quote === null ? null : JSON.stringify(next.quote), next.closed_reason, now],
+    `UPDATE deals SET stage = $2, ask = $3, follow_up_on = $4, snoozed_until = $5, quote = $6, closed_reason = $7, order_lot = $8, updated_at = $9 WHERE id = $1`,
+    [deal.id, next.stage, next.ask, next.follow_up_on, next.snoozed_until, next.quote === null ? null : JSON.stringify(next.quote), next.closed_reason, next.order_lot === null ? null : JSON.stringify(next.order_lot), now],
   );
   return next;
 }
@@ -360,6 +364,10 @@ interface Context {
   rejected: Awaited<ReturnType<typeof listRejectedForActor>>;
   demands: Map<string, DemandWithData>;
   alias: Map<string, string>;
+  /** The latest event on each open deal, to tell a fresh seller answer from one the buyer has read. */
+  latest: Map<string, { kind: string; note: string }>;
+  /** Owner network of each lot this buyer has a deal on, for the seller's name once the lot is sold. */
+  owners: Map<string, string>;
 }
 
 async function loadContext(db: Db, actor: Actor, now: Date): Promise<Context> {
@@ -377,7 +385,20 @@ async function loadContext(db: Db, actor: Actor, now: Date): Promise<Context> {
     ).map((d) => [d.id, d]),
   );
   const alias = new Map((await db.query<{ id: string; alias: string }>(`SELECT id, alias FROM networks`)).map((n) => [n.id, n.alias]));
-  return { now, today: isoDay(now), visible, opps, rejected, demands, alias };
+  const latest = new Map(
+    (
+      await db.query<{ deal_id: string; kind: string; note: string }>(
+        `SELECT DISTINCT ON (e.deal_id) e.deal_id, e.kind, e.note FROM deal_events e JOIN deals d ON d.id = e.deal_id
+          WHERE d.buyer_network_id = $1 AND d.stage IN ('waiting','quote_requested','quote_in_hand','negotiating','ordered')
+          ORDER BY e.deal_id, e.created_at DESC, e.id DESC`,
+        [actor.network_id],
+      )
+    ).map((e) => [e.deal_id, { kind: e.kind, note: e.note }]),
+  );
+  const owners = new Map(
+    (await db.query<{ lot_id: string; owner: string }>(`SELECT DISTINCT d.lot_id, l.owner_network_id AS owner FROM deals d JOIN lots l ON l.id = d.lot_id WHERE d.buyer_network_id = $1`, [actor.network_id])).map((r) => [r.lot_id, r.owner]),
+  );
+  return { now, today: isoDay(now), visible, opps, rejected, demands, alias, latest, owners };
 }
 
 function pairState(ctx: Context, actor: Actor, demandId: string, lotId: string): PairState {
@@ -394,9 +415,18 @@ function pairState(ctx: Context, actor: Actor, demandId: string, lotId: string):
   };
 }
 
+/** The pair behind a deal; an order keeps the lot as the buyer saw it when they accepted. */
+function dealPair(ctx: Context, actor: Actor, d: DealRow): PairState {
+  const pair = pairState(ctx, actor, d.demand_id, d.lot_id);
+  if (pair.lot || !d.order_lot || (d.stage !== "ordered" && d.stage !== "won")) return pair;
+  const owner = ctx.owners.get(d.lot_id);
+  return { ...pair, lot: d.order_lot, own: owner === actor.network_id, sellerLabel: owner === actor.network_id ? "your network" : (ctx.alias.get(owner ?? "") ?? "another network") };
+}
+
 // --- risks on open deals -------------------------------------------------------------
 
 const RISK_BUTTON: Record<Risk["action"], string> = {
+  seen: "Mark as read",
   reconfirm: "Ask to reconfirm",
   request_quote: "Ask for quote",
   close_lost: "Close as lost",
@@ -406,7 +436,7 @@ const RISK_BUTTON: Record<Risk["action"], string> = {
 };
 
 export interface Risk {
-  action: "reconfirm" | "request_quote" | "close_lost" | "review_change" | "requote" | "follow_up";
+  action: "seen" | "reconfirm" | "request_quote" | "close_lost" | "review_change" | "requote" | "follow_up";
   badge: string;
   reason: string;
   label: string;
@@ -414,9 +444,25 @@ export interface Risk {
 }
 
 function dealRisk(deal: DealRow, pair: PairState, ctx: Context): Risk | null {
-  if (deal.snoozed_until && deal.snoozed_until > ctx.today) return null;
   const lot = pair.lot;
   if (!lot) return null; // closed by syncDeals
+  // The seller's answer comes first, even on a snoozed deal: it is what the buyer was waiting for.
+  const news = ctx.latest.get(deal.id);
+  if (news && SELLER_KINDS.includes(news.kind)) {
+    const badge =
+      news.kind === "seller_offer"
+        ? `New offer from ${pair.sellerLabel}`
+        : news.kind === "seller_reconfirm"
+          ? "Stock reconfirmed"
+          : news.kind === "seller_step"
+            ? `Order update from ${pair.sellerLabel}`
+            : news.kind === "seller_file"
+              ? `New file from ${pair.sellerLabel}`
+              : `${cap(pair.sellerLabel)} replied`;
+    return { action: "seen", badge, reason: news.note, label: "mark as read", draft: null };
+  }
+  if (deal.stage === "ordered") return null; // the order page says whose step is next
+  if (deal.snoozed_until && deal.snoozed_until > ctx.today) return null;
   const seller = pair.own ? "The lot owner" : pair.sellerLabel;
   // Rounded up, so a lot just past the window never reads "48 h".
   const age = Math.ceil(stockAgeHours(lot, ctx.now));
@@ -536,13 +582,13 @@ function facts(checks: Check[], demand: Demand, lot: InventoryLot) {
 
 export async function buildDigest(db: Db, actor: Actor, now: Date): Promise<Digest> {
   const ctx = await loadContext(db, actor, now);
-  const deals = await openDealsOf(db, actor.network_id);
+  const deals = [...(await openDealsOf(db, actor.network_id)), ...(await db.query<DealRow>(`SELECT ${DEAL_COLS} FROM deals WHERE buyer_network_id = $1 AND stage = 'ordered' ORDER BY created_at`, [actor.network_id]))];
   const dealPairs = new Set(deals.map((d) => `${d.demand_id}|${d.lot_id}`));
   const demandTitle = (id: string) => ctx.demands.get(id)?.data.title ?? "a demand";
 
   const risks: Suggestion[] = [];
   for (const d of deals) {
-    const pair = pairState(ctx, actor, d.demand_id, d.lot_id);
+    const pair = dealPair(ctx, actor, d);
     const r = dealRisk(d, pair, ctx);
     if (!r || !pair.lot) continue;
     const seller = cap(pair.sellerLabel);
@@ -695,7 +741,7 @@ async function runSuggestion(db: Db, actor: Actor, s: Suggestion, now: Date) {
   const today = isoDay(now);
   if (s.action === "shortlist") {
     await decideOpportunity(db, actor, s.oppId!, "shortlisted", "Daily digest: every hard requirement passes", now);
-    await startDeal(db, actor, s.oppId!, "quote_requested", null, "Shortlisted from the digest; quote requested (send the drafted message yourself)", now);
+    await startDeal(db, actor, s.oppId!, "quote_requested", null, "Shortlisted from the digest; quote requested", now);
     return;
   }
   if (s.action === "ask") {
@@ -706,6 +752,9 @@ async function runSuggestion(db: Db, actor: Actor, s: Suggestion, now: Date) {
   const deal = await getDealForBuyer(db, actor, s.dealId!);
   await db.transaction(async (tx) => {
     switch (s.action) {
+      case "seen":
+        await event(tx, deal.id, actor.id, "seen", "Read the seller's answer", now);
+        break;
       case "reconfirm":
         await update(tx, deal, { snoozed_until: addDays(today, 1), follow_up_on: addDays(today, 1) }, now);
         await event(tx, deal.id, actor.id, "asked", "Asked the seller to reconfirm the stock", now);
@@ -763,8 +812,8 @@ export async function listDealsForActor(db: Db, actor: Actor, now: Date): Promis
   const ctx = await loadContext(db, actor, now);
   const deals = await db.query<DealRow>(`SELECT ${DEAL_COLS} FROM deals WHERE buyer_network_id = $1 ORDER BY updated_at DESC`, [actor.network_id]);
   return deals.map((d) => {
-    const pair = pairState(ctx, actor, d.demand_id, d.lot_id);
-    const open = OPEN_STAGES.includes(d.stage);
+    const pair = dealPair(ctx, actor, d);
+    const open = OPEN_STAGES.includes(d.stage) || d.stage === "ordered";
     const risk = open ? dealRisk(d, pair, ctx) : null;
     return {
       deal: d,
@@ -787,6 +836,8 @@ function nextStep(d: DealRow) {
       return d.quote ? `Offer ${d.quote.currency} ${d.quote.price}/MT ${d.quote.incoterm}` : "Offer recorded";
     case "negotiating":
       return d.quote ? `Last offer ${d.quote.currency} ${d.quote.price}/MT` : "Negotiating";
+    case "ordered":
+      return d.quote ? `Ordered at ${d.quote.currency} ${d.quote.price}/MT ${d.quote.incoterm}` : "Order in progress";
     default:
       return d.closed_reason ?? STAGE_LABEL[d.stage];
   }
@@ -812,15 +863,15 @@ export async function getDealViewForActor(db: Db, actor: Actor, id: string, now:
   await getDealForBuyer(db, actor, id); // not found before any work
   const ctx = await loadContext(db, actor, now);
   const deal = await getDealForBuyer(db, actor, id); // after auto-close
-  const pair = pairState(ctx, actor, deal.demand_id, deal.lot_id);
+  const pair = dealPair(ctx, actor, deal);
   const demand = (await db.query<{ data: Demand }>(`SELECT v.data FROM demands d JOIN demand_versions v ON v.demand_id = d.id AND v.version = d.current_version WHERE d.id = $1`, [deal.demand_id]))[0].data;
   const view = pair.opp ? await getOpportunityForActor(db, actor, pair.opp.id, now) : null;
-  const open = OPEN_STAGES.includes(deal.stage);
+  const open = OPEN_STAGES.includes(deal.stage) || deal.stage === "ordered";
   const lotRow = (await db.query<{ current_version: number }>(`SELECT current_version FROM lots WHERE id = $1`, [deal.lot_id]))[0];
   const compatibility = pair.opp?.compatibility_status ?? (pair.fails.length ? "incompatible" : null);
 
   const watch: DealView["watch"] = [];
-  if (pair.lot) {
+  if (pair.lot && OPEN_STAGES.includes(deal.stage)) {
     const age = Math.round(stockAgeHours(pair.lot, now));
     watch.push({ label: "Stock confirmation", value: `${age} h`, tone: age > FRESHNESS_WINDOW_HOURS ? "warn" : "ok" });
     watch.push({
@@ -830,7 +881,8 @@ export async function getDealViewForActor(db: Db, actor: Actor, id: string, now:
     });
     watch.push({ label: "Lot since start", value: lotRow.current_version === deal.lot_version_at_start ? "Unchanged" : "Updated by owner", tone: lotRow.current_version === deal.lot_version_at_start ? "ok" : "muted" });
   }
-  watch.push({ label: "Sharing", value: pair.own ? "Your network" : pair.lot ? "Active" : "Ended", tone: pair.lot ? "ok" : "warn" });
+  if (deal.order_lot) watch.push({ label: "Lot", value: "Sold to you", tone: "ok" });
+  else watch.push({ label: "Sharing", value: pair.own ? "Your network" : pair.lot ? "Active" : "Ended", tone: pair.lot ? "ok" : "warn" });
 
   let budgetNote: string | null = null;
   const b = demand.budget;
@@ -907,6 +959,25 @@ export async function moveDeal(db: Db, actor: Actor, id: string, to: "quote_requ
   });
 }
 
+/**
+ * The buyer accepts the seller's offer: the deal becomes an order. The lot as
+ * the buyer sees it now is kept on the deal; the seller confirms next (see
+ * src/workflow/orders.ts), which marks the lot sold.
+ */
+export async function acceptOffer(db: Db, actor: Actor, id: string, now: Date) {
+  const deal = await getDealForBuyer(db, actor, id);
+  if (deal.stage !== "quote_in_hand" && deal.stage !== "negotiating") throw new ForbiddenError("There is no offer to accept");
+  if (!deal.quote) throw new ForbiddenError("Record the seller's offer first");
+  const v = await getDealViewForActor(db, actor, id, now);
+  if (!v.lot || !v.compatibility || !REVIEWABLE.includes(v.compatibility)) throw new ForbiddenError("The lot no longer passes every hard requirement");
+  const q = deal.quote;
+  await db.transaction(async (tx) => {
+    await update(tx, deal, { stage: "ordered", order_lot: v.lot, follow_up_on: null, snoozed_until: null }, now);
+    await event(tx, deal.id, actor.id, "buyer_step", `Accepted the offer: ${q.currency} ${q.price}/MT ${q.incoterm}${q.quantity_t ? `, ${q.quantity_t} t` : ""}. Waiting for the seller to confirm the order`, now);
+    await audit(tx, actor.id, "deal.accept_offer", "deal", deal.id, { quote: q });
+  });
+}
+
 export async function closeDeal(db: Db, actor: Actor, id: string, outcome: "won" | "lost", reason: string, now: Date) {
   const why = reason.trim();
   if (!why) throw new Error("Give a reason");
@@ -922,5 +993,125 @@ export async function closeDeal(db: Db, actor: Actor, id: string, outcome: "won"
     await update(tx, deal, { stage: outcome, closed_reason: why, follow_up_on: null }, now);
     await event(tx, deal.id, actor.id, "closed", `Closed as ${outcome}: ${why}`, now);
     await audit(tx, actor.id, `deal.${outcome}`, "deal", deal.id, { reason: why });
+  });
+}
+
+// --- the seller's side ------------------------------------------------------------------
+//
+// The lot owner sees open deals on its own lots that another network started:
+// the buyer's network alias, the lot and what was asked. Never the buyer's
+// demand. Answers land on the buyer's deal as events.
+
+const SELLER_KINDS = ["seller_reply", "seller_offer", "seller_reconfirm", "seller_step", "seller_file"];
+const BUYER_ASKS = ["waiting", "quote_requested", "asked"];
+
+export interface BuyerRequest {
+  dealId: string;
+  lotId: string;
+  lotVersion: number;
+  lotRef: string;
+  lotTitle: string;
+  buyer: string;
+  stage: DealStage;
+  /** What the buyer wants now, in the buyer's words where there are any. */
+  request: string;
+  quote: Quote | null;
+  /** The latest thing that happened on the deal, from either side. */
+  latest: string;
+  at: Date;
+  needsReply: boolean;
+}
+
+/** An open deal another network started on one of the actor's lots; anything else is not found. */
+async function getDealForSeller(sql: Sql, actor: Actor, id: string): Promise<DealRow> {
+  const d = (await sql.query<DealRow>(`SELECT ${DEAL_COLS} FROM deals WHERE id = $1`, [id]))[0];
+  const lot = d && (await sql.query<{ owner_network_id: string; status: string }>(`SELECT owner_network_id, status FROM lots WHERE id = $1`, [d.lot_id]))[0];
+  if (!d || !lot || lot.owner_network_id !== actor.network_id || d.buyer_network_id === actor.network_id) throw new NotFoundError("Request not found");
+  if (!OPEN_STAGES.includes(d.stage)) throw new ForbiddenError("The buyer has closed this deal");
+  if (lot.status !== "published") throw new ForbiddenError("This lot is no longer published");
+  return d;
+}
+
+const aliasOf = async (sql: Sql, networkId: string) => (await sql.query<{ alias: string }>(`SELECT alias FROM networks WHERE id = $1`, [networkId]))[0]?.alias ?? "The seller";
+
+export async function listRequestsForSeller(db: Db, actor: Actor): Promise<BuyerRequest[]> {
+  const rows = await db.query<{ id: string; lot_id: string; stage: DealStage; ask: string | null; quote: Quote | null; buyer: string; kind: string | null; note: string | null; at: Date | null; updated_at: Date }>(
+    `SELECT d.id, d.lot_id, d.stage, d.ask, d.quote, d.updated_at, n.alias AS buyer, e.kind, e.note, e.created_at AS at
+       FROM deals d
+       JOIN lots l ON l.id = d.lot_id
+       JOIN networks n ON n.id = d.buyer_network_id
+       LEFT JOIN LATERAL (SELECT kind, note, created_at FROM deal_events WHERE deal_id = d.id ORDER BY created_at DESC, id DESC LIMIT 1) e ON true
+      WHERE l.owner_network_id = $1 AND d.buyer_network_id <> $1 AND l.status = 'published'
+        AND d.stage IN ('waiting','quote_requested','quote_in_hand','negotiating')`,
+    [actor.network_id],
+  );
+  if (rows.length === 0) return [];
+  const lots = new Map((await listLotsOfNetwork(db, actor.network_id)).map((l) => [l.id, l]));
+  const out: BuyerRequest[] = [];
+  for (const r of rows) {
+    const lot = lots.get(r.lot_id);
+    if (!lot) continue;
+    const kind = r.kind ?? r.stage;
+    const request =
+      kind === "asked" && r.note?.includes("reconfirm")
+        ? "Is the stock still available at the same terms?"
+        : r.stage === "waiting"
+          ? (r.ask ?? "A question about this lot")
+          : r.stage === "quote_requested"
+            ? "Could you send a firm offer?"
+            : r.quote
+              ? `Has your offer: ${r.quote.currency} ${r.quote.price}/MT ${r.quote.incoterm}`
+              : "Talking terms";
+    out.push({
+      dealId: r.id,
+      lotId: r.lot_id,
+      lotVersion: lot.current_version,
+      lotRef: lotRef(lot.data, lot.id),
+      lotTitle: lotTitle(lot.data),
+      buyer: r.buyer,
+      stage: r.stage,
+      request,
+      quote: r.quote,
+      latest: r.note ?? STAGE_LABEL[r.stage],
+      at: r.at ?? r.updated_at,
+      needsReply: BUYER_ASKS.includes(kind) && (r.stage === "waiting" || r.stage === "quote_requested" || kind === "asked"),
+    });
+  }
+  return out.sort((a, b) => Number(b.needsReply) - Number(a.needsReply) || b.at.getTime() - a.at.getTime());
+}
+
+export async function replyToBuyer(db: Db, actor: Actor, id: string, text: string, now: Date) {
+  const reply = text.trim();
+  if (!reply) throw new Error("Write a reply");
+  if (reply.length > 1000) throw new Error("Keep the reply under 1000 characters");
+  const deal = await getDealForSeller(db, actor, id);
+  const seller = await aliasOf(db, actor.network_id);
+  await db.transaction(async (tx) => {
+    await update(tx, deal, { follow_up_on: null }, now);
+    await event(tx, deal.id, actor.id, "seller_reply", `${seller} replied: "${reply}"`, now);
+  });
+}
+
+export async function sendOffer(db: Db, actor: Actor, id: string, quote: Quote, now: Date) {
+  if (!/^\d+(\.\d+)?$/.test(quote.price)) throw new Error("Enter the price as a number, e.g. 545");
+  if (quote.valid_until && !/^\d{4}-\d{2}-\d{2}$/.test(quote.valid_until)) throw new Error("Use YYYY-MM-DD for the validity date");
+  const deal = await getDealForSeller(db, actor, id);
+  const seller = await aliasOf(db, actor.network_id);
+  await db.transaction(async (tx) => {
+    await update(tx, deal, { stage: deal.stage === "negotiating" ? "negotiating" : "quote_in_hand", quote, follow_up_on: null }, now);
+    const terms = `${quote.currency} ${quote.price}/MT ${quote.incoterm}${quote.quantity_t ? `, ${quote.quantity_t} t` : ""}${quote.valid_until ? `, valid until ${fmtDay(quote.valid_until)}` : ""}`;
+    await event(tx, deal.id, actor.id, "seller_offer", `${seller} sent an offer: ${terms}`, now);
+  });
+}
+
+/** "Still available": reconfirms the lot (every buyer's freshness check sees it) and tells this buyer. */
+export async function reconfirmForBuyer(db: Db, actor: Actor, id: string, now: Date) {
+  const deal = await getDealForSeller(db, actor, id);
+  const lot = (await getLot(db, deal.lot_id))!;
+  await reconfirmLot(db, actor, deal.lot_id, lot.current_version, now);
+  const seller = await aliasOf(db, actor.network_id);
+  await db.transaction(async (tx) => {
+    await update(tx, deal, { follow_up_on: null }, now);
+    await event(tx, deal.id, actor.id, "seller_reconfirm", `${seller} reconfirmed the stock is still available`, now);
   });
 }

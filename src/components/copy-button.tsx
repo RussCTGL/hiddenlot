@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CopyIcon } from "./icons";
 
-/** Copies a drafted message; HiddenLot never sends messages itself. */
+/** Copies a drafted message, for sending by email or chat. */
 export function CopyButton({ text, className }: { text: string; className: string }) {
   const [copied, setCopied] = useState(false);
   return (

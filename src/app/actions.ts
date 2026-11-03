@@ -12,8 +12,9 @@ import { InventoryLotFields, LotCondition, PriceBasis, ProductForm, SurplusReaso
 import { intakeDocument, type ExtractorName } from "@/ingestion/intake";
 import { demoControlsAllowed } from "@/lib/demo";
 import { getExplainCall, getMetaExtract, metaCallsLeft } from "@/lib/meta";
-import { acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, recordQuote, startDeal } from "@/workflow/deals";
+import { acceptOffer, acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, reconfirmForBuyer, recordQuote, replyToBuyer, sendOffer, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
+import { addDealFile, completeStep, declineOrder, ORDER_STEPS, type OrderStep, type Upload } from "@/workflow/orders";
 import { stepMarket } from "@/lib/market-clock";
 import { requestNow, requireSession, SESSION_COOKIE, sessionCookie } from "@/lib/session";
 import { seedDemo } from "@/seed/demo";
@@ -358,8 +359,8 @@ export async function decideAction(_prev: ActionState, formData: FormData): Prom
       await startDeal(db, actor, oppId, "waiting", ask, `Requested information: ${reason}`, now);
     }
     refresh();
-    if (decision === "shortlisted") return { ok: "Tracked in Deals under Quote requested. Nothing was sent: copy the drafted message there to the seller." };
-    if (decision === "information_requested") return { ok: "Tracked in Deals under Waiting for an answer. Nothing was sent: copy the drafted message there to the seller." };
+    if (decision === "shortlisted") return { ok: "Quote requested. The seller sees it under Requests; follow it in Deals." };
+    if (decision === "information_requested") return { ok: "Question sent. The seller sees it under Requests; follow it in Deals." };
     return { ok: "Decision saved with the versions it was based on" };
   });
 }
@@ -372,7 +373,7 @@ export async function acceptSuggestionsAction(_prev: ActionState, formData: Form
     const keys = formData.getAll("key").map(String);
     const { done, skipped } = await acceptSuggestions(await getDb(), actor, keys, await requestNow());
     refresh();
-    return { ok: `${done} done${skipped ? `; ${skipped} no longer applied` : ""}. Nothing was sent: copy the drafts to send them.` };
+    return { ok: `${done} done${skipped ? `; ${skipped} no longer applied` : ""}. Sellers see your questions under Requests.` };
   });
 }
 
@@ -398,6 +399,92 @@ export async function recordQuoteAction(_prev: ActionState, formData: FormData):
     );
     refresh();
     return { ok: "Offer recorded" };
+  });
+}
+
+// --- the seller answering a buyer's request -----------------------------------------------
+
+const quoteFrom = (formData: FormData) => ({
+  price: str(formData, "price").replace(/,/g, ""),
+  currency: str(formData, "currency").toUpperCase() || "USD",
+  incoterm: str(formData, "incoterm") || "—",
+  valid_until: str(formData, "valid_until") || null,
+  quantity_t: num(formData, "quantity_t"),
+});
+
+export async function replyToBuyerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    await replyToBuyer(await getDb(), actor, str(formData, "deal_id"), str(formData, "reply"), await requestNow());
+    refresh();
+    return { ok: "Reply sent" };
+  });
+}
+
+export async function sendOfferAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const quote = quoteFrom(formData);
+    if (!quote.price) throw new UserError("Enter the offered price");
+    await sendOffer(await getDb(), actor, str(formData, "deal_id"), quote, await requestNow());
+    refresh();
+    return { ok: "Offer sent" };
+  });
+}
+
+export async function reconfirmForBuyerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    await reconfirmForBuyer(await getDb(), actor, str(formData, "deal_id"), await requestNow());
+    refresh();
+    return { ok: "Reconfirmed; the buyer sees it now" };
+  });
+}
+
+// --- orders: both sides after the buyer accepts an offer ----------------------------------
+
+async function uploadFrom(formData: FormData, key = "file"): Promise<Upload | null> {
+  const f = formData.get(key);
+  if (!(f instanceof File) || f.size === 0) return null;
+  return { filename: f.name || "file", bytes: new Uint8Array(await f.arrayBuffer()) };
+}
+
+export async function acceptOfferAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    await acceptOffer(await getDb(), actor, str(formData, "deal_id"), await requestNow());
+    refresh();
+    return { ok: "Offer accepted. The seller confirms the order next." };
+  });
+}
+
+export async function completeStepAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const step = str(formData, "step");
+    if (!ORDER_STEPS.some((s) => s.id === step)) throw new UserError("Unknown step");
+    await completeStep(await getDb(), actor, str(formData, "deal_id"), step as OrderStep, str(formData, "note"), await uploadFrom(formData), await requestNow());
+    refresh();
+    return { ok: "Done. The other side sees it now." };
+  });
+}
+
+export async function declineOrderAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    await declineOrder(await getDb(), actor, str(formData, "deal_id"), str(formData, "reason"), await requestNow());
+    refresh();
+  });
+}
+
+export async function addDealFileAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    const file = await uploadFrom(formData);
+    if (!file) throw new UserError("Choose a file");
+    await addDealFile(await getDb(), actor, str(formData, "deal_id"), file, await requestNow());
+    refresh();
+    return { ok: "Shared. The other side sees it now." };
   });
 }
 

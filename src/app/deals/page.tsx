@@ -24,6 +24,7 @@ const COLUMNS: { title: string; stages: DealStage[]; empty: string }[] = [
   { title: STAGE_LABEL.quote_requested, stages: ["quote_requested"], empty: "Shortlisted lots wait here for an offer." },
   { title: STAGE_LABEL.quote_in_hand, stages: ["quote_in_hand"], empty: "Record a seller's offer and it moves here." },
   { title: STAGE_LABEL.negotiating, stages: ["negotiating"], empty: "Counter-offers you record land here." },
+  { title: STAGE_LABEL.ordered, stages: ["ordered"], empty: "Accept an offer and the order is tracked here with the seller." },
   { title: "Closed", stages: ["won", "lost"], empty: "Won or lost, with the reason." },
 ];
 
@@ -42,12 +43,13 @@ async function Board() {
   const db = await getDb();
   const [cards, demands] = await Promise.all([listDealsForActor(db, actor, now), listDemandsOfNetwork(db, actor.network_id)]);
   const open = cards.filter((c) => OPEN_STAGES.includes(c.deal.stage));
-  const flagged = open.filter((c) => c.risk).length;
+  const orders = cards.filter((c) => c.deal.stage === "ordered").length;
+  const flagged = cards.filter((c) => c.risk).length;
   const today = isoDay(now);
   const due = open.filter((c) => c.deal.follow_up_on !== null && c.deal.follow_up_on <= today).length;
 
   return (
-    <Page title="Deals" subtitle={`${open.length} open · ${flagged} need${flagged === 1 ? "s" : ""} attention · ${due} due today`}>
+    <Page title="Deals" subtitle={`${open.length} open · ${orders} order${orders === 1 ? "" : "s"} in progress · ${flagged} need${flagged === 1 ? "s" : ""} attention · ${due} due today`}>
       {cards.length === 0 && (
         <div className="mb-6">
           {demands.length === 0 ? (
@@ -70,7 +72,7 @@ async function Board() {
         </div>
       )}
       <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[1060px] grid-cols-5 gap-3.5">
+        <div className="grid min-w-[1260px] grid-cols-6 gap-3.5">
           {COLUMNS.map((col, i) => {
             const items = cards.filter((c) => col.stages.includes(c.deal.stage));
             return (

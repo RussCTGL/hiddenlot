@@ -30,13 +30,17 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
    A buyer can accept the whole digest at once. Each suggestion is checked against the rules again when it is accepted.
 
    A network with no demands of its own (a stock desk) gets its stock on the same map instead: each published lot is a pin, red when it needs reconfirming, with a one-click **Still available** next to it in the list.
-7. **Tracks deals after the decision** (**Deals** board): waiting for an answer → quote requested → quote in hand → negotiating → won or lost. Every day it watches for:
+7. **Tracks deals after the decision** (**Deals** board): waiting for an answer → quote requested → quote in hand → negotiating → order in progress → won or lost. Every day it watches for:
    - stock older than 48 h;
    - silence past the follow-up date;
    - expired offers;
    - changed lots.
 
-   A deal closes as lost by itself when the lot is sold or sharing ends. After that its lot details are hidden. Messages are drafts built only from fields the owner shared; HiddenLot never sends anything.
+   A deal closes as lost by itself when the lot is sold or sharing ends. After that its lot details are hidden.
+
+   The seller sees each question, quote request and reconfirm ask under **Requests**: the buyer's network alias, the lot and the question, never the buyer's demand. They answer there with a reply, an offer or **Still available**, and the buyer's deal shows it as soon as it is saved; open pages refresh every few seconds. Drafts built only from fields the owner shared are there for email or chat too.
+
+   When the buyer accepts an offer, buyer and seller share the deal as an order: the seller confirms (the lot is marked sold and other buyers' deals on it close), sends the contract or proforma, the buyer arranges payment or an L/C, the seller shares the mill test certificate and the bill of lading, and the buyer confirms receipt. Each step can only be done by its side, in order, with files either side shares (PDF, image, Excel, Word, CSV, text; up to 4 MB). The demo starts with one order under way: Ana bought B-044 from Bo, the proforma and L/C copy are shared, and the MTC is Bo's turn.
 8. **Runs as a small market** of sign-in accounts. Besides the five walkthrough users, six simulated users act through the same pipeline: three stock desks (in Networks B, C and E) and three buyers (in A, D, and a new Network F in Jebel Ali).
    - they post stock lists (bilingual text, inch/pound text, CSV), reviewed and published like anyone's;
    - they post demands, often for something a partner listed;
@@ -143,7 +147,7 @@ See [`docs/architecture.md`](docs/architecture.md). In short: parsers with exact
 - Sold, withdrawn or changed stock and revoked sharing invalidate opportunities at once. Expiry and staleness (time-based) take effect on the next page view or discovery run. Earlier decisions never carry over.
 - Other networks see only the fields shared with them — never files, quotes, locations in the file, or identity unless disclosed.
 - Nothing is sent, reserved or committed on anyone's behalf. Digest messages are drafts from shared fields only, and accepting a suggestion re-checks it against the current rules.
-- Deals belong to the buyer's network. A deal never shows lot details the buyer can no longer see.
+- Deals belong to the buyer's network. A deal never shows lot details the buyer can no longer see. The lot owner sees only its own lots' requests (buyer alias, lot, question) and can answer while the deal is open and the lot published.
 
 ## Limitations
 

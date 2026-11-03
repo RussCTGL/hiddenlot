@@ -186,7 +186,7 @@ export type ReviewDecision = z.infer<typeof ReviewDecision>;
 
 /**
  * Buyer-side review. Saved with actor, reason and the exact versions it was
- * made on. "information_requested" is an internal to-do; nothing is sent.
+ * made on. "information_requested" opens a deal whose question the seller sees under Requests.
  */
 export async function decideOpportunity(db: Db, actor: Actor, oppId: string, decision: ReviewDecision, reason: string, now: Date) {
   const why = reason.trim();

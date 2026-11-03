@@ -409,7 +409,7 @@ function Row({ item: i, selected, onSelect, draftOpen, toggleDraft }: { item: Bo
             <div className="space-y-1.5 rounded-lg bg-white px-3 py-2.5 text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
               <p>{a.draft}</p>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] text-zinc-500">Draft from shared fields · not sent</span>
+                <span className="text-[11px] text-zinc-500">Draft from shared fields · for email or chat</span>
                 <CopyButton text={a.draft} className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-accent hover:bg-zinc-100 dark:hover:bg-zinc-800" />
               </div>
             </div>

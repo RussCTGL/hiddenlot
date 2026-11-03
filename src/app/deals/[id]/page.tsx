@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { acceptSuggestionsAction, closeDealAction, moveDealAction, recordQuoteAction } from "@/app/actions";
+import { acceptOfferAction, acceptSuggestionsAction, closeDealAction, moveDealAction, recordQuoteAction } from "@/app/actions";
+import type { Actor } from "@/auth/access";
+import { DealFiles, OrderPanel } from "@/components/order-panel";
 import { NotFoundError } from "@/auth/access";
 import { Draft } from "@/components/draft";
 import { ActionForm, Submit } from "@/components/forms";
@@ -12,7 +14,9 @@ import { getDb } from "@/db/server";
 import { REVIEWABLE } from "@/discovery/constraints";
 import type { InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { requestNow, requireSession } from "@/lib/session";
-import { dealDraft, fmtDay, getDealViewForActor, OPEN_STAGES, STAGE_LABEL, type DealStage, type DealView } from "@/workflow/deals";
+import { getLot } from "@/db/repo";
+import { dealDraft, fmtDay, getDealViewForActor, lotRef, lotTitle, OPEN_STAGES, STAGE_LABEL, type DealStage, type DealView } from "@/workflow/deals";
+import { getDealForParty, getOrderView, type OrderParty } from "@/workflow/orders";
 
 export const metadata: Metadata = { title: "Deal" };
 
@@ -27,11 +31,12 @@ export default function DealPage(props: PageProps<"/deals/[id]">) {
 const STEPS: { stage: DealStage; label: string; kinds: string[] }[] = [
   { stage: "waiting", label: "Asked / shortlisted", kinds: ["waiting", "quote_requested"] },
   { stage: "quote_requested", label: "Quote requested", kinds: ["quote_requested"] },
-  { stage: "quote_in_hand", label: "Quote in hand", kinds: ["quote"] },
+  { stage: "quote_in_hand", label: "Quote in hand", kinds: ["quote", "seller_offer"] },
   { stage: "negotiating", label: "Negotiating", kinds: ["negotiating"] },
-  { stage: "won", label: "Closed", kinds: ["closed"] },
+  { stage: "ordered", label: "Ordered", kinds: ["buyer_step"] },
+  { stage: "won", label: "Closed", kinds: ["closed", "buyer_step"] },
 ];
-const ORDER: DealStage[] = ["waiting", "quote_requested", "quote_in_hand", "negotiating", "won"];
+const ORDER: DealStage[] = ["waiting", "quote_requested", "quote_in_hand", "negotiating", "ordered", "won"];
 const rank = (s: DealStage) => ORDER.indexOf(s === "lost" ? "won" : s);
 
 function shared<T>(lot: InventoryLot | null, f: InventoryLotField): T | null {
@@ -43,15 +48,21 @@ function shared<T>(lot: InventoryLot | null, f: InventoryLotField): T | null {
 async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }) {
   const { id } = await params;
   const { actor } = await requireSession();
-  let v: DealView;
+  const db = await getDb();
+  let party: OrderParty;
+  let v: DealView | null = null;
   try {
-    v = await getDealViewForActor(await getDb(), actor, id, await requestNow());
+    party = await getDealForParty(db, actor, id);
+    if (party.side === "buyer") v = await getDealViewForActor(db, actor, id, await requestNow());
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
+  if (!v) return <SellerDeal actor={actor} party={party} />;
   const d = v.deal;
   const open = OPEN_STAGES.includes(d.stage);
+  const order = await getOrderView(db, actor, id);
+  const isOrder = d.stage === "ordered" || (d.stage === "won" && d.order_lot !== null);
   const draft = open ? dealDraft(v) : null;
   const reviewable = v.compatibility !== null && REVIEWABLE.includes(v.compatibility);
   const firstOf = (kinds: string[]) => [...v.events].reverse().find((e) => kinds.includes(e.kind));
@@ -72,15 +83,16 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
         </span>
       }
     >
-      <ol aria-label="Deal stage" className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <ol aria-label="Deal stage" className="mb-8 grid grid-cols-3 gap-3 sm:grid-cols-6">
         {STEPS.map((s) => {
-          const done = rank(d.stage) > rank(s.stage) || (!open && s.stage === "won");
-          const current = open && rank(d.stage) === rank(s.stage);
+          const closed = d.stage === "won" || d.stage === "lost";
+          const done = rank(d.stage) > rank(s.stage) || (closed && s.stage === "won");
+          const current = !closed && rank(d.stage) === rank(s.stage);
           const ev = firstOf(s.kinds);
           return (
             <li key={s.stage} aria-current={current ? "step" : undefined} className="flex flex-col gap-1.5">
               <span className={`h-1 rounded-full ${done ? "bg-zinc-900 dark:bg-zinc-100" : current ? "bg-accent" : "bg-zinc-200 dark:bg-zinc-800"}`} />
-              <span className={`text-[13px] ${current ? "font-semibold text-accent" : done ? "font-semibold" : "text-zinc-500"}`}>{s.stage === "won" && !open ? STAGE_LABEL[d.stage] : s.label}</span>
+              <span className={`text-[13px] ${current ? "font-semibold text-accent" : done ? "font-semibold" : "text-zinc-500"}`}>{s.stage === "won" && closed ? STAGE_LABEL[d.stage] : s.label}</span>
               <span className="text-xs text-zinc-500">{ev && (done || current) ? ev.created_at.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : current ? "now" : ""}</span>
             </li>
           );
@@ -89,7 +101,9 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-5">
-          {!open && (
+          {isOrder && <OrderPanel dealId={d.id} v={order} />}
+
+          {!open && !isOrder && (
             <Card>
               <p className="text-sm">
                 <b className="font-semibold">{STAGE_LABEL[d.stage]}:</b> {d.closed_reason}
@@ -136,7 +150,7 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
           {open && d.stage !== "waiting" && (
             <Card title={d.quote ? "Update the seller's offer" : "Record the seller's offer"}>
               {d.stage === "quote_requested" && !d.quote && (
-                <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">Quote requested. When the seller replies, enter their offer here and the deal moves to Quote in hand.</p>
+                <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">Quote requested. The seller sees it under Requests, and their offer appears here. If they answer by email or phone instead, enter it below.</p>
               )}
               {d.stage === "quote_requested" && draft && !v.risk?.draft && (
                 <div className="mb-4">
@@ -174,15 +188,32 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
                   </Submit>
                 </div>
               </ActionForm>
-              {d.stage === "quote_in_hand" && (
-                <ActionForm action={moveDealAction} className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                  <input type="hidden" name="deal_id" value={d.id} />
-                  <input type="hidden" name="to" value="negotiating" />
-                  <Submit className={buttonCls}>Start negotiating</Submit>
-                </ActionForm>
+              {(d.stage === "quote_in_hand" || d.stage === "negotiating") && d.quote && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                  <ActionForm action={acceptOfferAction}>
+                    <input type="hidden" name="deal_id" value={d.id} />
+                    <Submit
+                      className={primaryCls}
+                      disabled={!reviewable}
+                      title={reviewable ? undefined : "The lot must pass every hard requirement"}
+                      confirm={`Accept ${d.quote.currency} ${d.quote.price}/MT ${d.quote.incoterm}? This becomes an order the seller confirms.`}
+                    >
+                      Accept offer
+                    </Submit>
+                  </ActionForm>
+                  {d.stage === "quote_in_hand" && (
+                    <ActionForm action={moveDealAction}>
+                      <input type="hidden" name="deal_id" value={d.id} />
+                      <input type="hidden" name="to" value="negotiating" />
+                      <Submit className={buttonCls}>Start negotiating</Submit>
+                    </ActionForm>
+                  )}
+                </div>
               )}
             </Card>
           )}
+
+          {d.stage !== "lost" && <DealFiles dealId={d.id} files={order.files} side="buyer" buyer={order.buyer} seller={order.seller} canAdd />}
 
           <Card title="History">
             <ol>
@@ -291,7 +322,69 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
               </ActionForm>
             </Card>
           )}
-          <p className="text-[13px] text-zinc-500 dark:text-zinc-400">If the lot is sold or sharing ends, this deal closes as lost on its own.</p>
+          {open && <p className="text-[13px] text-zinc-500 dark:text-zinc-400">If the lot is sold or sharing ends, this deal closes as lost on its own.</p>}
+        </aside>
+      </div>
+    </Page>
+  );
+}
+
+/** The lot owner's view of a deal another network started: the request, the order and the shared files. */
+async function SellerDeal({ actor, party }: { actor: Actor; party: OrderParty }) {
+  const db = await getDb();
+  const d = party.deal;
+  const [lot, order, events] = await Promise.all([
+    getLot(db, d.lot_id),
+    getOrderView(db, actor, d.id),
+    db.query<{ note: string; created_at: Date }>(`SELECT note, created_at FROM deal_events WHERE deal_id = $1 ORDER BY created_at DESC, id DESC`, [d.id]),
+  ]);
+  const isOrder = d.stage === "ordered" || (d.stage === "won" && d.order_lot !== null);
+  return (
+    <Page
+      back={
+        <Link href="/requests" className="inline-flex min-h-8 items-center gap-1.5 text-sm text-accent hover:underline">
+          <BackIcon size={16} />
+          Requests
+        </Link>
+      }
+      title={lot ? lotTitle(lot.data) : "Lot"}
+      subtitle={`Your lot ${lot ? lotRef(lot.data, lot.id) : d.lot_id} · buyer ${party.buyer}`}
+      actions={<span className="rounded-full bg-accent-soft px-3 py-1 text-sm font-medium text-accent">{STAGE_LABEL[d.stage]}</span>}
+    >
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="space-y-5">
+          {isOrder && <OrderPanel dealId={d.id} v={order} />}
+          {OPEN_STAGES.includes(d.stage) && (
+            <Card title="The buyer's request">
+              <p className="text-sm">
+                {d.stage === "waiting" ? (d.ask ?? "A question about this lot") : d.stage === "quote_requested" ? "Could you send a firm offer?" : d.quote ? `Your offer: ${d.quote.currency} ${d.quote.price}/MT ${d.quote.incoterm}` : STAGE_LABEL[d.stage]}
+              </p>
+              <Link href={`/requests#req-${d.id}`} className="mt-3 inline-block text-sm text-accent hover:underline">
+                Answer under Requests
+              </Link>
+            </Card>
+          )}
+          {!OPEN_STAGES.includes(d.stage) && !isOrder && (
+            <Card>
+              <p className="text-sm">
+                <b className="font-semibold">{STAGE_LABEL[d.stage]}:</b> {d.closed_reason}
+              </p>
+            </Card>
+          )}
+          {d.stage !== "lost" && <DealFiles dealId={d.id} files={order.files} side="seller" buyer={order.buyer} seller={order.seller} canAdd />}
+        </div>
+        <aside className="space-y-5">
+          <Card title="History">
+            <ol>
+              {events.map((e, i) => (
+                <li key={i} className="border-b border-zinc-100 py-2.5 text-sm last:border-0 dark:border-zinc-800">
+                  <time className="block text-xs text-zinc-500">{e.created_at.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</time>
+                  {e.note}
+                </li>
+              ))}
+            </ol>
+          </Card>
+          <p className="text-[13px] text-zinc-500 dark:text-zinc-400">The buyer&apos;s demand stays private to them. You see the order, your lot and what either side shares here.</p>
         </aside>
       </div>
     </Page>
