@@ -7,7 +7,7 @@ Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for 
 
 **Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Sign in with any demo account on the sign-in page (one click; the shared demo password is shown there): **ana** buys in Haiphong, **dana** in Houston. Simulated users trade around you, about once an hour (**Activity**). To see both sides of a deal at once, open [`/demo`](https://hiddenlot-nine.vercel.app/demo): Ana (buyer) and Bo (seller) side by side, each pane signed in on its own, and what one saves shows on the other within a second. Every form has a **Demo input** button that fills sample values, and file fields on an order come with a matching demo document already attached (proforma, L/C, MTC, B/L, packing list), so a walkthrough needs no typing and no files of your own. `HIDDENLOT_DEMO_INPUTS=false` turns both off. The shared demo is reloaded once a day.
 
-**Demo video:** link to follow (3 minutes, recorded on the synthetic demo).
+**Demo video:** [watch on Google Drive](https://drive.google.com/file/d/1U3ENAs3K55fVMKon9OJ_kIuozfSNs8su/view?usp=sharing) (under 3 minutes, recorded from `/story` on the synthetic demo).
 
 > **Synthetic data only.** Every network, company, person, lot, price and certificate mention in this repository and its demo is fictional. HiddenLot is not trading, engineering or quality advice.
 
