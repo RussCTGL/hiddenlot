@@ -28,6 +28,12 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
     () => new URLSearchParams(location.search).has("fast"),
     () => false,
   );
+  // ?record=1 is for making the video: no controls, and it starts by itself.
+  const record = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(location.search).has("record"),
+    () => false,
+  );
   const steps = useMemo(() => storySteps(meta && !fast), [meta, fast]);
   const [phase, setPhase] = useState<Phase>("intro");
   const [step, setStep] = useState(0);
@@ -95,6 +101,16 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
     }
   };
 
+  const playRef = useRef(play);
+  useEffect(() => {
+    playRef.current = play;
+  });
+  useEffect(() => {
+    if (!record || phase !== "intro") return;
+    const t = setTimeout(() => playRef.current(), 6000);
+    return () => clearTimeout(t);
+  }, [record, phase]);
+
   const togglePause = () => {
     const d = driver.current;
     if (!d) return;
@@ -138,7 +154,7 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
           ))}
         </ol>
         <span className="ml-auto flex items-center gap-2">
-          {phase === "playing" && (
+          {phase === "playing" && !record && (
             <>
               <button type="button" className={ctl} onClick={togglePause} title="Space">
                 {paused ? "▶ Resume" : "❚❚ Pause"}
@@ -148,7 +164,7 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
               </button>
             </>
           )}
-          {phase !== "intro" && phase !== "starting" && (
+          {phase !== "intro" && phase !== "starting" && !record && (
             <button type="button" className={ctl} onClick={play}>
               ↺ Restart
             </button>
@@ -221,9 +237,9 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
             </p>
             <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
               Both screens are the real app, signed in as two different accounts. Every click is a real action.{" "}
-              {resets ? "Playing resets the local demo first." : "It adds a new lot to the shared demo."}
+              {record ? "" : resets ? "Playing resets the local demo first." : "It adds a new lot to the shared demo."}
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className={`mt-7 flex-wrap items-center gap-3 ${record ? "hidden" : "flex"}`}>
               <button type="button" className={cta} onClick={play} disabled={phase === "starting"}>
                 {phase === "starting" ? "Setting up…" : "▶ Play the story"}
               </button>
@@ -251,7 +267,14 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
               ))}
             </dl>
             <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Synthetic data only. Results are from small synthetic test sets; see the README for method and caveats.</p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            {record && (
+              <p className="mt-6 text-base">
+                Try it: <b className="font-semibold text-accent">hiddenlot-nine.vercel.app/story</b>
+                <span className="text-zinc-400"> · </span>
+                Code: <b className="font-semibold text-accent">github.com/RussCTGL/hiddenlot</b>
+              </p>
+            )}
+            <div className={`mt-6 flex-wrap items-center gap-3 ${record ? "hidden" : "flex"}`}>
               <button type="button" className={cta} onClick={play}>
                 ↺ Play again
               </button>

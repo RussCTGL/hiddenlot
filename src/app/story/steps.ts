@@ -149,47 +149,34 @@ export function storySteps(meta: boolean): Step[] {
       },
     },
     {
-      title: "One click asks for a quote",
-      body: "Ana shortlists the lot. Bo gets the question with Ana’s network alias and the lot, never Ana’s demand or budget.",
+      title: "Quote, offer, order: three clicks",
+      body: "Ana asks for a quote. Bo sees the question and the lot, never Ana’s demand or budget, and answers with a firm offer. Ana accepts, and it becomes an order both sides share.",
       pane: 0,
       run: async (d) => {
         const row = await d.get(0, "[id^=row-]", d.lotRef);
         await d.click(0, await d.get(0, "button[type=submit]", "ask quote", row));
-        await d.sleep(1500);
+        await d.sleep(1200);
+        // Bo answers with a firm offer.
         await d.go(1, "/requests");
         const price = await d.until(() => requestField(d, 1, d.lotRef), 20_000, `Bo's request for ${d.lotRef}`);
-        await d.point(1, price.closest("form")?.parentElement ?? price);
-        await d.hold(5000);
-      },
-    },
-    {
-      title: "Bo answers with an offer",
-      body: "A firm offer: price, Incoterm, quantity and how long it is valid.",
-      pane: 1,
-      run: async (d) => {
-        const form = requestField(d, 1, d.lotRef)?.closest("form");
+        const form = price.closest("form");
         if (!form) throw new Error("Bo's offer form is gone");
         await d.click(1, await d.get(1, "button", "Demo input", form));
-        await d.hold(1500);
+        await d.point(1, form.parentElement ?? form);
+        await d.hold(2000);
         await d.click(1, await d.get(1, "button[type=submit]", "Send offer", form));
-        await d.sleep(2000);
-      },
-    },
-    {
-      title: "Ana accepts, and it becomes an order",
-      body: "The offer shows on Ana’s side within a second. Accepting it opens an order that both sides share, step by step.",
-      pane: 0,
-      run: async (d) => {
+        await d.sleep(1200);
+        // Ana accepts it.
         await d.go(0, "/deals");
         await d.click(0, await d.get(0, "a[href*='/deals/']", d.lotRef));
         await d.until(() => DEAL_PAGE.test(d.path(0)), 20_000, "the deal page");
         d.dealPath = d.path(0);
         const accept = await d.get(0, "button", "Accept offer");
         await d.point(0, d.block(0, BOX, ["New offer from", "sent an offer"]) ?? accept, { zoom: true });
-        await d.hold(3500);
+        await d.hold(2500);
         await d.click(0, accept);
         await d.until(() => !d.find(0, "button", "Accept offer"), 20_000, "the order");
-        await d.hold(2000);
+        await d.hold(1200);
       },
     },
     {
@@ -205,7 +192,7 @@ export function storySteps(meta: boolean): Step[] {
         await d.hold(800);
         await d.click(1, await d.get(1, "button", "Create proforma from the offer", form));
         await d.point(1, await d.getBlock(1, BOX, "required fields match"), { zoom: true });
-        await d.hold(6000);
+        await d.hold(5000);
       },
     },
     {
