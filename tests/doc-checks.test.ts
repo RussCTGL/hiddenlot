@@ -5,8 +5,8 @@ import type { Db } from "@/db/client";
 import { fragmentText } from "@/ingestion/text-fragments";
 import { seedDemo } from "@/seed/demo";
 import { acceptOffer, acceptSuggestions, buildDigest, listRequestsForSeller, sendOffer } from "@/workflow/deals";
-import { checkDocument, docIssues, orderFacts, type OrderFacts } from "@/workflow/doc-templates";
-import { addDealFile, completeStep, createProforma, DocumentMismatchError, getDealFile, getOrderView } from "@/workflow/orders";
+import { checkDocument, demoDocument, docIssues, orderFacts, type DocTemplateId, type OrderFacts } from "@/workflow/doc-templates";
+import { addDealFile, completeStep, createProforma, demoFile, DocumentMismatchError, getDealFile, getOrderView } from "@/workflow/orders";
 import { freshDb } from "./db";
 
 // Order documents are checked against their templates: every value quotes its
@@ -172,3 +172,26 @@ test("facts come only from what the lot states; unknown stays null", () => {
   assert.equal(c.fields.find((x) => x.key === "size")!.expected, null);
 });
 
+
+test("demo documents match their templates, for F and C terms", () => {
+  const cfr: OrderFacts = { ...FACTS, quote: { ...FACTS.quote!, incoterm: "CFR Haiphong" }, heats: ["H24-77812"] };
+  for (const facts of [FACTS, cfr]) {
+    for (const id of ["proforma", "payment", "mtc", "bill_of_lading"] as DocTemplateId[]) {
+      const doc = demoDocument(id, facts);
+      const c = checkDocument(id, fragmentText(doc.lines.join("\n")), facts, NOW);
+      assert.deepEqual(docIssues(c), [], `${id} ${facts.quote!.incoterm}`);
+    }
+  }
+});
+
+test("demo files: the corrected MTC passes on the sample order; only the two parties get one", async () => {
+  const id = await sampleDeal();
+  const mtc = await demoFile(db, B, id, "mtc", hours(1));
+  assert.equal(mtc.mime, "application/pdf");
+  await addDealFile(db, B, id, mtc, hours(1), "mtc");
+  const v = await getOrderView(db, B, id);
+  assert.deepEqual(docIssues(v.steps.find((s) => s.id === "mtc")!.doc!.check), []);
+  assert.match(new TextDecoder().decode((await demoFile(db, A, id, "packing", hours(1))).bytes), /coil,net_weight_t\nB-044-1,/);
+  await assert.rejects(demoFile(db, C, id, "mtc", hours(1)), NotFoundError);
+  await assert.rejects(demoFile(db, B, id, "received", hours(1)), NotFoundError);
+});

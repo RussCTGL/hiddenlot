@@ -6,6 +6,9 @@ import "server-only";
 /** Reset demo and the demo clock. Off by default in production so visitors cannot wipe the shared demo. */
 export const demoControlsAllowed = () => (process.env.HIDDENLOT_ALLOW_RESET ?? (process.env.NODE_ENV === "production" ? "false" : "true")) === "true";
 
+/** "Demo input" buttons on forms and demo files bound to file fields. On unless HIDDENLOT_DEMO_INPUTS=false. */
+export const demoInputs = () => process.env.HIDDENLOT_DEMO_INPUTS !== "false";
+
 /** Paid Meta calls allowed per UTC day; null = no cap. */
 export const metaDailyLimit = () => limitFrom(process.env.HIDDENLOT_META_DAILY_LIMIT);
 

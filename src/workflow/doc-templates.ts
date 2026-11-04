@@ -491,3 +491,76 @@ export function proformaLines(f: OrderFacts, number: string, paymentTerms: strin
   ];
   return rows.map(([k, v]) => `${label(k)}: ${unknown(v)}`);
 }
+
+/**
+ * Demo only: a document for a step that matches the order, so a demo click can
+ * attach a file that passes its check. Values the order does not give are
+ * plausible fictional ones (L/C, certificate and B/L numbers, vessel, chemistry).
+ */
+export function demoDocument(id: DocTemplateId, f: OrderFacts): { title: string; filename: string; lines: string[] } {
+  const label = (key: string) => DOC_TEMPLATES[id].fields.find((x) => x.key === key)!.labels[0];
+  const rows = (r: [string, string][]) => r.map(([k, v]) => `${label(k)}: ${v}`);
+  const ref = f.lotRef.replace(/[^A-Za-z0-9]/g, "");
+  const yy = f.today.slice(2, 4);
+  const qty = contractTonnes(f)?.value ?? null;
+  const grade = [f.grade, f.standard].filter(Boolean).join(" ") || "Unknown";
+  const inco = f.quote?.incoterm.trim().match(/^([A-Z]{3})\s+(.+)$/i);
+  const day = (d: number) => new Date(Date.parse(f.today) + d * 86_400_000).toISOString().slice(0, 10);
+  if (id === "proforma") {
+    const number = `PI-${ref}-${yy}`;
+    return { title: `PROFORMA INVOICE ${number}`, filename: `Proforma ${number}.pdf`, lines: proformaLines(f, number, "Irrevocable L/C at sight") };
+  }
+  if (id === "payment") {
+    const number = `LC-${f.buyer.slice(-1)}-${yy}-0458`;
+    const pf = f.proforma?.amount ? { value: parseNumber(f.proforma.amount), currency: parseCurrency(f.proforma.amount) } : null;
+    const a = pf?.value != null ? { currency: pf.currency ?? f.quote?.currency ?? "USD", value: pf.value } : offerAmount(f.quote);
+    return {
+      title: "LETTER OF CREDIT (COPY)",
+      filename: `${number}.pdf`,
+      lines: rows([
+        ["number", number],
+        ["applicant", `${f.buyer} (fictional)`],
+        ["beneficiary", `${f.seller} (fictional)`],
+        ["amount", a ? money(a.currency, a.value) : "Unknown"],
+        ["currency", a?.currency ?? f.quote?.currency ?? "Unknown"],
+        ["goods", `${qty !== null ? tonnes(qty) : ""} HRC ${grade}, lot ${f.lotRef}${f.quote ? `, ${f.quote.incoterm}` : ""}`.trim()],
+        ["documents", "commercial invoice, bill of lading, mill test certificate"],
+        ["expiry", day(60)],
+      ]),
+    };
+  }
+  if (id === "mtc") {
+    const number = `MTC-${yy}-1190`;
+    return {
+      title: "MILL TEST CERTIFICATE (EN 10204 3.1)",
+      filename: `MTC ${ref} corrected.pdf`,
+      lines: rows([
+        ["number", number],
+        ["grade", grade],
+        ["heats", f.heats?.length ? f.heats.join(", ") : `${yy}-1187, ${yy}-1188`],
+        ["size", f.thickness_mm !== null && f.width_mm !== null ? sizeText(f.thickness_mm, f.width_mm) : "Unknown"],
+        ["weight", qty !== null ? tonnes(qty) : "Unknown"],
+        ["chemistry", "C 0.16  Si 0.21  Mn 0.52  P 0.018  S 0.011"],
+        ["mechanical", "yield 275 MPa, tensile 420 MPa, elongation 31%"],
+      ]),
+    };
+  }
+  const place = inco?.[2] ?? null;
+  const fTerms = inco?.[1].toUpperCase().startsWith("F");
+  const number = `${(place ?? "BL").replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase()}-${yy}-0912`;
+  return {
+    title: "BILL OF LADING (COPY)",
+    filename: `BL ${number}.pdf`,
+    lines: rows([
+      ["number", number],
+      ["shipper", `${f.seller} (fictional)`],
+      ["consignee", `${f.buyer} (fictional)`],
+      ["vessel", "MV Pacific Star / 26E"],
+      ["pol", fTerms && place ? place : "As booked by the seller"],
+      ["pod", !fTerms && place ? place : "As nominated by the buyer"],
+      ["goods", `HRC ${grade}, lot ${f.lotRef}`],
+      ["weight", qty !== null ? tonnes(qty) : "Unknown"],
+      ["date", f.today],
+    ]),
+  };
+}

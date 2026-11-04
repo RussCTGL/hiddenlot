@@ -6,6 +6,7 @@ import { acceptOfferAction, acceptSuggestionsAction, closeDealAction, moveDealAc
 import type { Actor } from "@/auth/access";
 import { DealFiles, OrderPanel } from "@/components/order-panel";
 import { NotFoundError } from "@/auth/access";
+import { DemoFill } from "@/components/demo-input";
 import { Draft } from "@/components/draft";
 import { ActionForm, Submit } from "@/components/forms";
 import { BackIcon } from "@/components/icons";
@@ -13,6 +14,7 @@ import { Card, Loading, Page, buttonCls, inputCls, primaryCls } from "@/componen
 import { getDb } from "@/db/server";
 import { REVIEWABLE } from "@/discovery/constraints";
 import type { InventoryLot, InventoryLotField } from "@/domain/hrc";
+import { demoInputs } from "@/lib/demo";
 import { requestNow, requireSession } from "@/lib/session";
 import { getLot } from "@/db/repo";
 import { dealDraft, fmtDay, getDealViewForActor, lotRef, lotTitle, OPEN_STAGES, STAGE_LABEL, type DealStage, type DealView } from "@/workflow/deals";
@@ -66,6 +68,17 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
   const draft = open ? dealDraft(v) : null;
   const reviewable = v.compatibility !== null && REVIEWABLE.includes(v.compatibility);
   const firstOf = (kinds: string[]) => [...v.events].reverse().find((e) => kinds.includes(e.kind));
+  // Demo input: the seller's listed terms, valid for a week.
+  const demo = demoInputs();
+  const listedPrice = shared<number | string>(v.lot, "price_amount");
+  const lotT = shared<number>(v.lot, "total_kg");
+  const demoQuote = {
+    price: d.quote?.price ?? (listedPrice === null ? "540" : String(listedPrice)),
+    currency: d.quote?.currency ?? shared<string>(v.lot, "price_currency") ?? "USD",
+    incoterm: d.quote?.incoterm || [shared<string>(v.lot, "incoterm"), shared<string>(v.lot, "incoterm_place")].filter(Boolean).join(" ") || "CFR Haiphong",
+    valid_until: new Date((await requestNow()).getTime() + 7 * 86_400_000).toISOString().slice(0, 10),
+    quantity_t: String(d.quote?.quantity_t ?? (lotT === null ? 20 : lotT / 1000)),
+  };
 
   return (
     <Page
@@ -183,9 +196,12 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   {v.budgetNote && <span className="text-[13px] text-zinc-500 dark:text-zinc-400">{v.budgetNote}</span>}
-                  <Submit className={primaryCls} pending="Saving…">
-                    Save offer
-                  </Submit>
+                  <span className="ml-auto flex flex-wrap gap-2">
+                    {demo && <DemoFill values={demoQuote} />}
+                    <Submit className={primaryCls} pending="Saving…">
+                      Save offer
+                    </Submit>
+                  </span>
                 </div>
               </ActionForm>
               {(d.stage === "quote_in_hand" || d.stage === "negotiating") && d.quote && (
@@ -318,6 +334,7 @@ async function Detail({ params }: { params: PageProps<"/deals/[id]">["params"] }
                   <Submit name="outcome" value="lost" className={buttonCls}>
                     Close as lost
                   </Submit>
+                  {demo && <DemoFill values={{ reason: d.quote ? `Agreed at ${d.quote.currency} ${d.quote.price}/MT ${d.quote.incoterm}` : "Lot sold to another buyer" }} />}
                 </div>
               </ActionForm>
             </Card>

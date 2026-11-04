@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { intakeAction } from "@/app/actions";
+import { DemoFile, DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Card, inputCls, Loading, Page, primaryCls } from "@/components/ui";
 import { getDb } from "@/db/server";
 import { MAX_BYTES } from "@/ingestion/intake";
+import { demoInputs } from "@/lib/demo";
 import { metaAvailable } from "@/lib/meta";
 import { requireSession } from "@/lib/session";
 
@@ -55,6 +57,11 @@ async function Intake() {
               <span className="mb-1 block text-sm font-medium">…or upload a file</span>
               <input type="file" name="file" accept=".txt,.csv,.xlsx,.pdf,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="text-sm" />
               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">.txt · .csv · .xlsx · text PDF · max {MAX_BYTES / 1024 / 1024} MB</p>
+              {demoInputs() && (
+                <span className="mt-2 block">
+                  <DemoFile src="/intake/demo-file" auto={false} />
+                </span>
+              )}
             </label>
             <fieldset className="text-sm">
               <legend className="mb-1 font-medium">Extractor</legend>
@@ -69,9 +76,12 @@ async function Intake() {
               <input type="checkbox" id="synthetic_confirmed" name="synthetic_confirmed" required className="mt-1" />
               <span>This is synthetic test data. Real documents are not accepted.</span>
             </label>
-            <Submit className={primaryCls} pending="Extracting… (Meta can take up to a minute)">
-              Extract lots
-            </Submit>
+            <div className="flex flex-wrap gap-2">
+              <Submit className={primaryCls} pending="Extracting… (Meta can take up to a minute)">
+                Extract lots
+              </Submit>
+              {demoInputs() && <DemoFill values={{ text: SAMPLE, synthetic_confirmed: true }} />}
+            </div>
           </ActionForm>
         </Card>
         <Card title="What happens">

@@ -1018,10 +1018,19 @@ export interface BuyerRequest {
   /** What the buyer wants now, in the buyer's words where there are any. */
   request: string;
   quote: Quote | null;
+  /** The seller's own listed terms for the lot, as a starting point for an offer. */
+  listed: { price: string | null; currency: string | null; incoterm: string | null; quantity_t: number | null };
   /** The latest thing that happened on the deal, from either side. */
   latest: string;
   at: Date;
   needsReply: boolean;
+}
+
+function listedTerms(lot: InventoryLot): BuyerRequest["listed"] {
+  const price = val<number | string>(lot, "price_amount");
+  const kg = val<number>(lot, "total_kg");
+  const incoterm = [val<string>(lot, "incoterm"), val<string>(lot, "incoterm_place")].filter(Boolean).join(" ");
+  return { price: price === null ? null : String(price), currency: val<string>(lot, "price_currency"), incoterm: incoterm || null, quantity_t: kg === null ? null : kg / 1000 };
 }
 
 /** An open deal another network started on one of the actor's lots; anything else is not found. */
@@ -1074,6 +1083,7 @@ export async function listRequestsForSeller(db: Db, actor: Actor): Promise<Buyer
       stage: r.stage,
       request,
       quote: r.quote,
+      listed: listedTerms(lot.data),
       latest: r.note ?? STAGE_LABEL[r.stage],
       at: r.at ?? r.updated_at,
       needsReply: BUYER_ASKS.includes(kind) && (r.stage === "waiting" || r.stage === "quote_requested" || kind === "asked"),

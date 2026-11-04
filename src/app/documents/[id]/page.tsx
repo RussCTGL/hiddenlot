@@ -5,11 +5,13 @@ import { Suspense } from "react";
 import { confirmAllAction, correctFieldAction, publishAction, setLotStatusAction } from "@/app/actions";
 import { getDocumentForActor, NotFoundError } from "@/auth/access";
 import { FieldTable, FIELD_LABEL } from "@/components/fields";
+import { DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Badge, buttonCls, Card, dangerCls, inputCls, Loading, Page, primaryCls } from "@/components/ui";
 import { listLotsOfDocument } from "@/db/repo";
 import { getDb } from "@/db/server";
 import { LotCondition, PriceBasis, ProductForm, SurplusReason, type InventoryLotField } from "@/domain/hrc";
+import { demoInputs } from "@/lib/demo";
 import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Document" };
@@ -39,6 +41,18 @@ const HINT: Partial<Record<InventoryLotField, string>> = {
   price_amount: "e.g. 545.00",
 };
 
+/** Demo input for a correction: a plausible value where the format is fixed, and a reason. */
+const DEMO_VALUE: Partial<Record<InventoryLotField, string>> = {
+  thickness_mm: "2.75",
+  width_mm: "1250",
+  total_kg: "22000",
+  available_from: "+14d",
+  certificate_claims: "MTC",
+  heat_numbers: "H26-10231",
+  splittable: "true",
+  price_amount: "520.00",
+};
+
 function CorrectField({ lotId, version, field }: { lotId: string; version: number; field: InventoryLotField }) {
   const options = ENUM_OPTIONS[field];
   return (
@@ -61,7 +75,10 @@ function CorrectField({ lotId, version, field }: { lotId: string; version: numbe
           <input name="value" placeholder={`${FIELD_LABEL[field]}${HINT[field] ? ` · ${HINT[field]}` : ""} (empty = Unknown)`} className={inputCls} />
         )}
         <input name="note" required placeholder="Why (e.g. confirmed by phone)" className={inputCls} />
-        <Submit className={buttonCls}>Save correction</Submit>
+        <div className="flex flex-wrap gap-2">
+          <Submit className={buttonCls}>Save correction</Submit>
+          {demoInputs() && <DemoFill values={{ ...(DEMO_VALUE[field] ? { value: DEMO_VALUE[field] } : {}), note: "Confirmed by phone with the seller" }} />}
+        </div>
       </ActionForm>
     </details>
   );

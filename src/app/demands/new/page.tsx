@@ -1,12 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createDemandAction } from "@/app/actions";
+import { DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Card, inputCls, Page, primaryCls } from "@/components/ui";
+import { demoInputs } from "@/lib/demo";
 
 export const metadata: Metadata = { title: "New demand" };
 
 const label = "mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400";
+
+/** Demo input: a demand a published lot can answer (B-021 asks for an engineering review, C-104 needs one answer). */
+const DEMO_DEMAND = {
+  title: "HRC Q235B 2.75 × 1250 for Haiphong",
+  grades: "Q235B | GB/T 700\nSS400 | JIS G3101",
+  substitution: "review_required",
+  thk_min: "2.70",
+  thk_max: "2.80",
+  wid_min: "1245",
+  wid_max: "1255",
+  qty_min_t: "18",
+  qty_target_t: "22",
+  qty_max_t: "26",
+  allow_partial: true,
+  conditions: ["prime"],
+  certificates: "MTC",
+  need_by: "+45d",
+  destination: "Haiphong",
+  budget_amount: "530",
+  budget_currency: "USD",
+  budget_incoterm: "CFR",
+  budget_place: "Haiphong",
+};
 
 export default function NewDemandPage() {
   return (
@@ -111,6 +136,7 @@ export default function NewDemandPage() {
             <Submit className={primaryCls} pending="Saving and running discovery…">
               Save and run discovery
             </Submit>
+            {demoInputs() && <DemoFill values={DEMO_DEMAND} />}
             <Link href="/demands" className="text-sm text-accent hover:underline">
               Cancel
             </Link>

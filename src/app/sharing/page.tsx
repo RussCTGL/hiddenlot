@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { createGrantAction, revokeGrantAction } from "@/app/actions";
 import { FIELD_LABEL, FIELD_ORDER } from "@/components/fields";
+import { DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Badge, Card, dangerCls, Empty, inputCls, Loading, Page, primaryCls } from "@/components/ui";
 import { listGrantsByOwner, listLotsOfNetwork, listNetworks } from "@/db/repo";
 import { getDb } from "@/db/server";
+import { demoInputs } from "@/lib/demo";
 import { requestNow, requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Sharing" };
@@ -113,7 +115,10 @@ async function Sharing() {
               <span className="mb-1 block text-xs font-medium">Expires after (days, empty = no expiry)</span>
               <input name="expires_days" className={inputCls} placeholder="e.g. 30" />
             </label>
-            <Submit className={primaryCls}>Share</Submit>
+            <div className="flex flex-wrap gap-2">
+              <Submit className={primaryCls}>Share</Submit>
+              {demoInputs() && <DemoFill values={{ expires_days: "30" }} />}
+            </div>
           </ActionForm>
         </Card>
       </div>

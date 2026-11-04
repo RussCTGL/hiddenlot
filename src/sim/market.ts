@@ -281,7 +281,7 @@ function render(seller: Seller, actor: Actor, specs: LotSpec[], tick: number): {
   const imperial = seller.units === "imperial";
   const lines = imperial
     ? ["[SYNTHETIC MARKET DATA — simulated stockist, not a real offer]", `From: ${firstName(actor)}, stock desk (simulated)`, "Surplus list — HRC", ""]
-    : ["[SYNTHETIC MARKET DATA — simulated trader, not a real offer / 模拟数据，非真实报价]", `From: ${firstName(actor)}, stock desk (simulated)`, "现货出清 Stock clearance — HRC 热轧卷", ""];
+    : ["[SYNTHETIC MARKET DATA — simulated trader, not a real offer]", `From: ${firstName(actor)}, stock desk (simulated)`, "Stock clearance — HRC hot rolled coil", ""];
   const lots: CanonicalLot[] = specs.map((s, i) => {
     const heat = `H${26 + (i % 2)}-${String(10000 + ((s.ref.length * 7919 + i * 104729 + s.width_mm) % 89999)).padStart(5, "0")}`;
     const priceLine = `${s.currency} ${s.price} / MT ${s.incoterm} ${s.incoterm_place}`;
@@ -318,22 +318,22 @@ function render(seller: Seller, actor: Actor, specs: LotSpec[], tick: number): {
     } else {
       const t = fmt(s.thickness_mm);
       const tn = fmt(s.kg / 1000);
-      lines.push(`牌号 Grade: ${s.grade} (${s.standard}, edition not stated)`, `规格 Size: ${t}mm x ${s.width_mm}mm x C`, `重量 Weight: ${tn} MT, ${coils} / ${s.coils}卷`);
+      lines.push(`Grade: ${s.grade} (${s.standard}, edition not stated)`, `Size: ${t}mm x ${s.width_mm}mm x C`, `Weight: ${tn} MT, ${coils}`);
       fields.thickness = [s.thickness_mm, `${t}mm`, "mm"];
       fields.width = [s.width_mm, `${s.width_mm}mm`, "mm"];
       fields.total_weight = [Number(tn), `${tn} MT`, "MT"];
       if (s.prime) {
-        lines.push("质量 Quality: prime / 正品");
+        lines.push("Quality: prime");
         fields.condition = ["prime", "prime"];
       }
-      lines.push(`库存地点 Location: ${s.place}`);
+      lines.push(`Location: ${s.place}`);
     }
     if (s.mtc) {
       lines.push(`MTC available, heat no. ${heat}`);
       fields.certificate_claims = [["MTC"], "MTC available"];
       fields.heat_numbers = [[heat], heat];
     }
-    lines.push(imperial ? `Available from ${s.from}` : `可提货 Available from ${s.from}`, imperial ? `Price: ${priceLine}` : `价格 Price: ${priceLine}`, "");
+    lines.push(`Available from ${s.from}`, `Price: ${priceLine}`, "");
     return { lot_id: "", anchor: `Lot ${s.ref}`, fields };
   });
   return { text: lines.join("\n"), file: { ...base, kind: "text", file: `market-${seller.prefix.toLowerCase()}-${tick}.txt`, lots } };

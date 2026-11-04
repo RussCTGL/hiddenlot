@@ -6,12 +6,14 @@ import { decideAction, explainAction } from "@/app/actions";
 import { getOpportunityForActor, NotFoundError } from "@/auth/access";
 import { FieldTable, formatValue } from "@/components/fields";
 import { ArrowIcon, BackIcon, SparkIcon } from "@/components/icons";
+import { DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Badge, Bar, buttonCls, Card, Hint, inputCls, Loading, Mark, markLabel, Page, primaryCls, StatusPill, type MarkKind } from "@/components/ui";
 import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS, REVIEWABLE, type Check, type CheckStatus } from "@/discovery/constraints";
 import type { Demand, InventoryLot, InventoryLotField } from "@/domain/hrc";
 import { listDecisions } from "@/workflow/actions";
+import { demoInputs } from "@/lib/demo";
 import { requestNow, requireSession } from "@/lib/session";
 import { STAGE_LABEL, type DealStage } from "@/workflow/deals";
 import { metaAvailable } from "@/lib/meta";
@@ -250,6 +252,7 @@ async function Detail({ params }: { params: PageProps<"/opportunities/[id]">["pa
                   >
                     Shortlist
                   </Submit>
+                  {demoInputs() && <DemoFill values={{ reason: canShortlist ? "Grade, size and quantity fit our demand; ask the seller for a firm offer." : "Needs an engineer's view on the grade before we ask for an offer." }} />}
                   <Submit name="decision" value="information_requested" className={buttonCls}>
                     Request info
                   </Submit>

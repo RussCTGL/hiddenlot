@@ -46,6 +46,8 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
   │    the buyer's digest shows the newest seller answer first; signed-in pages re-render every 8 s (LiveRefresh);
   │    a save also tells this browser's other tabs to re-render at once (BroadcastChannel). /demo shows two
   │    accounts side by side: /seat2/… is rewritten by src/proxy.ts and reads a second session cookie
+  │    demo inputs (components/demo-input.tsx): "Demo input" fills a form; DemoFile binds a generated file from
+  │    /deals/[id]/demo-file/[kind] (demoDocument: passes its own template check) or /intake/demo-file
   │    orders (src/workflow/orders.ts): accepting an offer keeps the lot as seen on the deal (`order_lot`); steps in
   │    `deal_milestones` (confirm → contract → payment → MTC → shipped → received), each owned by one side and done in
   │    order; confirming marks the lot sold; files in `deal_files` (bytea, type and size checked), served only to the two sides

@@ -1,7 +1,9 @@
 import { addDealFileAction, completeStepAction, createProformaAction, declineOrderAction } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
+import { DemoFile, DemoFill } from "@/components/demo-input";
 import { CiteIcon } from "@/components/icons";
 import { Badge, buttonCls, Card, dangerCls, inputCls, Mark, primaryCls } from "@/components/ui";
+import { demoInputs } from "@/lib/demo";
 import { docIssues, type DocCheck, type FieldCheck } from "@/workflow/doc-templates";
 import { FILE_ACCEPT, MAX_FILE_BYTES, type DealFile, type OrderView, type StepView } from "@/workflow/orders";
 
@@ -117,9 +119,20 @@ function TemplateRules({ s }: { s: StepView }) {
   );
 }
 
+/** Demo input for each step's note. */
+const DEMO_NOTE: Record<string, string> = {
+  confirmed: "Reserved for you, loading as offered",
+  contract: "Proforma attached",
+  payment: "L/C opened, copy attached",
+  mtc: "Corrected MTC attached",
+  shipped: "B/L as attached, MV Pacific Star / 26E",
+  received: "Received in good order, weights as per B/L",
+};
+
 export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
   const other = v.side === "buyer" ? v.seller : v.buyer;
   const q = v.quote;
+  const demo = demoInputs();
   return (
     <Card
       title={v.stage === "won" ? "Order complete" : "Order in progress"}
@@ -188,6 +201,7 @@ export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
                         <Submit className={buttonCls} pending="Creating…">
                           Create proforma from the offer
                         </Submit>
+                        {demo && <DemoFill values={{ payment_terms: "Irrevocable L/C at sight" }} />}
                       </ActionForm>
                     )}
                     {s.template && (
@@ -200,6 +214,7 @@ export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
                             {s.doc ? "Attach a new version" : "Attach and check"}
                           </Submit>
                         </div>
+                        {demo && <DemoFile src={`/deals/${dealId}/demo-file/${s.id}`} />}
                         <p className="text-[11px] text-zinc-500">Text PDF, Excel, CSV or text files are read and checked against the order. Images and Word files are kept but not read.</p>
                       </ActionForm>
                     )}
@@ -210,13 +225,16 @@ export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
                       {docIssues(s.doc?.check ?? null).length > 0 && (
                         <input name="override" required maxLength={500} className={`${inputCls} border-rose-300 dark:border-rose-800`} placeholder="Reason to complete anyway (both sides see it)" aria-label="Reason to complete anyway" />
                       )}
-                      <Submit
-                        className={docIssues(s.doc?.check ?? null).length > 0 ? dangerCls : primaryCls}
-                        pending="Saving…"
-                        confirm={s.id === "confirmed" ? "Confirm this order? The lot is marked sold and other buyers' deals on it close." : undefined}
-                      >
-                        {s.id === "confirmed" ? "Confirm order" : s.id === "received" ? "Confirm receipt" : docIssues(s.doc?.check ?? null).length > 0 ? "Complete anyway" : "Mark done"}
-                      </Submit>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Submit
+                          className={docIssues(s.doc?.check ?? null).length > 0 ? dangerCls : primaryCls}
+                          pending="Saving…"
+                          confirm={s.id === "confirmed" ? "Confirm this order? The lot is marked sold and other buyers' deals on it close." : undefined}
+                        >
+                          {s.id === "confirmed" ? "Confirm order" : s.id === "received" ? "Confirm receipt" : docIssues(s.doc?.check ?? null).length > 0 ? "Complete anyway" : "Mark done"}
+                        </Submit>
+                        {demo && <DemoFill values={{ note: DEMO_NOTE[s.id] ?? "", override: "Checked with the other side by phone; corrected copy follows" }} />}
+                      </div>
                     </ActionForm>
                     {s.id === "confirmed" && (
                       <details className="text-xs">
@@ -225,6 +243,7 @@ export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
                           <input type="hidden" name="deal_id" value={dealId} />
                           <input name="reason" required className={`${inputCls} flex-1`} placeholder="Why (e.g. sold elsewhere)" />
                           <Submit className={dangerCls}>Decline</Submit>
+                          {demo && <DemoFill values={{ reason: "Sold elsewhere before your acceptance" }} />}
                         </ActionForm>
                       </details>
                     )}
@@ -266,6 +285,7 @@ export function DealFiles({ dealId, files, side, buyer, seller, canAdd }: { deal
           <Submit className={buttonCls} pending="Uploading…">
             Share file
           </Submit>
+          {demoInputs() && <DemoFile src={`/deals/${dealId}/demo-file/packing`} />}
           <span className="w-full text-xs text-zinc-500 dark:text-zinc-400">PDF, image, Excel, Word, CSV or text, up to {MAX_FILE_BYTES / 1024 / 1024} MB.</span>
         </ActionForm>
       )}

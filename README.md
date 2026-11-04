@@ -3,7 +3,7 @@
 **Evidence-backed discovery of surplus steel across trade networks that agreed to share.**
 Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for the *Build for Your World* track.
 
-**Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Sign in with any demo account on the sign-in page (one click; the shared demo password is shown there): **ana** buys in Haiphong, **dana** in Houston. Simulated users trade around you, about once an hour (**Activity**). To see both sides of a deal at once, open [`/demo`](https://hiddenlot-nine.vercel.app/demo): Ana (buyer) and Bo (seller) side by side, each pane signed in on its own, and what one saves shows on the other within a second. The shared demo is reloaded once a day.
+**Live demo:** [hiddenlot-nine.vercel.app](https://hiddenlot-nine.vercel.app). Sign in with any demo account on the sign-in page (one click; the shared demo password is shown there): **ana** buys in Haiphong, **dana** in Houston. Simulated users trade around you, about once an hour (**Activity**). To see both sides of a deal at once, open [`/demo`](https://hiddenlot-nine.vercel.app/demo): Ana (buyer) and Bo (seller) side by side, each pane signed in on its own, and what one saves shows on the other within a second. Every form has a **Demo input** button that fills sample values, and file fields on an order come with a matching demo document already attached (proforma, L/C, MTC, B/L, packing list), so a walkthrough needs no typing and no files of your own. `HIDDENLOT_DEMO_INPUTS=false` turns both off. The shared demo is reloaded once a day.
 
 **Demo video:** link to follow (3 minutes, recorded on the synthetic demo).
 
@@ -11,7 +11,7 @@ Built during the Meta Global AI Developer Hackathon 2026 (Oct 26 – Nov 4) for 
 
 ## The problem
 
-Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected shipment — sits in one trader's network while a buyer two networks away needs exactly that coil. Offers arrive as WeChat/WhatsApp text, spreadsheets and PDFs, in mixed Chinese and English, with missing units, "约 22 ton" and grades that look alike but are not interchangeable (SS400 ≠ Q235B ≠ S235JR). Matching them by hand is slow; matching them with a chatbot is dangerous.
+Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected shipment — sits in one trader's network while a buyer two networks away needs exactly that coil. Offers arrive as WeChat/WhatsApp text, spreadsheets and PDFs, in mixed Chinese and English, with missing units, "approx. 22 ton" and grades that look alike but are not interchangeable (SS400 ≠ Q235B ≠ S235JR). Matching them by hand is slow; matching them with a chatbot is dangerous.
 
 ## What HiddenLot does
 
@@ -44,7 +44,7 @@ Surplus hot-rolled coil — a cancelled L/C, a slitting remainder, a rejected sh
 
    Order documents are checked, not just attached. Each step's document (proforma, L/C or payment proof, mill test certificate, bill of lading) has a template: the fields it must show, which are required, and what each must agree with: the accepted offer (price, currency, Incoterm, quantity), the lot as sold (ref, grade, size), the two networks, and documents already on the order (the L/C amount must equal the proforma amount; MTC and B/L weight within 5% of the contract quantity). A text PDF, Excel, CSV or text file attached to a step is read line by line: a value is taken only from a labelled line and quotes it, and anything missing stays "not found". Both sides see each field as ✓ matches, ✗ differs (expected vs found) or ? not found. A step whose document has an open point on a required field can only be completed with a reason, which both sides see and which shows in the buyer's news. The seller can also **Create proforma from the offer**: the app builds it from the template and the order. The demo's MTC deliberately shows 2.70 mm on a 2.75 mm lot.
 8. **Runs as a small market** of sign-in accounts. Besides the five walkthrough users, six simulated users act through the same pipeline: three stock desks (in Networks B, C and E) and three buyers (in A, D, and a new Network F in Jebel Ali).
-   - they post stock lists (bilingual text, inch/pound text, CSV), reviewed and published like anyone's;
+   - they post stock lists (metric text, inch/pound text, CSV), reviewed and published like anyone's;
    - they post demands, often for something a partner listed;
    - a stock desk answers a buyer's open question by correcting its own lot ("20 tons" → 20 metric tonnes), and the buyer's deal shows the change;
    - they sell lots, and deals on them close.

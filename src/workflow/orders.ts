@@ -5,7 +5,7 @@ import { detectKind, parseDocument } from "@/ingestion/intake";
 import { tinyPdf } from "@/lib/tiny-pdf";
 import { setLotStatus } from "./actions";
 import { event, fmtDay, lotRef, update, type DealRow, type DealStage, type Quote } from "./deals";
-import { checkDocument, docIssues, issuesText, orderFacts, proformaLines, templateForStep, templateRules, type DocCheck, type OrderFacts } from "./doc-templates";
+import { checkDocument, demoDocument, docIssues, issuesText, orderFacts, proformaLines, STEP_TEMPLATE, templateForStep, templateRules, type DocCheck, type OrderFacts } from "./doc-templates";
 
 // After the buyer accepts an offer, buyer and seller share one deal: the steps
 // to delivery, whose turn it is, and the files each side shares. Either side
@@ -318,6 +318,27 @@ export async function declineOrder(db: Db, actor: Actor, id: string, reason: str
     await update(tx, p.deal, { stage: "lost", closed_reason: `${p.seller} declined the order: ${why}` }, now);
     await event(tx, p.deal.id, actor.id, "seller_step", `${p.seller} declined the order: ${why}`, now);
   });
+}
+
+/**
+ * Demo only: a file either side of the order can attach with one click. For a
+ * step with a template it matches the order and passes its check; "packing" is
+ * a packing list for the Shared files card. Nothing is stored until it is attached.
+ */
+export async function demoFile(db: Db, actor: Actor, id: string, kind: string, now: Date): Promise<{ filename: string; mime: string; bytes: Uint8Array }> {
+  const p = await getDealForParty(db, actor, id);
+  const facts = factsFor(p, await listFiles(db, p), now);
+  if (kind === "packing") {
+    const t = facts.quote?.quantity_t ?? facts.lot_t ?? 24;
+    const coils = Math.max(1, Math.round(t / 8));
+    const rows = Array.from({ length: coils }, (_, i) => `${facts.lotRef}-${i + 1},${(t / coils).toFixed(3)}`);
+    const csv = `# SYNTHETIC DEMO DOCUMENT - fictional packing list\ncoil,net_weight_t\n${rows.join("\n")}\n`;
+    return { filename: `Packing list ${facts.lotRef}.csv`, mime: "text/csv", bytes: new TextEncoder().encode(csv) };
+  }
+  const template = STEP_TEMPLATE[kind];
+  if (!template) throw new NotFoundError("No demo file for this step");
+  const doc = demoDocument(template, facts);
+  return { filename: doc.filename, mime: "application/pdf", bytes: tinyPdf(doc.title, doc.lines) };
 }
 
 /** A shared file's bytes, for either side of its deal. */

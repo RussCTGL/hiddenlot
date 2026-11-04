@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { reconfirmForBuyerAction, replyToBuyerAction, sendOfferAction } from "@/app/actions";
+import { DemoFill } from "@/components/demo-input";
 import { ActionForm, Submit } from "@/components/forms";
 import { Badge, buttonCls, Card, Empty, inputCls, Loading, Page, primaryCls } from "@/components/ui";
 import { getDb } from "@/db/server";
-import { requireSession } from "@/lib/session";
+import { demoInputs } from "@/lib/demo";
+import { requestNow, requireSession } from "@/lib/session";
 import { listRequestsForSeller, STAGE_LABEL, type BuyerRequest } from "@/workflow/deals";
 import { listOrdersForSeller } from "@/workflow/orders";
 
@@ -22,7 +24,9 @@ export default function RequestsPage() {
 async function Requests() {
   const { actor, network } = await requireSession();
   const db = await getDb();
-  const [requests, orders] = await Promise.all([listRequestsForSeller(db, actor), listOrdersForSeller(db, actor)]);
+  const [requests, orders, now] = await Promise.all([listRequestsForSeller(db, actor), listOrdersForSeller(db, actor), requestNow()]);
+  // Demo input: an offer valid for a week.
+  const demo = demoInputs() ? { validUntil: new Date(now.getTime() + 7 * 86_400_000).toISOString().slice(0, 10) } : null;
   const open = requests.filter((r) => r.needsReply).length;
   return (
     <Page
@@ -61,7 +65,7 @@ async function Requests() {
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">{open === 0 ? "Everything is answered." : `${open} waiting for your answer.`}</p>
           {requests.map((r) => (
-            <RequestCard key={r.dealId} r={r} />
+            <RequestCard key={r.dealId} r={r} demo={demo} />
           ))}
         </div>
       )}
@@ -71,7 +75,7 @@ async function Requests() {
 
 const label = "space-y-1.5 text-[13px] text-zinc-600 dark:text-zinc-400";
 
-function RequestCard({ r }: { r: BuyerRequest }) {
+function RequestCard({ r, demo }: { r: BuyerRequest; demo: { validUntil: string } | null }) {
   const at = r.at.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return (
     <Card
@@ -103,6 +107,7 @@ function RequestCard({ r }: { r: BuyerRequest }) {
               <Submit className={primaryCls} pending="Sending…">
                 Send reply
               </Submit>
+              {demo && <DemoFill values={{ reply: `Yes, lot ${r.lotRef} is still available as listed. MTC available on request; we can load within two weeks of the L/C.` }} />}
             </div>
           </ActionForm>
 
@@ -130,9 +135,22 @@ function RequestCard({ r }: { r: BuyerRequest }) {
                 <input name="valid_until" type="date" defaultValue={r.quote?.valid_until ?? ""} className={inputCls} />
               </label>
             </div>
-            <Submit className={buttonCls} pending="Sending…">
-              {r.quote ? "Send a new offer" : "Send offer"}
-            </Submit>
+            <div className="flex flex-wrap gap-2">
+              <Submit className={buttonCls} pending="Sending…">
+                {r.quote ? "Send a new offer" : "Send offer"}
+              </Submit>
+              {demo && (
+                <DemoFill
+                  values={{
+                    price: r.quote?.price ?? r.listed.price ?? "540",
+                    currency: r.quote?.currency ?? r.listed.currency ?? "USD",
+                    quantity_t: String(r.quote?.quantity_t ?? r.listed.quantity_t ?? 20),
+                    incoterm: r.quote?.incoterm ?? r.listed.incoterm ?? "FOB Tianjin",
+                    valid_until: demo.validUntil,
+                  }}
+                />
+              )}
+            </div>
           </ActionForm>
         </div>
 
