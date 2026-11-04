@@ -13,14 +13,18 @@ export class Stopped extends Error {}
 /** Thrown from a wait condition to stop waiting at once: the app said no. */
 export class Failed extends Error {}
 
+/** Panes show the app this much larger than a browser would, so it reads on video. */
+export const PANE_SCALE = 1.2;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const PANE_CSS = `
 footer, nextjs-portal { display: none !important; }
 #story-ring { position: fixed; z-index: 2147483646; pointer-events: none; border: 3px solid #f59e0b; border-radius: 12px;
   box-shadow: 0 0 0 5px rgba(245,158,11,.22), 0 0 28px rgba(245,158,11,.5); transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease, opacity .25s ease; }
-#story-cursor { position: fixed; z-index: 2147483647; pointer-events: none; width: 26px; height: 26px; margin: -3px 0 0 -3px;
-  transition: left .75s cubic-bezier(.45,0,.2,1), top .75s cubic-bezier(.45,0,.2,1); filter: drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
+#story-cursor { position: fixed; z-index: 2147483647; pointer-events: none; width: 26px; height: 26px; margin: -3px 0 0 -3px; opacity: 0;
+  transition: left .75s cubic-bezier(.45,0,.2,1), top .75s cubic-bezier(.45,0,.2,1), opacity .3s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
+#story-cursor.on { opacity: 1; }
 #story-cursor::after { content: ""; position: absolute; left: -9px; top: -9px; width: 24px; height: 24px; border-radius: 50%;
   background: rgba(245,158,11,.55); transform: scale(0); opacity: 0; }
 #story-cursor.click::after { animation: story-click .45s ease-out; }
@@ -55,7 +59,10 @@ export class Driver {
   /** Shared between steps. */
   lotRef = "B-052";
   dealPath = "";
+  /** The pane the action is in right now, outlined by the player. */
+  active: Pane | null = null;
   private targets: [Target | null, Target | null] = [null, null];
+  private zoomed: [boolean, boolean] = [false, false];
   private raf = 0;
 
   constructor() {
@@ -185,6 +192,7 @@ export class Driver {
   /** Opens a page in a pane, as that pane's account. */
   async go(p: Pane, path: string, text?: string) {
     this.clear(p);
+    this.active = p;
     const w = this.win(p) as Window & { __storyStale?: boolean };
     w.__storyStale = true;
     w.location.assign(atSeat((p + 1) as Seat, path));
@@ -251,16 +259,67 @@ export class Driver {
     Object.assign(el.style, { opacity: "1", left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + pad * 2}px`, height: `${r.height + pad * 2}px` });
   }
 
+  /** Takes the ring and the zoom off a pane, e.g. when the story moves to the other one. */
   clear(p: Pane) {
     this.targets[p] = null;
+    this.setZoom(p, null);
+    try {
+      this.doc(p).getElementById("story-cursor")?.classList.remove("on");
+    } catch {
+      // the pane is gone
+    }
   }
 
-  /** Scrolls an element into view and rings it. */
-  async point(p: Pane, el: Element, opts: { cursor?: boolean } = {}) {
+  /**
+   * Zooms the pane like a camera, so the element's text fills most of it, or
+   * back out (null). Only the iframe is transformed: the page inside keeps its
+   * layout. Every pane is always shown PANE_SCALE larger, like browser zoom.
+   */
+  private setZoom(p: Pane, el: Element | null): void {
+    const frame = this.frames[p];
+    if (!frame) return;
+    frame.style.transition = "transform .7s cubic-bezier(.45,0,.2,1)";
+    const base = `scale(${PANE_SCALE})`;
+    if (!el) {
+      if (this.zoomed[p]) frame.style.transform = base;
+      this.zoomed[p] = false;
+      return;
+    }
+    // In the page's own pixels: what the pane shows, and where the text is.
+    const W = frame.clientWidth;
+    const H = frame.clientHeight;
+    const range = el.ownerDocument.createRange();
+    range.selectNodeContents(el);
+    const t = range.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    const r = t.width > 0 && t.height > 0 ? t : box;
+    const s = Math.min(1.6, (0.92 * W) / Math.max(r.width, 1), (0.6 * H) / Math.max(r.height, 1));
+    if (s < 1.12) return this.setZoom(p, null);
+    const clamp = (v: number, lo: number) => Math.min(0, Math.max(lo, v));
+    const tx = clamp(W / 2 - s * (r.left + r.width / 2), W - s * W);
+    const ty = clamp(H / 2 - s * (r.top + r.height / 2), H - s * H);
+    frame.style.transform = `${base} translate(${tx}px, ${ty}px) scale(${s})`;
+    this.zoomed[p] = true;
+  }
+
+  /** Scrolls an element into view and rings it; with zoom, also moves in close so its text is readable on video. */
+  async point(p: Pane, el: Element, opts: { cursor?: boolean; zoom?: boolean } = {}) {
     this.prep(p);
+    this.active = p;
+    // The cursor shows only to click or type, never parked over what the viewer is reading.
+    this.doc((1 - p) as Pane).getElementById("story-cursor")?.classList.remove("on");
+    if (!opts.cursor) this.doc(p).getElementById("story-cursor")?.classList.remove("on");
+    if (!opts.zoom && this.zoomed[p]) {
+      this.setZoom(p, null);
+      await this.sleep(450);
+    }
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     await this.sleep(550);
     this.targets[p] = signature(el);
+    if (opts.zoom) {
+      this.setZoom(p, el);
+      await this.sleep(750);
+    }
     if (opts.cursor) await this.moveCursor(p, el);
     else await this.sleep(300);
   }
@@ -268,6 +327,7 @@ export class Driver {
   private async moveCursor(p: Pane, el: Element) {
     const c = this.doc(p).getElementById("story-cursor");
     if (!c) return;
+    c.classList.add("on");
     const r = el.getBoundingClientRect();
     c.style.left = `${r.left + Math.min(r.width / 2, 40)}px`;
     c.style.top = `${r.top + r.height / 2}px`;

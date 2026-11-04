@@ -64,7 +64,7 @@ export function storySteps(meta: boolean): Step[] {
       run: async (d) => {
         // While the model reads, show what happens to its answer.
         const how = d.block(1, BOX, ["What happens", "You review"]);
-        if (how) await d.point(1, how);
+        if (how) await d.point(1, how, { zoom: true });
         const t0 = Date.now();
         d.status = () => `${meta ? "Muse Spark" : "Extractor"} reading the message · ${Math.round((Date.now() - t0) / 1000)} s`;
         await d.until(
@@ -79,7 +79,7 @@ export function storySteps(meta: boolean): Step[] {
         );
         d.status = null;
         await d.ready(1, "values quoted");
-        await d.point(1, await d.getBlock(1, BOX, ["values quoted", "left Unknown"]));
+        await d.point(1, await d.getBlock(1, BOX, ["values quoted", "left Unknown"]), { zoom: true });
         await d.hold(6500);
       },
     },
@@ -90,7 +90,7 @@ export function storySteps(meta: boolean): Step[] {
       run: async (d) => {
         // The regex extractor used for rehearsals does not look for instructions.
         const box = meta ? await d.getBlock(1, BOX, ["Ignored instructions", "certified"]) : d.block(1, BOX, ["Ignored instructions", "certified"]);
-        if (box) await d.point(1, box);
+        if (box) await d.point(1, box, { zoom: true });
         await d.hold(box ? 7000 : 1000);
       },
     },
@@ -99,9 +99,9 @@ export function storySteps(meta: boolean): Step[] {
       body: "Thickness, width and weight each point to the line and characters they came from, and show the unit rule that converted them. The standard’s edition was never stated, so it stays Unknown instead of being guessed.",
       pane: 1,
       run: async (d) => {
-        await d.point(1, await d.getBlock(1, BOX, ["Thickness", "chars"]));
+        await d.point(1, await d.getBlock(1, BOX, ["Thickness", "chars"]), { zoom: true });
         await d.hold(4500);
-        await d.point(1, await d.getBlock(1, BOX, ["Standard edition", "Unknown"]));
+        await d.point(1, await d.getBlock(1, BOX, ["Standard edition", "Unknown"]), { zoom: true });
         await d.hold(4000);
       },
     },
@@ -144,7 +144,7 @@ export function storySteps(meta: boolean): Step[] {
       run: async (d) => {
         const row = await d.get(0, "[id^=row-]", d.lotRef);
         const facts = d.block(0, "div", "✓", row);
-        await d.point(0, facts ?? row);
+        await d.point(0, facts ?? row, { zoom: true });
         await d.hold(7000);
       },
     },
@@ -185,7 +185,7 @@ export function storySteps(meta: boolean): Step[] {
         await d.until(() => DEAL_PAGE.test(d.path(0)), 20_000, "the deal page");
         d.dealPath = d.path(0);
         const accept = await d.get(0, "button", "Accept offer");
-        await d.point(0, d.block(0, BOX, ["New offer from", "sent an offer"]) ?? accept);
+        await d.point(0, d.block(0, BOX, ["New offer from", "sent an offer"]) ?? accept, { zoom: true });
         await d.hold(3500);
         await d.click(0, accept);
         await d.until(() => !d.find(0, "button", "Accept offer"), 20_000, "the order");
@@ -204,7 +204,7 @@ export function storySteps(meta: boolean): Step[] {
         await d.click(1, await d.get(1, "button", "Demo input", form));
         await d.hold(800);
         await d.click(1, await d.get(1, "button", "Create proforma from the offer", form));
-        await d.point(1, await d.getBlock(1, BOX, "required fields match"));
+        await d.point(1, await d.getBlock(1, BOX, "required fields match"), { zoom: true });
         await d.hold(6000);
       },
     },
@@ -220,7 +220,7 @@ export function storySteps(meta: boolean): Step[] {
         d.dealPath = "";
         await d.until(() => d.text(0).includes("found 2.70"), 10_000, "the 2.70 mm certificate");
         d.dealPath = d.path(0);
-        await d.point(0, await d.getBlock(0, BOX, ["2.70", "2.75"]));
+        await d.point(0, await d.getBlock(0, BOX, ["2.70", "2.75"]), { zoom: true });
         await d.hold(7500);
       },
     },
@@ -235,7 +235,7 @@ export function storySteps(meta: boolean): Step[] {
         await d.until(() => d.text(1).includes("Demo file attached"), 15_000, "the corrected certificate");
         await d.click(1, await d.get(1, "button[type=submit]", "Attach a new version"));
         await d.until(() => d.text(0).includes("corrected.pdf"), 20_000, "Ana's side to update");
-        await d.point(0, await d.getBlock(0, BOX, ["Mill test certificate check", "required fields match"]));
+        await d.point(0, await d.getBlock(0, BOX, ["Mill test certificate check", "required fields match"]), { zoom: true });
         await d.hold(6000);
       },
     },

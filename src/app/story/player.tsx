@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { startStoryAction } from "@/app/actions";
 import { LogoIcon } from "@/components/icons";
 import { atSeat } from "@/lib/seat";
-import { Driver, Stopped } from "./driver";
+import { Driver, PANE_SCALE, Stopped } from "./driver";
 import { storySteps } from "./steps";
 
 const PANES = [
@@ -34,13 +34,17 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
   const [paused, setPaused] = useState(false);
   const [run, setRun] = useState(0);
   const [status, setStatus] = useState<string | null>(null);
+  const [active, setActive] = useState<0 | 1 | null>(null);
   const [error, setError] = useState<string | null>(null);
   const driver = useRef<Driver | null>(null);
   const frames = [useRef<HTMLIFrameElement>(null), useRef<HTMLIFrameElement>(null)];
 
-  // The caption's live status line, e.g. the seconds a model call has taken.
+  // The caption's live status line (e.g. the seconds a model call has taken) and the pane the action is in.
   useEffect(() => {
-    const t = setInterval(() => setStatus(driver.current?.status?.() ?? null), 250);
+    const t = setInterval(() => {
+      setStatus(driver.current?.status?.() ?? null);
+      setActive(driver.current?.active ?? null);
+    }, 250);
     return () => clearInterval(t);
   }, []);
 
@@ -69,6 +73,9 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
       d.frames = [frames[0].current, frames[1].current];
       for (let i = 0; i < steps.length; i++) {
         setStep(i);
+        // A new step starts clean: no ring or zoom left on the other pane.
+        for (const q of [0, 1] as const) if (q !== steps[i].pane) d.clear(q);
+        d.active = steps[i].pane ?? null;
         try {
           await steps[i].run(d);
         } catch (e) {
@@ -170,11 +177,12 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
 
       <div className="relative grid min-h-0 flex-1 grid-cols-2 gap-3 p-3">
         {PANES.map((p, i) => {
-          const active = phase === "playing" && s?.pane === i;
+          const on = phase === "playing" && active === i;
+          const dim = phase === "playing" && active !== null && active !== i;
           return (
             <section
               key={p.name}
-              className={`flex min-h-0 flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition dark:bg-zinc-900 ${active ? "border-amber-500 ring-2 ring-amber-500/60" : "border-zinc-200 dark:border-zinc-800"}`}
+              className={`flex min-h-0 flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition duration-500 dark:bg-zinc-900 ${on ? "border-amber-500 ring-2 ring-amber-500/60" : "border-zinc-200 dark:border-zinc-800"} ${dim ? "opacity-60" : ""}`}
             >
               <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
                 <span className={`flex size-8 items-center justify-center rounded-full text-sm font-semibold ${i === 0 ? "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"}`}>
@@ -190,7 +198,12 @@ export function StoryPlayer({ meta, resets }: { meta: boolean; resets: boolean }
                 <span className="ml-auto rounded-md border border-zinc-200 px-2 py-0.5 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">{p.network}</span>
               </div>
               {live ? (
-                <iframe key={run} ref={frames[i]} src={atSeat((i + 1) as 1 | 2, "/")} title={`${p.name}'s screen`} className="min-h-0 w-full flex-1 border-0 bg-zinc-50 dark:bg-zinc-950" />
+                // The frame can be zoomed like a camera; this box keeps it inside the pane.
+                <div className="relative min-h-0 flex-1 overflow-hidden">
+                  <iframe key={run} ref={frames[i]} src={atSeat((i + 1) as 1 | 2, "/")} title={`${p.name}'s screen`} className="absolute top-0 left-0 origin-top-left border-0 bg-zinc-50 dark:bg-zinc-950"
+                    style={{ width: `${100 / PANE_SCALE}%`, height: `${100 / PANE_SCALE}%`, transform: `scale(${PANE_SCALE})` }}
+                  />
+                </div>
               ) : (
                 <div className="flex-1 bg-zinc-50 dark:bg-zinc-950" />
               )}
