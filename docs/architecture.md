@@ -43,10 +43,18 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
   │    auto-closed as lost when the lot is sold or withdrawn, sharing ends, or the demand ends
   │    seller side (listRequestsForSeller · replyToBuyer · sendOffer · reconfirmForBuyer): the lot owner sees
   │    open deals on its own lots (buyer alias, lot, question; never the demand) and answers into `deal_events`;
-  │    the buyer's digest shows the newest seller answer first; signed-in pages re-render every 8 s (LiveRefresh)
+  │    the buyer's digest shows the newest seller answer first; signed-in pages re-render every 8 s (LiveRefresh);
+  │    a save also tells this browser's other tabs to re-render at once (BroadcastChannel). /demo shows two
+  │    accounts side by side: /seat2/… is rewritten by src/proxy.ts and reads a second session cookie
   │    orders (src/workflow/orders.ts): accepting an offer keeps the lot as seen on the deal (`order_lot`); steps in
   │    `deal_milestones` (confirm → contract → payment → MTC → shipped → received), each owned by one side and done in
   │    order; confirming marks the lot sold; files in `deal_files` (bytea, type and size checked), served only to the two sides
+  │    document checks (src/workflow/doc-templates.ts): one template per step document (proforma, L/C, MTC, B/L)
+  │    says each field's labels, whether it is required and what it must agree with (offer, `order_lot`, network
+  │    aliases, the proforma already on the order); a file attached to a step is parsed by the intake parsers, values
+  │    are read deterministically from labelled lines only (each keeps its line as the quote), and the result is
+  │    stored in `deal_files.doc_check`; a required field that differs or is missing blocks completing the step
+  │    unless a reason is given (`deal_milestones.override_reason`), and the event names the mismatch for both sides
   │
   └─ optional Meta · ExplainCandidate (src/ai/tasks/explain-candidate.ts): rephrases rule results;
      every sentence must cite fact IDs; unsupported numbers / equivalence / certification language removed;
@@ -55,8 +63,8 @@ buyer review (shortlist / request info / dismiss, with reason and versions) — 
 
 ## Storage
 
-Postgres schema in `db/migrations/0001…0006` (deals and the demo clock, Meta usage, maintenance leases, and
-accounts and the simulated market are added after `0001_init.sql`), run on embedded PGlite
+Postgres schema in `db/migrations/0001…0008` (deals and the demo clock, Meta usage, maintenance leases,
+accounts and the simulated market, orders, and order document checks are added after `0001_init.sql`), run on embedded PGlite
 locally (`.data/pglite`) and on Neon Postgres over HTTPS when `DATABASE_URL` is set (`src/db/neon.ts`). Both
 sit behind the same three-method interface in `src/db/client.ts`. Raw documents
 stay with the owner network; other networks only ever receive the shared projection.

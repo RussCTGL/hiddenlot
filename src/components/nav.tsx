@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { unseat } from "@/lib/seat";
 
 const NAV = [
   ["/", "Today"],
@@ -19,7 +20,7 @@ const NAV = [
 /** `children` (e.g. the signed-in account) go inside the phone menu; `requests` is the count shown on Requests. */
 export function Nav({ children, requests }: { children?: ReactNode; requests?: ReactNode }) {
   return (
-    <NavLinks path={usePathname()} requests={requests}>
+    <NavLinks path={unseat(usePathname())} requests={requests}>
       {children}
     </NavLinks>
   );

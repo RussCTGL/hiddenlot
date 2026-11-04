@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionState } from "@/app/actions";
+import { announceChange } from "@/components/live-refresh";
 
 // Client wrappers so server actions can report validation errors inline.
 
@@ -20,6 +21,7 @@ export function ActionForm({
   const [faded, setFaded] = useState<ActionState>(null);
   useEffect(() => {
     if (!state?.ok) return;
+    announceChange(); // other tabs and demo panes of this browser show it at once
     const t = setTimeout(() => setFaded(state), 5000);
     return () => clearTimeout(t);
   }, [state]);

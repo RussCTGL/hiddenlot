@@ -458,7 +458,9 @@ function dealRisk(deal: DealRow, pair: PairState, ctx: Context): Risk | null {
             ? `Order update from ${pair.sellerLabel}`
             : news.kind === "seller_file"
               ? `New file from ${pair.sellerLabel}`
-              : `${cap(pair.sellerLabel)} replied`;
+              : news.kind === "seller_doc_mismatch"
+                ? "Document does not match the order"
+                : `${cap(pair.sellerLabel)} replied`;
     return { action: "seen", badge, reason: news.note, label: "mark as read", draft: null };
   }
   if (deal.stage === "ordered") return null; // the order page says whose step is next
@@ -1002,7 +1004,7 @@ export async function closeDeal(db: Db, actor: Actor, id: string, outcome: "won"
 // the buyer's network alias, the lot and what was asked. Never the buyer's
 // demand. Answers land on the buyer's deal as events.
 
-const SELLER_KINDS = ["seller_reply", "seller_offer", "seller_reconfirm", "seller_step", "seller_file"];
+const SELLER_KINDS = ["seller_reply", "seller_offer", "seller_reconfirm", "seller_step", "seller_file", "seller_doc_mismatch"];
 const BUYER_ASKS = ["waiting", "quote_requested", "asked"];
 
 export interface BuyerRequest {

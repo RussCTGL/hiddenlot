@@ -12,7 +12,7 @@ import { getDb } from "@/db/server";
 import { FRESHNESS_WINDOW_HOURS } from "@/discovery/constraints";
 import { fitView as fit, landPath, MAP_H, MAP_W, project } from "@/geo/map";
 import { findPlace } from "@/geo/places";
-import { demoLoaded, getSession, requestNow } from "@/lib/session";
+import { demoLoaded, getSession, requestNow, seatPath } from "@/lib/session";
 import Link from "next/link";
 import { buildDigest, listRequestsForSeller, lotRef, lotTitle, whereOf, type DigestItem, type Suggestion } from "@/workflow/deals";
 
@@ -30,7 +30,7 @@ export default function Today() {
 async function TodayPage() {
   const session = await getSession();
   if (!session) {
-    if (await demoLoaded()) redirect("/login");
+    if (await demoLoaded()) redirect(await seatPath("/login"));
     return (
       <Page title="HiddenLot" subtitle="No demo data loaded yet.">
         <Card>

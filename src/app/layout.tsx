@@ -6,6 +6,7 @@ import { marketStepAction, shiftClockAction, signOutAction } from "@/app/actions
 import { ClockIcon, LogoIcon } from "@/components/icons";
 import { LiveRefresh } from "@/components/live-refresh";
 import { Nav, NavLinks } from "@/components/nav";
+import { SeatLinks } from "@/components/seat-links";
 import { getDb } from "@/db/server";
 import { getClockOffsetHours } from "@/db/repo";
 import { demoControlsAllowed } from "@/lib/demo";
@@ -147,6 +148,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <Live />
         </Suspense>
+        <SeatLinks />
         <footer className="space-y-3 border-t border-zinc-200 px-4 py-5 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
           <Suspense fallback={null}>
             <DemoClock />

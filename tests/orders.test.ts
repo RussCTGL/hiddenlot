@@ -5,6 +5,7 @@ import type { Db } from "@/db/client";
 import { seedDemo } from "@/seed/demo";
 import { acceptOffer, acceptSuggestions, buildDigest, getDealViewForActor, listDealsForActor, listRequestsForSeller, sendOffer } from "@/workflow/deals";
 import { addDealFile, completeStep, declineOrder, getDealFile, getOrderView, listOrdersForSeller } from "@/workflow/orders";
+import { tinyPdf } from "@/lib/tiny-pdf";
 import { freshDb } from "./db";
 
 // After the offer: the order both sides share, its steps and files (demo seed with the sample order).
@@ -15,7 +16,19 @@ const A: Actor = { id: "u-ana", network_id: "net-a", role: "trader" };
 const B: Actor = { id: "u-bo", network_id: "net-b", role: "trader" };
 const C: Actor = { id: "u-chen", network_id: "net-c", role: "trader" };
 const hours = (h: number) => new Date(NOW.getTime() + h * 3_600_000);
-const pdf = { filename: "MTC B-044.pdf", bytes: new TextEncoder().encode("%PDF-1.4 test") };
+// An MTC that matches the order (the seeded one shows 2.70 mm on a 2.75 mm lot).
+const pdf = {
+  filename: "MTC B-044.pdf",
+  bytes: tinyPdf("MILL TEST CERTIFICATE", [
+    "Certificate no.: MTC-26-1190",
+    "Grade / standard: Q235B GB/T 700-2006",
+    "Heat numbers: 26-1187",
+    "Dimensions: 2.75 x 1250 mm",
+    "Weight: 24.1 t",
+    "Chemical composition: C 0.16 Mn 0.52",
+    "Mechanical results: yield 275 MPa",
+  ]),
+};
 
 before(async () => {
   db = await freshDb();
@@ -27,7 +40,7 @@ beforeEach(async () => {
 
 const sampleDeal = async () => (await db.query<{ id: string }>(`SELECT id FROM deals WHERE lot_id = 'lot-b-044' AND buyer_network_id = 'net-a'`))[0].id;
 
-test("the demo starts with an order under way: B-044 sold to Network A, two files shared, MTC is the seller's turn", async () => {
+test("the demo starts with an order under way: B-044 sold to Network A, three files shared, MTC is the seller's turn", async () => {
   const id = await sampleDeal();
   const a = await getOrderView(db, A, id);
   const b = await getOrderView(db, B, id);
@@ -36,7 +49,7 @@ test("the demo starts with an order under way: B-044 sold to Network A, two file
   assert.equal(a.steps.find((s) => s.next)?.id, "mtc");
   assert.equal(a.waitingOn, "them");
   assert.equal(b.waitingOn, "you");
-  assert.deepEqual(a.files.map((f) => f.filename).sort(), ["LC-A-26-0457.pdf", "Proforma PI-B044-26.pdf"]);
+  assert.deepEqual(a.files.map((f) => f.filename).sort(), ["LC-A-26-0457.pdf", "MTC 26-1187.pdf", "Proforma PI-B044-26.pdf"]);
   // The buyer still reads the lot it bought, though the lot is sold.
   const v = await getDealViewForActor(db, A, id, NOW);
   assert.match(v.title, /Q235B/);
@@ -48,7 +61,7 @@ test("the demo starts with an order under way: B-044 sold to Network A, two file
   assert.equal(orders[0].yourTurn, true);
   assert.equal(orders[0].next, "Mill test certificate shared");
   // A shared file is readable by both sides and nobody else.
-  const f = await getDealFile(db, B, id, a.files[0].id);
+  const f = await getDealFile(db, B, id, a.files.find((x) => x.filename.startsWith("LC"))!.id);
   assert.match(new TextDecoder().decode(f.bytes.subarray(0, 8)), /^%PDF-1\.4/);
   await assert.rejects(getDealFile(db, C, id, a.files[0].id), NotFoundError);
 });
@@ -75,7 +88,7 @@ test("files can be shared both ways during the deal; checked by type and size", 
   await addDealFile(db, A, id, { filename: "packing instructions.txt", bytes: new TextEncoder().encode("Wrap coils for sea freight.") }, hours(1));
   await assert.rejects(addDealFile(db, B, id, { filename: "run.exe", bytes: new Uint8Array([1]) }, hours(1)), /Only/);
   await assert.rejects(addDealFile(db, C, id, pdf, hours(1)), NotFoundError);
-  assert.equal((await getOrderView(db, B, id)).files.length, 3);
+  assert.equal((await getOrderView(db, B, id)).files.length, 4);
   assert.equal((await buildDigest(db, A, hours(1))).risks.find((s) => s.dealId === id), undefined); // her own file is no news to her
 });
 

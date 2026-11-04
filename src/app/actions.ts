@@ -14,10 +14,12 @@ import { demoControlsAllowed } from "@/lib/demo";
 import { getExplainCall, getMetaExtract, metaCallsLeft } from "@/lib/meta";
 import { acceptOffer, acceptSuggestions, closeDeal, declineSuggestion, moveDeal, openQuestions, reconfirmForBuyer, recordQuote, replyToBuyer, sendOffer, startDeal } from "@/workflow/deals";
 import { explainOpportunity } from "@/workflow/explain";
-import { addDealFile, completeStep, declineOrder, ORDER_STEPS, type OrderStep, type Upload } from "@/workflow/orders";
+import { addDealFile, completeStep, createProforma, declineOrder, ORDER_STEPS, type OrderStep, type Upload } from "@/workflow/orders";
 import { stepMarket } from "@/lib/market-clock";
-import { requestNow, requireSession, SESSION_COOKIE, sessionCookie } from "@/lib/session";
+import { currentSeat, requestNow, requireSession, seatPath, sessionCookie, sessionCookieName } from "@/lib/session";
+import type { Seat } from "@/lib/seat";
 import { seedDemo } from "@/seed/demo";
+import { loadMarket } from "@/sim/market";
 import {
   ALL_LOT_FIELDS,
   createDemand,
@@ -79,18 +81,32 @@ export async function signInAction(_prev: ActionState, formData: FormData): Prom
     await new Promise((r) => setTimeout(r, 400)); // slows guessing a little; the accounts are public demo accounts anyway
     return { error: "Wrong username or password" };
   }
+  await startSession(await currentSeat(), token);
+  redirect(await seatPath("/"));
+}
+
+/** Switching accounts on a seat ends its previous session rather than leave it valid. */
+async function startSession(seat: Seat, token: string) {
   const store = await cookies();
-  // Switching accounts: end the previous session rather than leave it valid.
-  await endSession(await getDb(), store.get(SESSION_COOKIE)?.value);
-  store.set(sessionCookie(token));
-  redirect("/");
+  await endSession(await getDb(), store.get(sessionCookieName(seat))?.value);
+  store.set(sessionCookie(token, seat));
 }
 
 export async function signOutAction() {
+  const seat = await currentSeat();
   const store = await cookies();
-  await endSession(await getDb(), store.get(SESSION_COOKIE)?.value);
-  store.delete(SESSION_COOKIE);
-  redirect("/login");
+  await endSession(await getDb(), store.get(sessionCookieName(seat))?.value);
+  store.delete(sessionCookieName(seat));
+  redirect(await seatPath("/login"));
+}
+
+/** The side-by-side demo (/demo): sign one of its two panes in as a demo account, with the shared demo password. */
+export async function signInPaneAction(formData: FormData): Promise<ActionState> {
+  const seat: Seat = formData.get("seat") === "2" ? 2 : 1;
+  const token = await signIn(await getDb(), str(formData, "username"), loadMarket().demo_password, new Date());
+  if (!token) return { error: "Not a demo account" };
+  await startSession(seat, token);
+  return { ok: "Signed in" };
 }
 
 const resetAllowed = demoControlsAllowed;
@@ -136,7 +152,7 @@ export async function intakeAction(_prev: ActionState, formData: FormData): Prom
     const r = await intakeDocument(await getDb(), actor, { bytes, filename, mime, extractor, synthetic: true }, getMetaExtract(), await requestNow());
     target = r.document_id;
   });
-  if (target) redirect(`/documents/${target}`);
+  if (target) redirect(await seatPath(`/documents/${target}`));
   return state;
 }
 
@@ -292,7 +308,7 @@ export async function createDemandAction(_prev: ActionState, formData: FormData)
     const { demand } = await createDemand(await getDb(), actor, input, await requestNow());
     created = demand.demand_id;
   });
-  if (created) redirect(`/opportunities?demand=${created}`);
+  if (created) redirect(await seatPath(`/opportunities?demand=${created}`));
   return state;
 }
 
@@ -463,7 +479,7 @@ export async function completeStepAction(_prev: ActionState, formData: FormData)
     const { actor } = await requireSession();
     const step = str(formData, "step");
     if (!ORDER_STEPS.some((s) => s.id === step)) throw new UserError("Unknown step");
-    await completeStep(await getDb(), actor, str(formData, "deal_id"), step as OrderStep, str(formData, "note"), await uploadFrom(formData), await requestNow());
+    await completeStep(await getDb(), actor, str(formData, "deal_id"), step as OrderStep, str(formData, "note"), await uploadFrom(formData), await requestNow(), str(formData, "override"));
     refresh();
     return { ok: "Done. The other side sees it now." };
   });
@@ -482,9 +498,21 @@ export async function addDealFileAction(_prev: ActionState, formData: FormData):
     const { actor } = await requireSession();
     const file = await uploadFrom(formData);
     if (!file) throw new UserError("Choose a file");
-    await addDealFile(await getDb(), actor, str(formData, "deal_id"), file, await requestNow());
+    // With a step, the file is that step's document and is checked against its template.
+    const step = str(formData, "step");
+    if (step && !ORDER_STEPS.some((s) => s.id === step)) throw new UserError("Unknown step");
+    const check = await addDealFile(await getDb(), actor, str(formData, "deal_id"), file, await requestNow(), (step || null) as OrderStep | null);
     refresh();
-    return { ok: "Shared. The other side sees it now." };
+    return { ok: check ? "Attached and checked. The other side sees it and the check now." : "Shared. The other side sees it now." };
+  });
+}
+
+export async function createProformaAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return run(async () => {
+    const { actor } = await requireSession();
+    await createProforma(await getDb(), actor, str(formData, "deal_id"), str(formData, "payment_terms"), await requestNow());
+    refresh();
+    return { ok: "Proforma created from the offer and attached. Check it, then mark the step done." };
   });
 }
 

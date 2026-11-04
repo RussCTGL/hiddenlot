@@ -10,7 +10,7 @@ import { listDemandsOfNetwork, listLotsOfNetwork } from "@/db/repo";
 import { getDb } from "@/db/server";
 import type { CompatibilityStatus } from "@/discovery/constraints";
 import { GROUP_ORDER } from "@/discovery/engine";
-import { demoLoaded, getSession, requestNow } from "@/lib/session";
+import { demoLoaded, getSession, requestNow, seatPath } from "@/lib/session";
 import { demoControlsAllowed } from "@/lib/demo";
 import { metaAvailable } from "@/lib/meta";
 
@@ -27,7 +27,7 @@ export default function About() {
 async function Overview() {
   const session = await getSession();
   if (!session) {
-    if (await demoLoaded()) redirect("/login");
+    if (await demoLoaded()) redirect(await seatPath("/login"));
     return (
       <Page title="HiddenLot" subtitle="No demo data loaded yet.">
         <Card>

@@ -66,6 +66,13 @@ async function Login() {
           <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
             Demo password for every account: <code className="font-mono text-zinc-700 dark:text-zinc-300">{password}</code>
           </p>
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            See buyer and seller at once:{" "}
+            <a href="/demo" target="_top" className="text-accent hover:underline">
+              two accounts side by side
+            </a>
+            .
+          </p>
         </Card>
 
         <div className="order-first space-y-6 lg:order-none">
