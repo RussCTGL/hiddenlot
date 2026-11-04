@@ -1,6 +1,7 @@
 import { addDealFileAction, completeStepAction, createProformaAction, declineOrderAction } from "@/app/actions";
 import { ActionForm, Submit } from "@/components/forms";
 import { DemoFile, DemoFill } from "@/components/demo-input";
+import { FileInput } from "@/components/file-input";
 import { CiteIcon } from "@/components/icons";
 import { Badge, buttonCls, Card, dangerCls, inputCls, Mark, primaryCls } from "@/components/ui";
 import { demoInputs } from "@/lib/demo";
@@ -24,9 +25,6 @@ function FileLink({ dealId, f }: { dealId: string; f: DealFile }) {
     </a>
   );
 }
-
-const fileInputCls =
-  "block w-full text-xs file:mr-3 file:rounded-md file:border file:border-zinc-300 file:bg-white file:px-2.5 file:py-1.5 file:text-xs dark:file:border-zinc-700 dark:file:bg-zinc-900";
 
 const FIELD_MARK = { ok: "pass", differs: "fail", missing: "unknown" } as const;
 
@@ -209,7 +207,7 @@ export function OrderPanel({ dealId, v }: { dealId: string; v: OrderView }) {
                         <input type="hidden" name="deal_id" value={dealId} />
                         <input type="hidden" name="step" value={s.id} />
                         <div className="flex flex-wrap items-center gap-2">
-                          <input type="file" name="file" required accept={FILE_ACCEPT} className={`${fileInputCls} min-w-0 flex-1`} aria-label={`Attach the ${s.template.title.toLowerCase()}`} />
+                          <FileInput required accept={FILE_ACCEPT} className="flex-1" label={`Attach the ${s.template.title.toLowerCase()}`} />
                           <Submit className={buttonCls} pending="Checking…">
                             {s.doc ? "Attach a new version" : "Attach and check"}
                           </Submit>
@@ -281,7 +279,7 @@ export function DealFiles({ dealId, files, side, buyer, seller, canAdd }: { deal
       {canAdd && (
         <ActionForm action={addDealFileAction} className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
           <input type="hidden" name="deal_id" value={dealId} />
-          <input type="file" name="file" required accept={FILE_ACCEPT} className={`${fileInputCls} min-w-0 flex-1`} />
+          <FileInput required accept={FILE_ACCEPT} className="flex-1" label="Attach a shared file" />
           <Submit className={buttonCls} pending="Uploading…">
             Share file
           </Submit>

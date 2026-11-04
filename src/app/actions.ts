@@ -111,6 +111,27 @@ export async function signInPaneAction(formData: FormData): Promise<ActionState>
 
 const resetAllowed = demoControlsAllowed;
 
+/**
+ * The guided story (/story): starts from a fresh demo where resetting is
+ * allowed, signs the left pane in as Ana and the right as Bo, and names the
+ * lot Bo will post (a new ref each run where the shared demo cannot be reset).
+ */
+export async function startStoryAction(): Promise<{ reset: boolean; lotRef: string; error?: string }> {
+  const db = await getDb();
+  const reset = resetAllowed();
+  if (reset) await seedDemo(db, new Date());
+  const password = loadMarket().demo_password;
+  for (const [seat, username] of [
+    [1, "ana"],
+    [2, "bo"],
+  ] as const) {
+    const token = await signIn(db, username, password, new Date());
+    if (!token) return { reset, lotRef: "", error: "The demo accounts are not loaded yet." };
+    await startSession(seat, token);
+  }
+  return { reset, lotRef: reset ? "B-052" : `B-${100 + (Math.floor(Date.now() / 60_000) % 900)}` };
+}
+
 export async function resetDemo() {
   if (!resetAllowed()) return;
   const db = await getDb();

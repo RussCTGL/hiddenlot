@@ -48,6 +48,19 @@ async function Login() {
       title="Sign in"
       subtitle={session ? `Signed in as ${short(session.user.name)} (${session.network.alias}). Sign in again to switch account.` : "Every account here is a fictional demo account."}
     >
+      <a
+        href="/story"
+        target="_top"
+        className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:hover:bg-amber-950/70"
+      >
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-zinc-950" aria-hidden>
+          ▶
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">New here? Watch the three-minute story</span>
+          <span className="block text-sm text-zinc-600 dark:text-zinc-400">A buyer and a stockist side by side in the real app, from a chat offer to a checked order. It plays by itself.</span>
+        </span>
+      </a>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <Card title="Sign in">
           <ActionForm action={signInAction} className="space-y-3">
